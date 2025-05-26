@@ -1,0 +1,531 @@
+.manage-states {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.states-header {
+  margin-bottom: 30px;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.header-row h2 {
+  margin: 0;
+  color: #333;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.header-description {
+  margin: 0;
+  color: #666;
+  font-size: 0.95rem;
+}
+
+.add-state-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #2ecc71;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.add-state-btn:hover {
+  background: #27ae60;
+}
+
+.plus-icon {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.btn-text {
+  font-size: 0.95rem;
+}
+
+.states-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 25px;
+  padding: 20px 0;
+}
+
+.state-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+
+.state-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.state-image {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  position: relative;
+  background: #f5f5f5;
+}
+
+.state-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transition: transform 0.3s ease;
+}
+
+.state-card:hover .state-image img {
+  transform: scale(1.05);
+}
+
+.no-image {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f0f0;
+  color: #666;
+  font-size: 14px;
+}
+
+.state-title {
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.state-title h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.state-actions {
+  padding: 15px;
+  display: flex;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.edit-btn, .delete-btn {
+  flex: 1;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.edit-btn {
+  background: #4a90e2;
+  color: white;
+}
+
+.edit-btn:hover {
+  background: #357abd;
+}
+
+.delete-btn {
+  background: #e74c3c;
+  color: white;
+}
+
+.delete-btn:hover {
+  background: #c0392b;
+}
+
+.delete-btn.deleting {
+  background: #95a5a6;
+  cursor: not-allowed;
+}
+
+/* Error message styling */
+.error-message {
+  background-color: #ffebee;
+  color: #d32f2f;
+  padding: 12px;
+  border-radius: 6px;
+  margin: 10px 0;
+  font-size: 0.9rem;
+  border: 1px solid #ffcdd2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.error-message::before {
+  content: '⚠️';
+  font-size: 1.1rem;
+}
+
+/* Modal Styles */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.form-section {
+  margin-bottom: 20px;
+}
+
+.form-section label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+.form-section input,
+.form-section textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.form-section textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.save-btn,
+.cancel-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.save-btn {
+  background: #2ecc71;
+  color: white;
+}
+
+.cancel-btn {
+  background: #95a5a6;
+  color: white;
+}
+
+.loading {
+  text-align: center;
+  padding: 20px;
+  font-size: 18px;
+  color: #666;
+}
+
+.error {
+  text-align: center;
+  padding: 20px;
+  color: #e74c3c;
+  background: #fde8e8;
+  border-radius: 6px;
+  margin: 20px 0;
+}
+
+/* Image Upload Styles */
+.image-upload {
+  margin-top: 10px;
+}
+
+.image-preview {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: 6px;
+  margin-top: 10px;
+}
+
+.remove-image-btn {
+  margin-top: 10px;
+  padding: 8px 15px;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* Background for the whole dashboard */
+.history-dashboard-bg {
+  background: #f6fcfa;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+/* Card style for the main content */
+.history-dashboard-card {
+  max-width: 1100px;
+  margin: 40px auto 0 auto;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+  padding: 2rem 2rem 2.5rem 2rem;
+}
+
+/* Header row with title and add button */
+.history-header-row {
+  display: flex;
+  justify-content: space-between;
+  
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.history-header-row h2 {
+  font-weight: 700;
+  margin: 0;
+}
+
+.add-btn {
+  background: #f44336;
+  color: #fff;
+  font-weight: 600;
+  font-size: 18px;
+  border-radius: 8px;
+  padding: 10px 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.add-btn:hover { background: #d32f2f; }
+
+.states-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.states-table th, .states-table td {
+  padding: 16px 12px;
+  text-align: left;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.states-table th {
+  font-weight: 700;
+  font-size: 16px;
+  background: #f8fafc;
+  color: #1a237e;
+}
+
+.states-table tr:last-child td {
+  border-bottom: none;
+}
+
+.states-table img {
+  width: 80px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.edit-btn, .delete-btn {
+  font-weight: 600;
+  font-size: 15px;
+  border-radius: 6px;
+  padding: 6px 18px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.edit-btn {
+  background: #2196F3;
+  color: #fff;
+  margin-right: 8px;
+}
+.edit-btn:hover { background: #1976D2; }
+
+.delete-btn {
+  background: #f44336;
+  color: #fff;
+}
+.delete-btn:hover { background: #d32f2f; }
+
+select {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 2px solid #e0e0e0;
+  font-size: 16px;
+  margin-left: 8px;
+  background-color: white;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 40px;
+  min-width: 200px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+select:hover {
+  border-color: #4CAF50;
+  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.1);
+}
+
+select:focus {
+  outline: none;
+  border-color: #4CAF50;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.15);
+}
+
+select option {
+  padding: 12px;
+  font-size: 16px;
+  background-color: white;
+  color: #333;
+}
+
+select option:hover {
+  background-color: #f5f5f5;
+}
+
+select option:checked {
+  background-color: #4CAF50;
+  color: white;
+}
+
+/* For Firefox */
+select::-moz-focus-inner {
+  border: 0;
+}
+
+/* For IE */
+select::-ms-expand {
+  display: none;
+}
+
+/* Form Section */
+.form-section {
+  margin-bottom: 32px;
+  width: 100%;
+}
+
+/* Label Styling */
+.modal-content label {
+  font-weight: 600;
+  margin-bottom: 7px;
+  color: #222;
+  display: block;
+}
+
+/* Input, Select, Textarea Styling */
+.modal-content input[type='text'],
+.modal-content input[type='file'],
+.modal-content textarea,
+.modal-content select {
+  color: black !important;
+  background: #fafbfc;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 7px;
+  font-size: 1rem;
+  margin-bottom: 18px;
+  transition: border-color 0.2s;
+  width: 100%;
+  min-width: 250px;
+  padding: 16px 18px;
+}
+
+.modal-content input[type='text']:focus,
+.modal-content textarea:focus,
+.modal-content select:focus {
+  border-color: #e53935;
+  background: #fff;
+  outline: none;
+}
+
+/* Placeholder text should also be black */
+.modal-content input[type='text']::placeholder,
+.modal-content textarea::placeholder {
+  color: black !important;
+  opacity: 1;
+}
+
+/* Image Preview */
+.image-preview {
+  width: 140px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  margin-bottom: 18px;
+  border: 1px solid #eee;
+}
+
+/* CKEditor Styling */
+.ck-editor__editable {
+  color: black !important;
+  min-height: 180px;
+  border-radius: 7px;
+  margin-bottom: 18px;
+  background: #fafbfc;
+  border: 1.5px solid #e0e0e0;
+}
+
+/* Remove global * color override to avoid conflicts */
+/* * {
+  color: black !important;
+} */ 

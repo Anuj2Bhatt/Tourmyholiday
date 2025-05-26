@@ -1,0 +1,116 @@
+.seasonal-guides-section {
+  padding: 20px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.add-new-btn {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.3s;
+}
+
+.add-new-btn:hover {
+  background: #45a049;
+}
+
+.guides-table-container {
+  overflow-x: auto;
+}
+
+.guides-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.guides-table th,
+.guides-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.guides-table th {
+  background: #f5f5f5;
+  font-weight: 600;
+}
+
+.guide-images {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.guide-thumbnail {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.guide-thumbnail:hover {
+  transform: scale(1.1);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.edit-btn,
+.delete-btn {
+  padding: 6px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.edit-btn {
+  background: #2196F3;
+  color: white;
+}
+
+.edit-btn:hover {
+  background: #1976D2;
+}
+
+.delete-btn {
+  background: #f44336;
+  color: white;
+}
+
+.delete-btn:hover {
+  background: #d32f2f;
+}
+
+.no-images {
+  color: #666;
+  font-style: italic;
+}
+
+.no-data-message,
+.no-selection-message {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+  font-style: italic;
+} 

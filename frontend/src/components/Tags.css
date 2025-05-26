@@ -1,0 +1,40 @@
+/* frontend/src/components/Tags.css */
+.tags-container {
+  margin-bottom: 30px;
+}
+
+.tags-container h3 {
+  font-size: 1.2rem;
+  color: #1a237e;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tag {
+  background: #e3f2fd;
+  color: #1a237e;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.tag:hover {
+  background: #bbdefb;
+  transform: translateY(-2px);
+}
+
+.tag.active {
+  background: #1a237e;
+  color: white;
+  box-shadow: 0 2px 8px rgba(26, 35, 126, 0.2);
+}

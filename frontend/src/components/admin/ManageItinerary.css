@@ -1,0 +1,321 @@
+.manage-itinerary {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin: 20px 0;
+}
+
+.itinerary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.itinerary-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 1.5rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.save-itinerary-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.save-itinerary-btn:hover {
+  background: #0056b3;
+}
+
+.add-day-btn {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.3s ease;
+}
+
+.add-day-btn:hover {
+  background: #218838;
+}
+
+/* Tab Styles */
+.itinerary-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.tab-btn {
+  padding: 8px 16px;
+  border: none;
+  background: none;
+  color: #666;
+  cursor: pointer;
+  font-size: 1rem;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.tab-btn:hover {
+  background: #f5f5f5;
+  color: #333;
+}
+
+.tab-btn.active {
+  background: #007bff;
+  color: white;
+}
+
+.tab-content {
+  min-height: 200px;
+}
+
+/* Add Day Form Styles */
+.day-form {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #eee;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  color: #333;
+  font-weight: 500;
+}
+
+.day-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.day-input:focus {
+  border-color: #007bff;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.save-day-btn {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.save-day-btn:hover {
+  background: #218838;
+}
+
+.cancel-btn {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.cancel-btn:hover {
+  background: #5a6268;
+}
+
+/* Days List Styles */
+.days-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.day-item {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 15px;
+  border: 1px solid #eee;
+  transition: all 0.3s ease;
+}
+
+.day-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.day-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.day-number {
+  background: #007bff;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.day-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  flex: 1;
+}
+
+.day-description {
+  color: #444;
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+.day-description img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  margin: 10px 0;
+}
+
+.day-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.edit-day-btn {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.edit-day-btn:hover {
+  background: #218838;
+}
+
+.remove-day-btn {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.remove-day-btn:hover {
+  background: #c82333;
+}
+
+.no-days-message,
+.no-form-message {
+  text-align: center;
+  padding: 30px;
+  color: #666;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px dashed #ddd;
+}
+
+/* Quill editor customization */
+.ql-container {
+  min-height: 150px;
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+.ql-toolbar {
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+  background: #f8f9fa;
+}
+
+.ql-editor {
+  min-height: 150px;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #333;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .itinerary-header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+  }
+
+  .header-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .day-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .day-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .day-title {
+    max-width: none;
+    white-space: normal;
+  }
+
+  .day-description {
+    white-space: normal;
+  }
+} 

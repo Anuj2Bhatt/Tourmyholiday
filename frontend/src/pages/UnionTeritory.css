@@ -1,0 +1,259 @@
+/* Section Styling */
+.teritory-section {
+  padding: 3rem 2rem;
+  background-color: #ffffff;
+  min-height: 100vh;
+}
+
+.teritory-section h2 {
+  font-size: 2.2rem;
+  font-family: 'Poppins', sans-serif;
+  color: #2c3e50;
+  text-align: center;
+  margin-bottom: 2rem;
+  position: relative;
+  padding-bottom: 1rem;
+}
+
+.teritory-section h2::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 3px;
+  background-color: #3498db;
+}
+
+/* Grid Layout */
+.teritory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 25vw);
+  gap: 2rem;
+  max-width: 1400px;
+  margin: 0;
+  padding: 1rem;
+  justify-content: start;
+}
+
+/* Card Styling */
+.Teritory-card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.Teritory-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+}
+
+/* Image Styling */
+.teritory-image {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  position: relative;
+}
+
+.teritory-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.Teritory-card:hover .teritory-image img {
+  transform: scale(1.05);
+}
+
+/* Content Styling */
+.teritory-content {
+  padding: 1.5rem;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.teritory-content h3 {
+  font-size: 1.5rem;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+  font-family: 'Poppins', sans-serif;
+}
+
+.teritory-capital {
+  color: #666;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.teritory-activities {
+  margin-top: auto;
+  padding-top: 1rem;
+}
+
+.teritory-activities h4 {
+  font-size: 1.1rem;
+  color: #2c3e50;
+  margin-bottom: 0.8rem;
+  font-family: 'Poppins', sans-serif;
+}
+
+.activities-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.activity-button {
+  background-color: #f0f4f8;
+  color: #2c3e50;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.activity-button:hover {
+  background-color: #3498db;
+  color: white;
+  transform: translateY(-2px);
+}
+
+.territory-actions {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.explore-btn {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 25px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  width: 100%;
+  text-align: center;
+}
+
+.explore-btn:hover {
+  background-color: #2980b9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Loading and Error States */
+.loading-container,
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  text-align: center;
+  padding: 2rem;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-container h2 {
+  color: #e74c3c;
+  margin-bottom: 1rem;
+}
+
+.retry-btn {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 25px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
+}
+
+.retry-btn:hover {
+  background-color: #2980b9;
+  transform: translateY(-2px);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .teritory-grid {
+    grid-template-columns: repeat(auto-fill, 30vw);
+  }
+}
+
+@media (max-width: 768px) {
+  .teritory-section {
+    padding: 2rem 1rem;
+  }
+
+  .teritory-section h2 {
+    font-size: 1.8rem;
+  }
+
+  .teritory-grid {
+    grid-template-columns: repeat(auto-fill, 45vw);
+    gap: 1.5rem;
+  }
+
+  .teritory-content h3 {
+    font-size: 1.3rem;
+  }
+
+  .activity-button {
+    font-size: 0.8rem;
+    padding: 0.3rem 0.6rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .teritory-section {
+    padding: 1.5rem 1rem;
+  }
+
+  .teritory-section h2 {
+    font-size: 1.5rem;
+  }
+
+  .teritory-grid {
+    grid-template-columns: 90vw;
+  }
+
+  .teritory-image {
+    height: 180px;
+  }
+}

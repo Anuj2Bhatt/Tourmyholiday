@@ -1,0 +1,651 @@
+/* Import Lato font */
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap');
+
+/* Base styles for the entire page */
+.territory-page {
+  font-family: 'Lato', sans-serif;
+}
+
+.territory-detail-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.territory-detail-loading,
+.territory-detail-error,
+.territory-detail-not-found {
+  text-align: center;
+  padding: 2rem;
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.territory-detail-error {
+  color: #dc3545;
+}
+
+.territory-detail-header {
+  margin-bottom: 2rem;
+}
+
+.territory-detail-header h1 {
+  font-size: 2.5rem;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.territory-detail-image {
+  width: 100%;
+  height: 400px;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.territory-detail-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.territory-detail-content {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.territory-detail-info h2 {
+  color: #333;
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
+}
+
+.territory-capital {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.territory-famous-for {
+  margin-top: 1.5rem;
+}
+
+.territory-famous-for h3 {
+  color: #444;
+  margin-bottom: 0.5rem;
+  font-size: 1.3rem;
+}
+
+.territory-famous-for p {
+  color: #666;
+  line-height: 1.6;
+}
+
+/* Territory History Section */
+.territory-history-section {
+  padding: 2rem 0;
+  background-color: #f8f9fa;
+  font-family: 'Lato', sans-serif;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+.territory-history-container {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0 1vw;
+}
+
+.territory-history-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  position: relative;
+  padding-bottom: 1.5rem;
+}
+
+.territory-history-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  height: 3px;
+  background: linear-gradient(90deg, #2c5282, #4299e1);
+  border-radius: 2px;
+}
+
+.territory-history-title {
+  font-size: 2rem;
+  color: #2d3748;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  position: relative;
+  display: inline-block;
+}
+
+.territory-history-title::first-letter {
+  color: #2c5282;
+  font-size: 1.1em;
+}
+
+.territory-history-subtitle {
+  font-size: 1.1rem;
+  color: #4a5568;
+  font-weight: 400;
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+
+/* Responsive adjustments for the header */
+@media (max-width: 768px) {
+  .territory-history-header {
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.25rem;
+  }
+
+  .territory-history-header::after {
+    width: 160px;
+  }
+
+  .territory-history-title {
+    font-size: 1.75rem;
+  }
+
+  .territory-history-subtitle {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .territory-history-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+  }
+
+  .territory-history-header::after {
+    width: 120px;
+  }
+
+  .territory-history-title {
+    font-size: 1.5rem;
+  }
+
+  .territory-history-subtitle {
+    font-size: 0.9rem;
+  }
+}
+
+/* History Content Layout */
+.territory-history-content {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+  margin: 0;
+  padding: 0;
+  max-width: 100%;
+}
+
+/* Table of Contents */
+.territory-history-toc {
+  flex: 0 0 300px;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 2rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.territory-history-toc h3 {
+  color: #333;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.territory-history-toc ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  margin-bottom: 1rem;
+}
+
+.territory-history-toc li {
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid #edf2f7;
+  padding-bottom: 0.75rem;
+}
+
+.territory-history-toc li:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.territory-history-toc a {
+  color: #2c5282;
+  text-decoration: none;
+  font-size: 1rem;
+  transition: all 0.2s;
+  display: block;
+  padding: 0.25rem 0;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.territory-history-toc a:hover {
+  color: #1a365d;
+  transform: translateX(5px);
+}
+
+.toc-show-more-button {
+  background-color: transparent;
+  color: #2c5282;
+  border: 1px solid #2c5282;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: auto;
+  font-family: 'Lato', sans-serif;
+  align-self: center;
+}
+
+.toc-show-more-button:hover {
+  background-color: #2c5282;
+  color: white;
+}
+
+.toc-show-more-button:active {
+  transform: translateY(1px);
+}
+
+/* History Grid */
+.territory-history-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  min-width: 0;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+/* History Card */
+.territory-history-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+  height: 380px;
+}
+
+.territory-history-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.territory-history-card-image {
+  width: 100%;
+  height: 180px;
+  overflow: hidden;
+}
+
+.territory-history-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.territory-history-card:hover .territory-history-card-image img {
+  transform: scale(1.05);
+}
+
+.territory-history-card-content {
+  padding: 1.25rem;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.territory-history-card-title {
+  font-size: 1.1rem;
+  color: #2d3748;
+  margin-bottom: 0.75rem;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 700;
+}
+
+.territory-history-card-description {
+  color: #4a5568;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+  flex-grow: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 400;
+}
+
+.territory-history-read-more {
+  display: inline-block;
+  background-color: #2c5282;
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  text-align: center;
+  transition: all 0.2s ease;
+  margin-top: auto;
+  width: 100%;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.territory-history-read-more:hover {
+  background-color: #1a365d;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+}
+
+.territory-history-read-more:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.territory-history-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  color: #4a5568;
+  font-size: 1.2rem;
+  font-weight: 400;
+}
+
+/* Show More/Less Button */
+.territory-history-show-more {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.show-more-button {
+  background-color: #2c5282;
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Lato', sans-serif;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.show-more-button:hover {
+  background-color: #1a365d;
+  transform: translateY(-2px);
+}
+
+.show-more-button:active {
+  transform: translateY(0);
+}
+
+.show-more-button::after {
+  content: '↓';
+  font-size: 1.2em;
+  transition: transform 0.2s ease;
+}
+
+.show-less-button {
+  background-color: #4a5568;
+}
+
+.show-less-button:hover {
+  background-color: #2d3748;
+}
+
+.show-less-button::after {
+  content: '↑';
+  transform: rotate(0deg);
+}
+
+/* Other sections in the page */
+.districts-section h2,
+.places-to-visit-section h2,
+.territory-videos-section h2,
+.territory-quick-links-section h3 {
+  font-family: 'Lato', sans-serif;
+  font-weight: 700;
+}
+
+.districts-section p,
+.places-to-visit-section p,
+.territory-videos-section p,
+.territory-quick-links-section p {
+  font-family: 'Lato', sans-serif;
+  font-weight: 400;
+}
+
+/* Loading and error states */
+.loading-container,
+.error-container {
+  font-family: 'Lato', sans-serif;
+}
+
+.loading-container p,
+.error-container p,
+.error-container h2 {
+  font-weight: 400;
+}
+
+.error-container h2 {
+  font-weight: 700;
+}
+
+/* Admin actions */
+.admin-actions button {
+  font-family: 'Lato', sans-serif;
+  font-weight: 600;
+}
+
+/* Quick links cards */
+.quick-link-card h3,
+.quick-link-card-desc {
+  font-family: 'Lato', sans-serif;
+}
+
+.quick-link-card h3 {
+  font-weight: 700;
+}
+
+.quick-link-card-desc {
+  font-weight: 400;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .territory-history-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 992px) {
+  .territory-history-content {
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+  }
+
+  .territory-history-toc {
+    flex: none;
+    width: 100%;
+    position: static;
+    margin-bottom: 2rem;
+  }
+
+  .territory-history-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .territory-history-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .territory-history-card {
+    height: 360px;
+  }
+
+  .territory-history-card-image {
+    height: 160px;
+  }
+
+  .territory-history-header {
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.25rem;
+  }
+
+  .territory-history-header::after {
+    width: 160px;
+  }
+
+  .territory-history-title {
+    font-size: 1.75rem;
+  }
+
+  .territory-history-subtitle {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .territory-history-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .territory-history-card {
+    height: 340px;
+  }
+
+  .territory-history-container {
+    padding: 0 2vw;
+  }
+
+  .territory-history-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+  }
+
+  .territory-history-header::after {
+    width: 120px;
+  }
+
+  .territory-history-title {
+    font-size: 1.5rem;
+  }
+
+  .territory-history-subtitle {
+    font-size: 0.9rem;
+  }
+}
+
+/* District Detail Modal Styles */
+.district-detail-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.district-detail-modal-content {
+  background: white;
+  width: 100%;
+  max-width: 1200px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 12px;
+  position: relative;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.district-detail-modal-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.district-detail-modal-close:hover {
+  background: white;
+  transform: scale(1.1);
+}
+
+/* Ensure the TerritoryDistrictDetail component is visible in modal */
+.district-detail-modal-content .tdd-container {
+  padding: 20px;
+  max-width: 100%;
+  margin: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .district-detail-modal-content {
+    max-height: 95vh;
+    margin: 10px;
+  }
+  
+  .district-detail-modal-close {
+    top: 10px;
+    right: 10px;
+  }
+} 

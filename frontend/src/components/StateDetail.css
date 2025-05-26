@@ -1,0 +1,58 @@
+.state-detail {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.state-title {
+  font-size: 2.5rem;
+  color: #333;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.state-info {
+  margin-top: 2rem;
+}
+
+.state-description {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.state-activities {
+  margin-top: 2rem;
+}
+
+.state-activities h2 {
+  font-size: 1.8rem;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.activities-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.activity-tag {
+  background: #f0f0f0;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.loading, .error, .not-found {
+  text-align: center;
+  padding: 2rem;
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.error {
+  color: #ff0000;
+} 

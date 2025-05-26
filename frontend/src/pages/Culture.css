@@ -1,0 +1,613 @@
+.culture-container {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.culture-hero {
+  height: 60vh;
+  background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://static.toiimg.com/photo/65546954.cms');
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: white;
+  padding: 0 20px;
+  position: relative;
+  transition: background-image 1.5s ease-in-out;
+}
+
+.hero-background-indicators {
+  position: absolute;
+  bottom: 20px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  width: 100%;
+  z-index: 2;
+}
+
+.indicator-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.indicator-dot.active {
+  background-color: white;
+  transform: scale(1.2);
+}
+
+.hero-content {
+  max-width: 800px;
+  z-index: 2;
+  position: relative;
+  animation: fadeIn 1s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-content h1, .hero-content p {
+  transition: opacity 0.5s ease;
+}
+
+.hero-content h1 {
+  font-size: 3.2rem;
+  margin-bottom: 20px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.hero-content p {
+  font-size: 1.2rem;
+  line-height: 1.6;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  margin-bottom: 30px;
+}
+
+.search-container {
+  display: flex;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.search-container input {
+  flex-grow: 1;
+  padding: 15px 20px;
+  border: none;
+  border-radius: 30px;
+  font-size: 1rem;
+  outline: none;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.region-filter {
+  padding: 50px 40px 20px;
+  text-align: center;
+}
+
+.region-filter h2 {
+  font-size: 2rem;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.region-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.region-buttons button {
+  padding: 10px 20px;
+  background: white;
+  border: 2px solid #1a237e;
+  border-radius: 30px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1a237e;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.region-buttons button:hover, .region-buttons button.active {
+  background: #1a237e;
+  color: white;
+}
+
+.culture-count {
+  padding: 10px 40px;
+  text-align: center;
+}
+
+.culture-count h3 {
+  font-size: 1.2rem;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.cultures-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 30px;
+  padding: 0 40px 60px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.culture-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.culture-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+}
+
+.culture-image {
+  position: relative;
+  height: 220px;
+  overflow: hidden;
+}
+
+.culture-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.culture-card:hover .culture-image img {
+  transform: scale(1.1);
+}
+
+.culture-region-tag {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  color: white;
+  padding: 5px 15px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.culture-card-content {
+  padding: 25px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.culture-card-content h3 {
+  font-size: 1.5rem;
+  color: #1a237e;
+  margin-bottom: 10px;
+}
+
+.culture-location {
+  display: flex;
+  align-items: center;
+  color: #555;
+  font-size: 0.9rem;
+  margin-bottom: 15px;
+}
+
+.location-icon {
+  margin-right: 5px;
+  font-style: normal;
+}
+
+.culture-highlights {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.highlight {
+  flex: 1;
+  background-color: #f5f7fa;
+  padding: 10px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+.highlight-title {
+  font-size: 0.8rem;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.highlight-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.culture-description {
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  flex-grow: 1;
+}
+
+.explore-culture-btn {
+  padding: 12px 0;
+  background: #1a237e;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.explore-culture-btn:hover {
+  background: #151b60;
+}
+
+/* Culture Modal */
+.culture-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow-y: auto;
+  padding: 30px 0;
+}
+
+.modal-content {
+  background: white;
+  width: 90%;
+  max-width: 1000px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 12px;
+  position: relative;
+  animation: modalFadeIn 0.4s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.close-modal {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.modal-header {
+  display: flex;
+  position: relative;
+  height: 300px;
+  padding: 25px;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+
+.modal-header img {
+  width: 250px;
+  height: 250px;
+  object-fit: cover;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+.culture-title {
+  margin-left: 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.culture-title h2 {
+  font-size: 2.5rem;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.culture-region {
+  margin-bottom: 10px;
+}
+
+.culture-region span {
+  background-color: #1a237e;
+  color: white;
+  padding: 5px 15px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+}
+
+.culture-location {
+  font-size: 1.1rem;
+  color: #666;
+}
+
+.culture-stats {
+  display: flex;
+  justify-content: space-around;
+  padding: 25px;
+  background-color: #f5f7fa;
+  border-top: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.stat {
+  text-align: center;
+}
+
+.stat-title {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.stat-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.culture-overview, .culture-details, .culture-lifestyle, .notable-people, .culture-preservation {
+  padding: 25px 40px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.culture-overview h3 {
+  font-size: 1.8rem;
+  color: #1a237e;
+  margin-bottom: 15px;
+}
+
+.culture-overview p {
+  font-size: 1.1rem;
+  line-height: 1.7;
+  color: #444;
+}
+
+.culture-details {
+  display: flex;
+  gap: 40px;
+}
+
+.detail-section {
+  flex: 1;
+}
+
+.detail-section h4, .lifestyle-section h4, .notable-people h4, .culture-preservation h4 {
+  font-size: 1.3rem;
+  color: #1a237e;
+  margin-bottom: 15px;
+}
+
+.detail-section ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.detail-section ul li {
+  padding: 8px 0;
+  font-size: 1.05rem;
+  color: #555;
+  position: relative;
+  padding-left: 20px;
+}
+
+.detail-section ul li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: #1a237e;
+}
+
+.culture-lifestyle {
+  display: flex;
+  gap: 40px;
+}
+
+.lifestyle-section {
+  flex: 1;
+}
+
+.lifestyle-section p, .culture-preservation p {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: #555;
+}
+
+.notable-people ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.notable-people ul li {
+  padding: 8px 0;
+  font-size: 1.05rem;
+  color: #555;
+  position: relative;
+  padding-left: 20px;
+}
+
+.notable-people ul li::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  color: #1a237e;
+}
+
+/* Preservation Section */
+.culture-preservation-section {
+  padding: 60px 40px;
+  background-color: #f5f7fa;
+  text-align: center;
+}
+
+.culture-preservation-section h2 {
+  font-size: 2.2rem;
+  color: #1a237e;
+  margin-bottom: 15px;
+}
+
+.culture-preservation-section p {
+  font-size: 1.1rem;
+  color: #666;
+  max-width: 800px;
+  margin: 0 auto 40px;
+  line-height: 1.6;
+}
+
+.preservation-cards {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  flex-wrap: wrap;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.preservation-card {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  width: 300px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.preservation-card:hover {
+  transform: translateY(-10px);
+}
+
+.preservation-icon {
+  font-size: 3rem;
+  margin-bottom: 15px;
+}
+
+.preservation-card h3 {
+  font-size: 1.5rem;
+  color: #1a237e;
+  margin-bottom: 15px;
+}
+
+.preservation-card p {
+  font-size: 1rem;
+  color: #666;
+  margin-bottom: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1100px) {
+  .culture-details, .culture-lifestyle {
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .modal-header {
+    flex-direction: column;
+    align-items: center;
+    height: auto;
+    text-align: center;
+  }
+  
+  .culture-title {
+    margin-left: 0;
+    margin-top: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-content h1 {
+    font-size: 2.5rem;
+  }
+  
+  .cultures-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    padding: 0 20px 40px;
+  }
+  
+  .modal-content {
+    width: 95%;
+  }
+  
+  .culture-stats {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .culture-overview, .culture-details, .culture-lifestyle, .notable-people, .culture-preservation {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 576px) {
+  .cultures-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .hero-content h1 {
+    font-size: 2rem;
+  }
+  
+  .region-buttons {
+    gap: 10px;
+  }
+  
+  .region-buttons button {
+    font-size: 0.85rem;
+    padding: 8px 15px;
+  }
+  
+  .modal-header img {
+    width: 200px;
+    height: 200px;
+  }
+  
+  .culture-title h2 {
+    font-size: 2rem;
+  }
+} 

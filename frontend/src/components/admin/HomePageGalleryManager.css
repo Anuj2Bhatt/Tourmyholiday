@@ -1,0 +1,569 @@
+.homepage-gallery-manager {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  background: #f8f9fa;
+  min-height: 100vh;
+}
+
+.homepage-gallery-manager h2 {
+  font-size: 2.2rem;
+  color: #1a237e;
+  margin-bottom: 2rem;
+  text-align: center;
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.homepage-gallery-error {
+  background: #ffebee;
+  color: #c62828;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.homepage-gallery-form {
+  background: white;
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  margin-bottom: 2rem;
+}
+
+.homepage-gallery-form-preview {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.homepage-gallery-form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.homepage-gallery-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.homepage-gallery-form-group label {
+  font-weight: 500;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.homepage-gallery-form-group input[type="text"],
+.homepage-gallery-form-group textarea {
+  padding: 0.8rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: #f8f9fa;
+  color: #000000;
+}
+
+.homepage-gallery-form-group input[type="text"]::placeholder,
+.homepage-gallery-form-group textarea::placeholder {
+  color: #666666;
+}
+
+.homepage-gallery-form-group input[type="text"]:focus,
+.homepage-gallery-form-group textarea:focus {
+  border-color: #2196F3;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+  background: white;
+  color: #000000;
+}
+
+.homepage-gallery-upload-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.5rem;
+  background: #f5f5f5;
+  border: 2px dashed #ddd;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.homepage-gallery-upload-label:hover {
+  background: #e0e0e0;
+  border-color: #2196F3;
+}
+
+.homepage-gallery-upload-icon {
+  font-size: 1.2rem;
+}
+
+.homepage-gallery-file-input {
+  display: none;
+}
+
+.homepage-gallery-form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.homepage-gallery-submit-btn,
+.homepage-gallery-cancel-btn {
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.homepage-gallery-submit-btn {
+  background: #2196F3;
+  color: white;
+}
+
+.homepage-gallery-submit-btn:hover:not(:disabled) {
+  background: #1976D2;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+}
+
+.homepage-gallery-submit-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.homepage-gallery-cancel-btn {
+  background: #f44336;
+  color: white;
+}
+
+.homepage-gallery-cancel-btn:hover {
+  background: #d32f2f;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(244, 67, 54, 0.3);
+}
+
+.homepage-gallery-preview-section {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.homepage-gallery-preview-section h3 {
+  color: #1a237e;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.homepage-gallery-image-preview {
+  width: 100%;
+  height: 300px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.homepage-gallery-image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.homepage-gallery-no-preview {
+  width: 100%;
+  height: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border-radius: 8px;
+  color: #666;
+  gap: 1rem;
+}
+
+.homepage-gallery-preview-icon {
+  font-size: 3rem;
+}
+
+.homepage-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.homepage-gallery-item {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
+  cursor: pointer;
+  aspect-ratio: 1;
+}
+
+.homepage-gallery-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+}
+
+.homepage-gallery-image {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.homepage-gallery-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.homepage-gallery-item:hover .homepage-gallery-image img {
+  transform: scale(1.1);
+}
+
+.homepage-gallery-info {
+  padding: 1.5rem;
+  background: white;
+  position: relative;
+  z-index: 1;
+}
+
+.homepage-gallery-info h3 {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.homepage-gallery-info p {
+  color: #666;
+  font-size: 1rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.homepage-gallery-actions {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1.5rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+  display: flex;
+  gap: 1rem;
+  opacity: 0;
+  transform: translateY(100%);
+  transition: all 0.3s ease;
+  z-index: 2;
+}
+
+.homepage-gallery-item:hover .homepage-gallery-actions {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.homepage-gallery-edit-btn,
+.homepage-gallery-delete-btn {
+  flex: 1;
+  padding: 0.8rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  backdrop-filter: blur(4px);
+}
+
+.homepage-gallery-edit-btn {
+  background: rgba(33, 150, 243, 0.9);
+  color: white;
+}
+
+.homepage-gallery-edit-btn:hover {
+  background: rgba(25, 118, 210, 0.95);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+}
+
+.homepage-gallery-delete-btn {
+  background: rgba(244, 67, 54, 0.9);
+  color: white;
+}
+
+.homepage-gallery-delete-btn:hover {
+  background: rgba(211, 47, 47, 0.95);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(244, 67, 54, 0.3);
+}
+
+.homepage-gallery-btn-icon {
+  font-size: 1.2rem;
+}
+
+@media (max-width: 768px) {
+  .homepage-gallery-form-preview {
+    grid-template-columns: 1fr;
+  }
+  
+  .homepage-gallery-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .homepage-gallery-actions {
+    opacity: 1;
+    transform: translateY(0);
+    background: rgba(0, 0, 0, 0.7);
+    padding: 1rem;
+  }
+}
+
+/* New layout with sidebar */
+.admin-layout {
+  display: flex;
+  gap: 20px;
+}
+
+.sidebar-thumbnails {
+  width: 280px;
+  background-color: white;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  height: calc(100vh - 230px);
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.sidebar-thumbnails h3 {
+  margin: 0 0 15px 0;
+  color: #333;
+  font-size: 1.1rem;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.thumbnails-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.thumbnail-item {
+  position: relative;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.thumbnail-item:hover {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.thumbnail-item img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+}
+
+.thumbnail-delete {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 24px;
+  height: 24px;
+  background-color: rgba(244, 67, 54, 0.8);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.thumbnail-delete:hover {
+  background-color: rgb(244, 67, 54);
+}
+
+.thumbnail-title {
+  padding: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #333;
+  background-color: #f9f9f9;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.main-content {
+  flex-grow: 1;
+}
+
+.gallery-add-form {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.gallery-add-form h3 {
+  margin: 0 0 20px 0;
+  color: #333;
+  font-size: 1.2rem;
+}
+
+.file-upload-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.file-upload-btn {
+  background-color: #1a237e;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.3s;
+}
+
+.file-upload-btn:hover {
+  background-color: #151b60;
+}
+
+.file-name {
+  margin-left: 10px;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.image-preview-container {
+  width: 100%;
+  height: 200px;
+  border: 1px dashed #ddd;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.image-preview-placeholder {
+  color: #999;
+  font-size: 0.9rem;
+}
+
+.form-group input.error,
+.form-group textarea.error {
+  border-color: #f44336;
+}
+
+.error-text {
+  color: #f44336;
+  font-size: 0.8rem;
+  margin-top: 5px;
+  display: block;
+}
+
+.add-image-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #1a237e;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 10px;
+}
+
+.add-image-btn:hover {
+  background-color: #151b60;
+}
+
+.no-images {
+  color: #999;
+  text-align: center;
+  padding: 30px 0;
+}
+
+@media (max-width: 768px) {
+  .admin-layout {
+    flex-direction: column;
+  }
+  
+  .sidebar-thumbnails {
+    width: 100%;
+    height: 300px;
+  }
+}
+
+/* Add these styles to your existing CSS file */
+
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #1a237e;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.add-image-btn.loading {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+} 

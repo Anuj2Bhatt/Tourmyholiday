@@ -1,0 +1,151 @@
+.state-gallery-section {
+  padding: 40px 20px;
+  text-align: center;
+  overflow: hidden;
+}
+
+.state-gallery-section h2 {
+  font-size: 2.5rem;
+  margin-bottom: 30px;
+  color: #1a237e;
+  font-weight: 700;
+}
+
+.state-gallery-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+}
+
+.state-cards {
+  display: flex;
+  gap: 20px;
+  padding: 20px 0;
+  transition: transform 0.5s ease;
+  width: fit-content;
+}
+
+.state-gallery-card {
+  width: 300px;
+  height: 250px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.state-gallery-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.gallery-card-image {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.gallery-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.state-gallery-card:hover .gallery-card-image img {
+  transform: scale(1.1);
+}
+
+.state-name-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 20px;
+  background: linear-gradient(0deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+  color: white;
+  text-align: left;
+  transition: transform 0.3s ease;
+}
+
+.state-name-overlay h3 {
+  font-size: 1.4rem;
+  margin-bottom: 5px;
+  font-weight: 600;
+}
+
+.view-gallery {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  font-weight: 400;
+  display: inline-block;
+  transition: opacity 0.3s ease;
+}
+
+.state-gallery-card:hover .view-gallery {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+.gallery-nav {
+  position: absolute;
+  top: 50%;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  transform: translateY(-50%);
+  z-index: 20;
+  padding: 0 20px;
+}
+
+.gallery-nav .nav-arrow {
+  background-color: rgba(26, 35, 126, 0.8);
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.5rem;
+  border: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.gallery-nav .nav-arrow:hover {
+  background-color: rgba(26, 35, 126, 1);
+  transform: scale(1.1);
+}
+
+.gallery-nav .nav-arrow:disabled {
+  background-color: rgba(0, 0, 0, 0.3);
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (max-width: 768px) {
+  .state-gallery-section h2 {
+    font-size: 2rem;
+  }
+  
+  .state-gallery-card {
+    width: 260px;
+    height: 220px;
+  }
+  
+  .state-name-overlay h3 {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .state-gallery-card {
+    width: 240px;
+    height: 200px;
+  }
+} 
