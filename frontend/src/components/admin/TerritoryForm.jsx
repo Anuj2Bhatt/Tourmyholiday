@@ -216,7 +216,6 @@ const TerritoryForm = ({ isOpen, onClose, territory, onSubmit }) => {
 
   useEffect(() => {
     if (territory) {
-      console.log('Initializing form with territory data:', territory);
       const initialData = {
         title: territory.title || territory.name || '',
         slug: territory.slug || '',
@@ -228,7 +227,6 @@ const TerritoryForm = ({ isOpen, onClose, territory, onSubmit }) => {
         meta_keywords: territory.meta_keywords || '',
         preview_image_url: territory.preview_image || null
       };
-      console.log('Setting initial form data:', initialData);
       setFormData(initialData);
       setOriginalData(initialData);
       setIsSlugEdited(true);
@@ -354,7 +352,6 @@ const TerritoryForm = ({ isOpen, onClose, territory, onSubmit }) => {
         onClose();
       }
     } catch (error) {
-      console.error('Error submitting form:', error);
       if (error.response?.data?.errors) {
         setBackendErrors(error.response.data.errors);
       } else {
@@ -481,7 +478,6 @@ const TerritoryForm = ({ isOpen, onClose, territory, onSubmit }) => {
                     src={formData.preview_image_url} 
                     alt="Preview" 
                     onError={(e) => {
-                      console.error('Image preview failed to load:', formData.preview_image_url);
                       e.target.onerror = null;
                       e.target.src = `${API_URL}/uploads/placeholder.jpg`;
                     }}

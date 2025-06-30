@@ -41,24 +41,19 @@ const ManageHotels = () => {
     const fetchHotels = async () => {
         try {
             setLoading(true);
-            const response = await axios.get('http://localhost:5000/api/hotels', {
+            const response = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/hotels`, {
                 params: {
                     include_state: true
                 }
             });
             
-            console.log('Hotels response:', response.data);
-            
             const hotelsWithState = response.data.map(hotel => ({
                 ...hotel,
                 state_name: hotel.state_name || 'N/A'
             }));
-            console.log('Processed hotels:', hotelsWithState);
-            
             setHotels(hotelsWithState);
             setError(null);
         } catch (error) {
-            console.error('Error fetching hotels:', error);
             setError('Failed to fetch hotels');
         } finally {
             setLoading(false);
@@ -72,11 +67,10 @@ const ManageHotels = () => {
 
     const handleEditHotel = async (hotel) => {
         try {
-            const response = await axios.get(`http://localhost:5000/api/hotels/${hotel.id}`);
+            const response = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/hotels/${hotel.id}`);
             setEditingHotel(response.data);
             setShowForm(true);
         } catch (err) {
-            console.error('Error fetching hotel for edit:', err);
             alert('Failed to fetch hotel details. Please try again.');
         }
     };
@@ -84,7 +78,7 @@ const ManageHotels = () => {
     const handleDelete = async (id) => {
         if (window.confirm('Are you sure you want to delete this hotel?')) {
             try {
-                const response = await axios.delete(`http://localhost:5000/api/hotels/${id}`);
+                const response = await axios.delete(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/hotels/${id}`);
                 if (response.data.message === 'Hotel deleted successfully') {
                     // Show success message
                     alert('Hotel deleted successfully');
@@ -94,7 +88,6 @@ const ManageHotels = () => {
                     throw new Error('Failed to delete hotel');
                 }
             } catch (error) {
-                console.error('Error deleting hotel:', error);
                 alert(error.response?.data?.message || 'Error deleting hotel. Please try again.');
             }
         }
@@ -184,7 +177,6 @@ const ManageHotels = () => {
                                         </thead>
                                         <tbody>
                                             {hotels.map((hotel, index) => {
-                                                console.log('Rendering hotel:', hotel.id, 'State:', hotel.state_name);
                                                 return (
                                                     <tr key={hotel.id}>
                                                         <td>{index + 1}</td>

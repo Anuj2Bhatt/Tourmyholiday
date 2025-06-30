@@ -48,7 +48,6 @@ exports.getStateVillageEmployment = async (req, res) => {
             data: results[0]
         });
     } catch (error) {
-        console.error('Error in getStateVillageEmployment:', error);
         res.status(500).json({ 
             success: false, 
             message: 'Internal server error' 
@@ -146,7 +145,6 @@ exports.updateStateVillageEmployment = async (req, res) => {
             message: 'Employment data updated successfully'
         });
     } catch (error) {
-        console.error('Error in updateStateVillageEmployment:', error);
         res.status(500).json({ 
             success: false, 
             message: 'Internal server error' 
@@ -202,7 +200,6 @@ exports.getTerritoryVillageEmployment = async (req, res) => {
             data: results[0]
         });
     } catch (error) {
-        console.error('Error in getTerritoryVillageEmployment:', error);
         res.status(500).json({ 
             success: false, 
             message: 'Internal server error' 
@@ -300,7 +297,6 @@ exports.updateTerritoryVillageEmployment = async (req, res) => {
             message: 'Employment data updated successfully'
         });
     } catch (error) {
-        console.error('Error in updateTerritoryVillageEmployment:', error);
         res.status(500).json({ 
             success: false, 
             message: 'Internal server error' 

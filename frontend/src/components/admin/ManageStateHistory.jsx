@@ -39,8 +39,6 @@ const ManageStateHistory = () => {
   const fetchStates = async () => {
     try {
       const response = await axios.get(`${API_URL}/api/states`);
-      console.log('Raw states API response:', response.data);
-      
       let statesArray = [];
       
       // Handle different response formats
@@ -53,20 +51,15 @@ const ManageStateHistory = () => {
       // Sort states by name
       statesArray.sort((a, b) => a.name.localeCompare(b.name));
       
-      console.log('Processed states array:', statesArray);
       setStates(statesArray);
     } catch (error) {
-      console.error('Error fetching states:', error);
       setStates([]);
     }
   };
 
   const fetchTerritories = async () => {
     try {
-      console.log('Fetching territories...');
       const response = await axios.get(`${API_URL}/api/territories`);
-      console.log('Raw territories API response:', response.data);
-      
       let territoriesArray = [];
       
       // Handle different response formats
@@ -77,8 +70,6 @@ const ManageStateHistory = () => {
       }
 
       // Log the territories array for debugging
-      console.log('Territories array before processing:', territoriesArray);
-
       // Ensure we have valid territory objects with required fields
       territoriesArray = territoriesArray.filter(territory => 
         territory && 
@@ -90,25 +81,19 @@ const ManageStateHistory = () => {
       // Sort territories by title instead of name
       territoriesArray.sort((a, b) => a.title.localeCompare(b.title));
       
-      console.log('Final processed territories array:', territoriesArray);
-      
       if (!Array.isArray(territoriesArray)) {
-        console.error('Territories data is not an array:', territoriesArray);
         setTerritories([]);
         return;
       }
 
       setTerritories(territoriesArray);
     } catch (error) {
-      console.error('Error fetching territories:', error);
-      console.error('Error details:', error.response?.data || error.message);
       setTerritories([]);
     }
   };
 
   const fetchHistoryData = async (entity, type) => {
     try {
-      console.log(`Fetching ${type} history for:`, entity);
       let response;
 
       if (type === 'state') {
@@ -120,8 +105,6 @@ const ManageStateHistory = () => {
         response = await territoryHistoryService.getAll({ territory_id: entity.id });
       }
 
-      console.log(`Raw ${type} history response:`, response.data);
-      
       // Handle different response formats
       let historyData = [];
       
@@ -151,15 +134,12 @@ const ManageStateHistory = () => {
         territory_id: type === 'territory' ? entity.id : null
       }));
 
-      console.log(`Processed ${type} history data:`, historyData);
-      
       if (type === 'state') {
         setStateHistoryList(historyData);
       } else {
         setTerritoryHistoryList(historyData);
       }
     } catch (error) {
-      console.error(`Error fetching ${type} history:`, error);
       if (type === 'state') {
         setStateHistoryList([]);
       } else {
@@ -237,8 +217,6 @@ const ManageStateHistory = () => {
         throw new Error(response.data.error || `Failed to delete ${historyType} history`);
       }
     } catch (error) {
-      console.error(`Error deleting ${historyType} history:`, error);
-      console.error('Error details:', error.response?.data || error.message);
       alert(`Failed to delete ${historyType} history: ` + (error.response?.data?.error || error.message));
     }
   };
@@ -248,9 +226,6 @@ const ManageStateHistory = () => {
     if (!file) return;
 
     // Debug: Log file info
-    console.log('Selected file:', file);
-    console.log('File type:', file.type);
-
     // Validate file type
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
@@ -275,7 +250,7 @@ const ManageStateHistory = () => {
 
         // Choose endpoint based on history type
         const endpoint = historyType === 'state' 
-            ? `${API_URL}/api/states/images`
+            ? `${API_URL}/api/state-history/upload-image`
             : `${API_URL}/api/territory-history/upload-image`;
 
         // Upload image
@@ -289,8 +264,6 @@ const ManageStateHistory = () => {
             throw new Error('No URL received from server');
         }
 
-        console.log('Image upload response:', response.data);
-        
         // Update form with uploaded image URL
         setForm(prev => ({
             ...prev,
@@ -298,7 +271,6 @@ const ManageStateHistory = () => {
             isUploading: false
         }));
     } catch (error) {
-        console.error('Error uploading image:', error);
         setForm(prev => ({ ...prev, isUploading: false }));
         alert('Failed to upload image: ' + (error.response?.data?.error || error.message));
     }
@@ -306,20 +278,14 @@ const ManageStateHistory = () => {
 
   const handleStateChange = async (e) => {
     const stateId = parseInt(e.target.value);
-    console.log('Selected state ID from dropdown:', stateId);
-    
     if (!stateId) {
-      console.log('No state selected');
       setSelectedState(null);
       setStateHistoryList([]);
       return;
     }
 
     const state = states.find(s => s.id === stateId);
-    console.log('Found state object:', state);
-    
     if (!state) {
-      console.error('Invalid state selected');
       alert('Please select a valid state');
       return;
     }
@@ -338,8 +304,6 @@ const ManageStateHistory = () => {
           sort: 'desc' // Sort by newest first
         }
       });
-      
-      console.log('State history API response for state', state.name, ':', response.data);
       
       let historyData = [];
       
@@ -374,10 +338,8 @@ const ManageStateHistory = () => {
         updated_at: item.updated_at
       }));
 
-      console.log('Filtered state history data for', state.name, ':', historyData);
       setStateHistoryList(historyData);
     } catch (error) {
-      console.error('Error fetching state history:', error);
       setStateHistoryList([]);
       alert('Failed to fetch state history: ' + (error.response?.data?.error || error.message));
     }
@@ -385,12 +347,8 @@ const ManageStateHistory = () => {
 
   const handleTerritoryChange = (e) => {
     const territoryId = parseInt(e.target.value);
-    console.log('Selected territory ID from dropdown:', territoryId);
     const territory = territories.find(t => t.id === territoryId);
-    console.log('Found territory object:', territory);
-    
     if (!territory) {
-      console.error('Invalid territory selected');
       alert('Please select a valid territory');
       return;
     }
@@ -414,7 +372,6 @@ const ManageStateHistory = () => {
 
       const entity = historyType === 'state' ? selectedState : selectedTerritory;
       if (!entity || !entity.id) {
-        console.error(`No ${historyType} selected:`, entity);
         alert(`Please select a ${historyType} first`);
         return;
       }
@@ -427,8 +384,6 @@ const ManageStateHistory = () => {
         slug: generateSlug(form.title),
         image: form.image || null
       };
-
-      console.log('Full history data being sent:', historyData);
 
       let response;
       if (historyType === 'state') {
@@ -447,14 +402,10 @@ const ManageStateHistory = () => {
         }
       }
 
-      console.log('Save successful:', response.data);
-
       // Refresh history data
       await fetchHistoryData(entity, historyType);
       setShowModal(false);
     } catch (error) {
-      console.error(`Error saving ${historyType} history:`, error);
-      console.error('Error details:', error.response?.data || error.message);
       alert(`Failed to save ${historyType} history: ` + (error.response?.data?.error || error.message));
     }
   };
@@ -505,7 +456,7 @@ const ManageStateHistory = () => {
               <option value="">-- Select Territory --</option>
               {territories && territories.length > 0 ? (
                 territories.map(territory => {
-                  console.log('Rendering territory option:', territory); // Debug log
+                  // Debug log
                   return (
                     <option key={territory.id} value={territory.id}>
                       {territory.title || 'Unnamed Territory'}

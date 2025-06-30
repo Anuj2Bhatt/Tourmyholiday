@@ -16,7 +16,6 @@ router.get('/', async (req, res) => {
         `);
         res.json(bookings);
     } catch (error) {
-        console.error('Error fetching bookings:', error);
         res.status(500).json({ message: 'Error fetching bookings' });
     }
 });
@@ -40,7 +39,6 @@ router.get('/:id', async (req, res) => {
 
         res.json(bookings[0]);
     } catch (error) {
-        console.error('Error fetching booking:', error);
         res.status(500).json({ message: 'Error fetching booking' });
     }
 });
@@ -93,7 +91,6 @@ router.post('/', async (req, res) => {
             message: 'Booking created successfully'
         });
     } catch (error) {
-        console.error('Error creating booking:', error);
         res.status(500).json({ message: 'Error creating booking' });
     }
 });
@@ -115,7 +112,6 @@ router.put('/:id/status', async (req, res) => {
 
         res.json({ message: 'Booking status updated successfully' });
     } catch (error) {
-        console.error('Error updating booking status:', error);
         res.status(500).json({ message: 'Error updating booking status' });
     }
 });
@@ -135,7 +131,6 @@ router.put('/:id/cancel', async (req, res) => {
 
         res.json({ message: 'Booking cancelled successfully' });
     } catch (error) {
-        console.error('Error cancelling booking:', error);
         res.status(500).json({ message: 'Error cancelling booking' });
     }
 });
@@ -158,7 +153,6 @@ router.get('/date-range', async (req, res) => {
 
         res.json(bookings);
     } catch (error) {
-        console.error('Error fetching bookings by date range:', error);
         res.status(500).json({ message: 'Error fetching bookings by date range' });
     }
 });
@@ -179,7 +173,6 @@ router.get('/hotel/:hotelId', async (req, res) => {
 
         res.json(bookings);
     } catch (error) {
-        console.error('Error fetching hotel bookings:', error);
         res.status(500).json({ message: 'Error fetching hotel bookings' });
     }
 });

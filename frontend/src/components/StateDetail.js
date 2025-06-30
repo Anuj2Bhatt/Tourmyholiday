@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import StateImages from './StateImages';
 import './StateDetail.css';
+import { API_BASE_URL } from '../config';
 
 const StateDetail = () => {
   const { stateName } = useParams();
@@ -12,31 +13,24 @@ const StateDetail = () => {
   useEffect(() => {
     const fetchState = async () => {
       try {
-        // First get all states
-        const response = await fetch('http://localhost:5000/api/states');
+        setLoading(true);
+        const response = await fetch(`${API_BASE_URL}/states`);
         if (!response.ok) {
-          throw new Error('Failed to fetch states');
+          throw new Error('Failed to fetch state data');
         }
-        const states = await response.json();
-        
-        // Find the state by name
-        const stateData = states.find(s => 
-          s.name.toLowerCase().replace(/\s+/g, '-') === stateName.toLowerCase()
-        );
-        
-        if (!stateData) {
-          throw new Error('State not found');
-        }
-        
+        const data = await response.json();
+        const stateData = data.find(s => s.name.toLowerCase().replace(/\s+/g, '-') === stateName.toLowerCase());
         setState(stateData);
-        setLoading(false);
       } catch (err) {
         setError(err.message);
+      } finally {
         setLoading(false);
       }
     };
 
-    fetchState();
+    if (stateName) {
+      fetchState();
+    }
   }, [stateName]);
 
   if (loading) return <div className="loading">Loading...</div>;

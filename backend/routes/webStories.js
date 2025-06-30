@@ -29,7 +29,6 @@ router.get('/', async (req, res) => {
     `);
     res.json(stories);
   } catch (err) {
-    console.error('Error fetching web stories:', err);
     res.status(500).json({ error: 'Failed to fetch web stories.' });
   }
 });
@@ -74,7 +73,6 @@ router.get('/:id', async (req, res) => {
 
     res.json(story);
   } catch (err) {
-    console.error('Error fetching web story:', err);
     res.status(500).json({ error: 'Failed to fetch web story.' });
   }
 });
@@ -128,7 +126,6 @@ router.post('/', upload.any(), async (req, res) => {
 
     res.status(201).json({ id: result.insertId, message: 'Web story created successfully.' });
   } catch (err) {
-    console.error('Error creating web story:', err);
     res.status(500).json({ error: 'Failed to create web story.' });
   }
 });
@@ -254,7 +251,6 @@ router.put('/:storyId', upload.any(), async (req, res) => {
 
     res.json(updatedStory[0]);
   } catch (err) {
-    console.error('Error updating web story:', err);
     res.status(500).json({ error: 'Failed to update web story.' });
   }
 });
@@ -266,7 +262,6 @@ router.delete('/:storyId', async (req, res) => {
     await db.query('DELETE FROM district_web_stories WHERE id = ?', [storyId]);
     res.json({ message: 'Web story deleted successfully.' });
   } catch (err) {
-    console.error('Error deleting web story:', err);
     res.status(500).json({ error: 'Failed to delete web story.' });
   }
 });
@@ -407,7 +402,6 @@ router.post('/upload-logo', upload.single('logo'), async (req, res) => {
       logoUrl: `http://localhost:5000/${logoPath}`
     });
   } catch (error) {
-    console.error('Error uploading logo:', error);
     res.status(500).json({ error: 'Failed to upload logo' });
   }
 });
@@ -431,7 +425,6 @@ router.get('/site-logo', async (req, res) => {
       });
     }
   } catch (error) {
-    console.error('Error fetching logo:', error);
     res.status(500).json({ error: 'Failed to fetch logo' });
   }
 });
@@ -591,7 +584,6 @@ router.get('/:id/schema', async (req, res) => {
     res.json(schema);
 
   } catch (error) {
-    console.error('Error generating schema:', error);
     res.status(500).json({ 
       error: 'Failed to generate schema',
       details: error.message 

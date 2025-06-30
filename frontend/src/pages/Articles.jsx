@@ -63,11 +63,9 @@ const Articles = () => {
   };
 
   const getImageUrl = (imagePath) => {
-    console.log('Image path received:', imagePath);
     
     // If no image path, return placeholder
-    if (!imagePath) {
-      console.log('No image path, returning placeholder');
+    if (!imagePath) { 
       return '/images/default-article.jpg';
     }
 
@@ -88,7 +86,7 @@ const Articles = () => {
       // Otherwise, add 'uploads/' prefix
       return `http://localhost:5000/uploads/${cleanPath}`;
     } catch (error) {
-      console.error('Error processing image path:', error);
+        
       return '/images/default-article.jpg';
     }
   };

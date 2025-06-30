@@ -8,7 +8,6 @@ router.get('/', async (req, res) => {
         const [roomTypes] = await db.query('SELECT * FROM room_types ORDER BY name');
         res.json(roomTypes);
     } catch (error) {
-        console.error('Error fetching room types:', error);
         res.status(500).json({ message: 'Error fetching room types' });
     }
 });
@@ -22,7 +21,6 @@ router.get('/:id', async (req, res) => {
         }
         res.json(roomType[0]);
     } catch (error) {
-        console.error('Error fetching room type:', error);
         res.status(500).json({ message: 'Error fetching room type' });
     }
 });
@@ -41,7 +39,6 @@ router.post('/', async (req, res) => {
             description
         });
     } catch (error) {
-        console.error('Error creating room type:', error);
         res.status(500).json({ message: 'Error creating room type' });
     }
 });
@@ -60,7 +57,6 @@ router.put('/:id', async (req, res) => {
             description
         });
     } catch (error) {
-        console.error('Error updating room type:', error);
         res.status(500).json({ message: 'Error updating room type' });
     }
 });
@@ -71,7 +67,6 @@ router.delete('/:id', async (req, res) => {
         await db.query('DELETE FROM room_types WHERE id = ?', [req.params.id]);
         res.json({ message: 'Room type deleted successfully' });
     } catch (error) {
-        console.error('Error deleting room type:', error);
         res.status(500).json({ message: 'Error deleting room type' });
     }
 });
@@ -88,7 +83,6 @@ router.get('/hotel/:hotelId', async (req, res) => {
         `, [req.params.hotelId]);
         res.json(rooms);
     } catch (error) {
-        console.error('Error fetching hotel rooms:', error);
         res.status(500).json({ message: 'Error fetching hotel rooms' });
     }
 });

@@ -185,42 +185,33 @@ const SubdistrictDetail = () => {
   const [weather, setWeather] = useState(null);
   const [showStoryView, setShowStoryView] = useState(false);
   const [storyImageIndex, setStoryImageIndex] = useState(0);
+  const [currentAttractionPage, setCurrentAttractionPage] = useState(0);
+  const attractionsPerPage = 4;
+  const [currentCulturePage, setCurrentCulturePage] = useState(0);
+  const culturesPerPage = 4;
 
   // Fetch subdistrict data
   useEffect(() => {
     const fetchSubdistrict = async () => {
       try {
         setLoading(true);
-        console.log('Fetching subdistrict details for slug:', slug);
-        
-        // Try regular subdistrict endpoint first
         let response;
         try {
           response = await axios.get(`http://localhost:5000/api/subdistricts/slug/${slug}`);
         } catch (err) {
-          // If regular subdistrict not found, try territory subdistrict endpoint
           if (err.response?.status === 404) {
-            console.log('Regular subdistrict not found, trying territory subdistrict...');
             response = await axios.get(`http://localhost:5000/api/territory-subdistricts/slug/${slug}`);
           } else {
             throw err;
           }
         }
-        
-        console.log('Subdistrict API response:', response.data);
-        
+          
         if (!response.data) {
           throw new Error('Subdistrict not found');
         }
 
         setSubdistrict(response.data);
       } catch (err) {
-        console.error('Error details:', {
-          message: err.message,
-          response: err.response?.data,
-          status: err.response?.status,
-          headers: err.response?.headers
-        });
         setError(err.message || 'Failed to load subdistrict details');
       } finally {
         setLoading(false);
@@ -236,7 +227,6 @@ const SubdistrictDetail = () => {
 
     const fetchAdditionalData = async () => {
       try {
-        console.log('Fetching additional data for subdistrict:', subdistrict.id);
         await Promise.all([
           fetchImages(),
           fetchVillages(),
@@ -249,7 +239,6 @@ const SubdistrictDetail = () => {
           fetchWeather()
         ]);
       } catch (err) {
-        console.error('Error fetching additional data:', err);
       }
     };
 
@@ -259,39 +248,19 @@ const SubdistrictDetail = () => {
   // Fetch functions for each section
   const fetchImages = async () => {
     if (!subdistrict?.id) {
-      console.log('No subdistrict ID available');
       return;
     }
 
     try {
-      console.log('Fetching images for subdistrict:', {
-        id: subdistrict.id,
-        title: subdistrict.title,
-        isTerritory: !!(subdistrict?.territory_id || subdistrict?.territory_district_id)
-      });
-
       let response;
       if (subdistrict?.territory_id || subdistrict?.territory_district_id) {
-        // For territory subdistricts
-        console.log('Fetching territory subdistrict images...');
         response = await axios.get(`http://localhost:5000/api/territory-subdistrict-images/${subdistrict.id}`);
       } else {
-        // For state subdistricts
-        console.log('Fetching state subdistrict images...');
         response = await axios.get(`http://localhost:5000/api/subdistrict-images/${subdistrict.id}`);
       }
 
-      console.log('Raw images API response:', response.data);
-      
-      // Process and validate image URLs
       const processedImages = response.data.map(img => {
         const imageUrl = img.image_path || img.image_url;
-        console.log('Processing image:', {
-          originalUrl: imageUrl,
-          hasHttp: imageUrl?.startsWith('http'),
-          hasUploads: imageUrl?.includes('uploads/')
-        });
-        
         let finalUrl = imageUrl;
         if (imageUrl && !imageUrl.startsWith('http')) {
           // Remove 'uploads/' if it's at the start of the path
@@ -299,7 +268,6 @@ const SubdistrictDetail = () => {
           finalUrl = `http://localhost:5000/uploads/${cleanPath}`;
         }
         
-        console.log('Final image URL:', finalUrl);
         return {
           ...img,
           image_url: finalUrl,
@@ -307,16 +275,9 @@ const SubdistrictDetail = () => {
         };
       });
 
-      console.log('Processed images:', processedImages);
       setImages(processedImages);
       return processedImages;
     } catch (err) {
-      console.error('Error fetching images:', {
-        message: err.message,
-        response: err.response?.data,
-        status: err.response?.status,
-        endpoint: err.config?.url
-      });
       setImages([]);
       return null;
     }
@@ -324,17 +285,10 @@ const SubdistrictDetail = () => {
 
   const fetchVillages = async () => {
     try {
-      console.log('Fetching villages for slug:', slug);
       const response = await axios.get(`http://localhost:5000/api/subdistrict-villages/${subdistrict.id}`);
-      console.log('Villages API response:', response.data);
       setVillages(response.data);
       return response.data;
     } catch (err) {
-      console.error('Error fetching villages:', {
-        message: err.message,
-        response: err.response?.data,
-        status: err.response?.status
-      });
       return null;
     }
   };
@@ -344,7 +298,6 @@ const SubdistrictDetail = () => {
       const response = await axios.get(`http://localhost:5000/api/subdistrict-demographics/${subdistrict.id}`);
       setDemographics(response.data);
     } catch (err) {
-      console.error('Error fetching demographics:', err);
     }
   };
 
@@ -360,45 +313,32 @@ const SubdistrictDetail = () => {
       }
       setAttractions(response.data);
     } catch (err) {
-      console.error('Error fetching attractions:', err);
       setAttractions([]);
     }
   };
 
   const fetchCulture = async () => {
     if (!subdistrict?.id) {
-      console.log('No subdistrict ID available');
       return;
     }
 
     try {
       setCultureLoading(true);
       setCultureError(null);
-      console.log('Fetching culture for subdistrict ID:', subdistrict.id);
       
       let response;
       if (subdistrict.territory_id || subdistrict.territory_district_id) {
-        console.log('Fetching territory culture...');
         response = await axios.get(`http://localhost:5000/api/territory-cultures/territory-subdistrict/${subdistrict.id}`);
       } else {
-        console.log('Fetching state culture...');
         response = await axios.get(`http://localhost:5000/api/cultures/subdistrict/${subdistrict.id}`);
       }
 
-      console.log('Culture API response:', response.data);
-      
       if (response.data && Array.isArray(response.data)) {
         setCulture(response.data);
       } else {
-        console.error('Invalid culture data format:', response.data);
         setCulture([]);
       }
     } catch (err) {
-      console.error('Error fetching culture:', {
-        message: err.message,
-        response: err.response?.data,
-        status: err.response?.status
-      });
       setCultureError(err.message);
       setCulture([]);
     } finally {
@@ -415,40 +355,23 @@ const SubdistrictDetail = () => {
 
   const fetchTravelInfo = async () => {
     if (!subdistrict?.id) {
-      console.log('No subdistrict ID available');
       return;
     }
 
     try {
-      console.log('Fetching travel info for subdistrict:', {
-        id: subdistrict.id,
-        title: subdistrict.title,
-        isTerritory: !!(subdistrict?.territory_id || subdistrict?.territory_district_id)
-      });
-
       let response;
       if (subdistrict.territory_id || subdistrict.territory_district_id) {
-        // Territory subdistrict
         response = await axios.get(`http://localhost:5000/api/travel-info/territory/${subdistrict.id}`);
       } else {
-        // State subdistrict
         response = await axios.get(`http://localhost:5000/api/travel-info/state/${subdistrict.id}`);
       }
 
-      console.log('Travel info API response:', response.data);
-      
       if (response.data && Array.isArray(response.data)) {
         setTravelInfo(response.data);
       } else {
-        console.error('Invalid travel info data format:', response.data);
         setTravelInfo([]);
       }
     } catch (err) {
-      console.error('Error fetching travel info:', {
-        message: err.message,
-        response: err.response?.data,
-        status: err.response?.status
-      });
       setTravelInfo([]);
     }
   };
@@ -460,7 +383,6 @@ const SubdistrictDetail = () => {
         setEducation(response.data);
       }
     } catch (err) {
-      console.error('Error fetching education:', err);
     }
   };
 
@@ -471,7 +393,6 @@ const SubdistrictDetail = () => {
         setHealthcare(response.data);
       }
     } catch (err) {
-      console.error('Error fetching healthcare:', err);
     }
   };
 
@@ -480,8 +401,7 @@ const SubdistrictDetail = () => {
       const response = await axios.get(`http://localhost:5000/api/weather/${subdistrict.id}`);
       setWeather(response.data.current);
     } catch (err) {
-      setWeather(null);
-      console.error('Error fetching weather:', err);
+      setWeather(null); 
     }
   };
 
@@ -517,6 +437,32 @@ const SubdistrictDetail = () => {
     navigate(`/subdistrict/${slug}/villages`);
   };
 
+  // Add navigation handlers
+  const handlePrevAttractions = () => {
+    setCurrentAttractionPage(prev => Math.max(0, prev - 1));
+  };
+
+  const handleNextAttractions = () => {
+    setCurrentAttractionPage(prev => 
+      Math.min(Math.ceil(attractions.length / attractionsPerPage) - 1, prev + 1)
+    );
+  };
+
+  // Calculate current attractions
+  const startIndex = currentAttractionPage * attractionsPerPage;
+  const endIndex = startIndex + attractionsPerPage;
+  const currentAttractions = attractions.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(attractions.length / attractionsPerPage);
+
+  const handlePrevCultures = () => {
+    setCurrentCulturePage(prev => Math.max(0, prev - 1));
+  };
+
+  const handleNextCultures = () => {
+    const maxPage = Math.ceil((culture?.length || 0) / culturesPerPage) - 1;
+    setCurrentCulturePage(prev => Math.min(maxPage, prev + 1));
+  };
+
   if (loading) return <div className="subdistrict-loading">Loading subdistrict details...</div>;
   if (error) return <div className="subdistrict-error">{error}</div>;
   if (!subdistrict) return <div className="subdistrict-error">Subdistrict not found</div>;
@@ -541,7 +487,6 @@ const SubdistrictDetail = () => {
                 src={images[0].image_url}
                 alt={images[0].caption || subdistrict.title}
                 onError={(e) => {
-                  console.error('Main image failed to load:', images[0].image_url);
                   e.target.src = '/placeholder-image.jpg';
                 }}
               />
@@ -550,7 +495,6 @@ const SubdistrictDetail = () => {
                 src={formatImageUrl(subdistrict.featured_image)}
                 alt={subdistrict.title}
                 onError={(e) => {
-                  console.error('Featured image failed to load:', subdistrict.featured_image);
                   e.target.src = '/placeholder-image.jpg';
                 }}
               />
@@ -562,7 +506,7 @@ const SubdistrictDetail = () => {
           </div>
 
           {/* Right section - Grid of 4 images */}
-          <div className="gallery-grid">
+          <div className="gallery-grid-sub">
             {[0, 1, 2, 3].map((index) => (
               <div 
                 key={index} 
@@ -574,7 +518,6 @@ const SubdistrictDetail = () => {
                     src={images[index + 1].image_url}
                     alt={images[index + 1].caption || `${subdistrict.title} - Image ${index + 2}`}
                     onError={(e) => {
-                      console.error('Grid image failed to load:', images[index + 1].image_url);
                       e.target.src = '/placeholder-image.jpg';
                     }}
                   />
@@ -598,7 +541,6 @@ const SubdistrictDetail = () => {
                   src={images[storyImageIndex].image_url}
                   alt={images[storyImageIndex].caption || `${subdistrict.title} - Image ${storyImageIndex + 1}`}
                   onError={(e) => {
-                    console.error('Story view image failed to load:', images[storyImageIndex].image_url);
                     e.target.src = '/placeholder-image.jpg';
                   }}
                 />
@@ -690,28 +632,51 @@ const SubdistrictDetail = () => {
       <section className="tab-section full-width-section">
         <h2>Attractions</h2>
         {attractions.length > 0 ? (
-          <div className="card-list attraction-list">
-            {attractions.map(attraction => (
-              <div key={attraction.id} className="attraction-card">
-                {(attraction.featured_image || attraction.image_url) && (
-                  <img
-                    className="card-image"
-                    src={(attraction.featured_image || attraction.image_url).startsWith('http') ?
-                      (attraction.featured_image || attraction.image_url) :
-                      `http://localhost:5000/${attraction.featured_image || attraction.image_url}`}
-                    alt={attraction.title || attraction.name}
-                  />
-                )}
-                <h3 className="card-title">{attraction.title || attraction.name}</h3>
-                <p className="card-description">{formatDescription(attraction.description)}</p>
-                <button
-                  className="read-more-btn"
-                  onClick={() => navigate(`/attraction/${attraction.slug}`)}
-                >
-                  Read More
-                </button>
-              </div>
-            ))}
+          <div className="attractions-container">
+            {currentAttractionPage > 0 && (
+              <button 
+                className="attraction-nav-btn prev-btn"
+                onClick={handlePrevAttractions}
+                aria-label="Previous attractions"
+              >
+                ❮
+              </button>
+            )}
+            <div className="attractions-row">
+              {currentAttractions.map(attraction => (
+                <div key={attraction.id} className="attraction-card">
+                  {(attraction.featured_image || attraction.image_url) && (
+                    <img
+                      className="card-image"
+                      src={(attraction.featured_image || attraction.image_url).startsWith('http') ?
+                        (attraction.featured_image || attraction.image_url) :
+                        `http://localhost:5000/${attraction.featured_image || attraction.image_url}`}
+                      alt={attraction.title || attraction.name}
+                      onError={(e) => {
+                        e.target.src = '/placeholder-image.jpg';
+                      }}
+                    />
+                  )}
+                  <h3 className="card-title">{attraction.title || attraction.name}</h3>
+                  <p className="card-description">{formatDescription(attraction.description)}</p>
+                  <button
+                    className="read-more-btn"
+                    onClick={() => navigate(`/attraction/${attraction.slug}`)}
+                  >
+                    Read More
+                  </button>
+                </div>
+              ))}
+            </div>
+            {currentAttractionPage < totalPages - 1 && (
+              <button 
+                className="attraction-nav-btn next-btn"
+                onClick={handleNextAttractions}
+                aria-label="Next attractions"
+              >
+                ❯
+              </button>
+            )}
           </div>
         ) : (
           <p className="no-data">No attractions available</p>
@@ -730,39 +695,63 @@ const SubdistrictDetail = () => {
             <p className="culture-no-data-text">Error loading culture information: {cultureError}</p>
           </div>
         ) : culture && culture.length > 0 ? (
-          <div className="culture-grid">
-            {culture.map(item => (
-              <div key={item.id} className="culture-card">
-                <div className="culture-card-image">
-                  {item.featured_image ? (
-                    <img
-                      src={formatImageUrl(item.featured_image)}
-                      alt={item.title}
-                      onError={(e) => {
-                        console.error('Image failed to load:', item.featured_image);
-                        e.target.src = '/placeholder-image.jpg';
-                      }}
-                    />
-                  ) : (
-                    <div className="culture-no-image">
-                      No Image Available
+          <div className="culture-container">
+            {currentCulturePage > 0 && (
+              <button 
+                className="culture-nav-btn prev-btn"
+                onClick={handlePrevCultures}
+                aria-label="Previous cultures"
+              >
+                {'❮'}
+              </button>
+            )}
+            <div className="culture-grid">
+              {culture
+                .slice(
+                  currentCulturePage * culturesPerPage,
+                  (currentCulturePage + 1) * culturesPerPage
+                )
+                .map(item => (
+                  <div key={item.id} className="culture-card">
+                    <div className="culture-card-image">
+                      {item.featured_image ? (
+                        <img
+                          src={formatImageUrl(item.featured_image)}
+                          alt={item.title}
+                          onError={(e) => {
+                            e.target.src = '/placeholder-image.jpg';
+                          }}
+                        />
+                      ) : (
+                        <div className="culture-no-image">
+                          No Image Available
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-                <div className="culture-card-content">
-                  <h3 className="culture-card-title">{item.title}</h3>
-                  <div className="culture-card-description">
-                    {formatDescription(item.description)}
+                    <div className="culture-card-content">
+                      <h3 className="culture-card-title">{item.title}</h3>
+                      <div className="culture-card-description">
+                        {formatDescription(item.description)}
+                      </div>
+                      <button
+                        className="culture-read-more"
+                        onClick={() => navigate(`/culture/${item.slug}`)}
+                      >
+                        Read More
+                      </button>
+                    </div>
                   </div>
-                  <button
-                    className="culture-read-more"
-                    onClick={() => navigate(`/culture/${item.slug}`)}
-                  >
-                    Read More
-                  </button>
-                </div>
-              </div>
-            ))}
+                ))}
+            </div>
+            {currentCulturePage < Math.ceil(culture.length / culturesPerPage) - 1 && (
+              <button 
+                className="culture-nav-btn next-btn"
+                onClick={handleNextCultures}
+                aria-label="Next cultures"
+              >
+                {'❯'}
+              </button>
+            )}
           </div>
         ) : (
           <div className="culture-no-data">
@@ -777,7 +766,36 @@ const SubdistrictDetail = () => {
         {travelInfo && travelInfo.length > 0 ? (
           <div className="travel-grid">
             {travelInfo.map(travel => (
-              <TravelInfoCard key={travel.id} travel={travel} />
+              <div 
+                key={travel.id} 
+                className="travel-info-card"
+                onClick={() => navigate(`/travel-info/${travel.slug}`)}
+              >
+                <div className="travel-card-image">
+                  {travel.featured_image ? (
+                    <img
+                      src={formatImageUrl(travel.featured_image)}
+                      alt={travel.title}
+                      onError={(e) => {
+                        e.target.src = '/placeholder-image.jpg';
+                      }}
+                    />
+                  ) : (
+                    <div className="travel-no-image">
+                      No Image Available
+                    </div>
+                  )}
+                </div>
+                <div className="travel-card-content">
+                  <h3 className="travel-card-title">{travel.title}</h3>
+                  <p className="travel-card-description">
+                    {travel.description?.replace(/<[^>]+>/g, '').substring(0, 150)}...
+                  </p>
+                  <button className="travel-read-more">
+                    Read More
+                  </button>
+                </div>
+              </div>
             ))}
           </div>
         ) : (
@@ -785,14 +803,6 @@ const SubdistrictDetail = () => {
             <p className="travel-no-data-text">No travel information available for this location.</p>
           </div>
         )}
-      </section>
-
-      {/* Education & Healthcare Section */}
-      <section className="tab-section full-width-section">
-        <h2>Seasonal Guides</h2>
-        <div className="seasonal-guides-placeholder">
-          <p>Explore the best times to visit, seasonal highlights, and tips for every season in this subdistrict.</p>
-        </div>
       </section>
     </div>
   );

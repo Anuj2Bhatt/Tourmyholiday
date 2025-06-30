@@ -26,8 +26,7 @@ CREATE TABLE IF NOT EXISTS territory_attractions (
   try {
     await db.query(createTerritoryAttractionsTable);
   } catch (err) {
-    console.error('Error creating territory_attractions table:', err.message);
-  }
+    }
 })();
 
 // Multer config: all images in /uploads
@@ -54,7 +53,6 @@ router.post('/', upload.single('featured_image'), async (req, res) => {
     
     res.json({ success: true, id: result.insertId });
   } catch (err) {
-    console.error('Error creating territory attraction:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -77,7 +75,6 @@ router.put('/:id', upload.single('featured_image'), async (req, res) => {
     await db.query(sql, params);
     res.json({ success: true });
   } catch (err) {
-    console.error('Error updating territory attraction:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -91,7 +88,6 @@ router.get('/territory-subdistrict/:territory_subdistrict_id', async (req, res) 
     );
     res.json(rows);
   } catch (err) {
-    console.error('Error fetching territory attractions:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -105,7 +101,6 @@ router.get('/:id', async (req, res) => {
     );
     res.json(rows[0]);
   } catch (err) {
-    console.error('Error fetching territory attraction:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -119,7 +114,6 @@ router.delete('/:id', async (req, res) => {
     );
     res.json({ success: true });
   } catch (err) {
-    console.error('Error deleting territory attraction:', err);
     res.status(500).json({ error: err.message });
   }
 });

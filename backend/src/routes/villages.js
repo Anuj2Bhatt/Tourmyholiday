@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../db');
+const pool = require('../../db');
 const multer = require('multer');
 const path = require('path');
 const slugify = require('slugify');
@@ -73,8 +73,6 @@ const upload = multer({
 router.get('/', async (req, res) => {
   try {
     const { state_id, district_id, subdistrict_id } = req.query;
-    console.log('GET /villages - Query params:', { state_id, district_id, subdistrict_id });
-    
     let query = `
       SELECT v.id, v.name, v.slug, v.description, v.location, v.population, v.main_occupation,
              v.cultural_significance, v.attractions, v.how_to_reach, v.best_time_to_visit,
@@ -107,35 +105,27 @@ router.get('/', async (req, res) => {
     
     query += ' ORDER BY v.name ASC';
     
-    console.log('Executing query:', query);
-    console.log('With params:', params);
-    
     const [villages] = await pool.query(query, params);
-    console.log('Raw villages data from DB:', villages);
-    
     // Format image path to include full URL and ensure consistent format
     const formattedVillages = villages.map(village => {
       const formatted = {
-      ...village,
+        ...village,
         featured_image: village.featured_image 
           ? (village.featured_image.startsWith('http') 
             ? village.featured_image 
             : `${process.env.SERVER_URL}/uploads/${village.featured_image}`)
           : null,
-        status: village.status || 'draft'
+        status: village.status || 'draft',
+        type: 'state'
       };
-      console.log('Formatted village:', formatted);
       return formatted;
     });
     
-    console.log('Final formatted villages:', formattedVillages);
-      
     res.json({
       success: true,
       data: formattedVillages || [] // Ensure we always send an array
     });
   } catch (error) {
-    console.error('Error in GET /villages:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching state villages',
@@ -179,7 +169,6 @@ router.get('/slug/:slug', async (req, res) => {
       data: formattedVillage
     });
   } catch (error) {
-    console.error('Error fetching state village by slug:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching state village',
@@ -191,8 +180,6 @@ router.get('/slug/:slug', async (req, res) => {
 // POST route to create a new village
 router.post('/', async (req, res) => {
   try {
-    console.log('Creating village with data:', req.body);
-    
     const {
       name,
       description,
@@ -263,15 +250,12 @@ router.post('/', async (req, res) => {
       [result.insertId]
     );
 
-    console.log('Created village:', newVillage[0]);
-
     res.status(201).json({
       success: true,
       message: 'Village created successfully',
       data: newVillage[0]
     });
   } catch (error) {
-    console.error('Error creating village:', error);
     res.status(500).json({
       success: false,
       message: 'Error creating village',
@@ -283,8 +267,6 @@ router.post('/', async (req, res) => {
 // PUT route to update a village
 router.put('/:id', async (req, res) => {
   try {
-    console.log('Updating village with data:', req.body);
-    
     const {
       name,
       description,
@@ -372,15 +354,12 @@ router.put('/:id', async (req, res) => {
       [req.params.id]
     );
 
-    console.log('Updated village:', updatedVillage[0]);
-    
     res.json({
       success: true,
       message: 'Village updated successfully',
       data: updatedVillage[0]
     });
   } catch (error) {
-    console.error('Error updating village:', error);
     res.status(500).json({
       success: false,
       message: 'Error updating village',
@@ -405,8 +384,7 @@ router.delete('/:id', async (req, res) => {
       try {
         await fs.promises.unlink(imagePath);
       } catch (err) {
-        console.error('Error deleting image file:', err);
-      }
+        }
     }
 
     const [result] = await pool.query(
@@ -426,7 +404,6 @@ router.delete('/:id', async (req, res) => {
       message: 'State village deleted successfully'
     });
   } catch (error) {
-    console.error('Error deleting state village:', error);
     res.status(500).json({
       success: false,
       message: 'Error deleting state village',

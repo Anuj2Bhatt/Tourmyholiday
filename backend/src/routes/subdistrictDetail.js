@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../db');
-const multer = require('multer');
+const pool = require('../../db');
+const multer = require('multer'); 
 const path = require('path');
 const fs = require('fs');
 
@@ -24,7 +24,7 @@ const upload = multer({ storage });
 // Helper function to format image URL
 const formatImageUrl = (imagePath) => {
   if (!imagePath) return null;
-  return `http://localhost:5000/uploads/subdistricts/${path.basename(imagePath)}`;
+  return `${process.env.API_BASE_URL || 'http://localhost:5000'}/uploads/subdistricts/${path.basename(imagePath)}`;
 };
 
 // Get subdistrict details by slug
@@ -68,7 +68,7 @@ router.get('/:slug', async (req, res) => {
     // Format image URLs
     const formattedImages = images.map(image => ({
       ...image,
-      image_path: `http://localhost:5000/uploads/subdistricts/${image.image_path.split('/').pop()}`
+      image_path: `${process.env.API_BASE_URL || 'http://localhost:5000'}/uploads/subdistricts/${image.image_path.split('/').pop()}`
     }));
 
     // Parse JSON fields
@@ -115,7 +115,6 @@ router.get('/:slug', async (req, res) => {
 
     res.json(response);
   } catch (error) {
-    console.error('Error fetching subdistrict details:', error);
     res.status(500).json({ message: 'Error fetching subdistrict details' });
   }
 });
@@ -147,7 +146,6 @@ router.get('/:slug/images', async (req, res) => {
 
     res.json(formattedImages);
   } catch (error) {
-    console.error('Error fetching subdistrict images:', error);
     res.status(500).json({ message: 'Error fetching subdistrict images' });
   }
 });
@@ -173,7 +171,6 @@ router.get('/:slug/villages', async (req, res) => {
 
     res.json(villages.rows);
   } catch (error) {
-    console.error('Error fetching subdistrict villages:', error);
     res.status(500).json({ message: 'Error fetching subdistrict villages' });
   }
 });
@@ -199,7 +196,6 @@ router.get('/:slug/demographics', async (req, res) => {
 
     res.json(demographics.rows[0] || null);
   } catch (error) {
-    console.error('Error fetching subdistrict demographics:', error);
     res.status(500).json({ message: 'Error fetching subdistrict demographics' });
   }
 });
@@ -231,7 +227,6 @@ router.get('/:slug/attractions', async (req, res) => {
 
     res.json(formattedAttractions);
   } catch (error) {
-    console.error('Error fetching subdistrict attractions:', error);
     res.status(500).json({ message: 'Error fetching subdistrict attractions' });
   }
 });
@@ -263,7 +258,6 @@ router.get('/:slug/culture', async (req, res) => {
 
     res.json(formattedCulture);
   } catch (error) {
-    console.error('Error fetching subdistrict culture:', error);
     res.status(500).json({ message: 'Error fetching subdistrict culture' });
   }
 });
@@ -290,7 +284,7 @@ router.get('/:slug/travel', async (req, res) => {
       const formattedTravelInfo = travelInfo.map(info => ({
         ...info,
         featured_image: info.featured_image ? 
-          `http://localhost:5000/${info.featured_image}` : 
+          `${process.env.API_BASE_URL || 'http://localhost:5000'}/${info.featured_image}` : 
           null
       }));
 
@@ -314,7 +308,7 @@ router.get('/:slug/travel', async (req, res) => {
       const formattedTravelInfo = travelInfo.map(info => ({
         ...info,
         featured_image: info.featured_image ? 
-          `http://localhost:5000/${info.featured_image}` : 
+          `${process.env.API_BASE_URL || 'http://localhost:5000'}/${info.featured_image}` : 
           null,
         transportation: JSON.parse(info.transportation || '{}'),
         accommodation: JSON.parse(info.accommodation || '{}'),
@@ -328,7 +322,6 @@ router.get('/:slug/travel', async (req, res) => {
     // If not found in either table, return 404
     return res.status(404).json({ message: 'Travel info not found' });
   } catch (error) {
-    console.error('Error fetching subdistrict travel info:', error);
     res.status(500).json({ message: 'Error fetching subdistrict travel info' });
   }
 });
@@ -354,7 +347,6 @@ router.get('/:slug/economy', async (req, res) => {
 
     res.json(economy.rows[0] || null);
   } catch (error) {
-    console.error('Error fetching subdistrict economy:', error);
     res.status(500).json({ message: 'Error fetching subdistrict economy' });
   }
 });
@@ -393,7 +385,6 @@ router.get('/:slug/education-healthcare', async (req, res) => {
       healthcare: healthcare.rows
     });
   } catch (error) {
-    console.error('Error fetching subdistrict education and healthcare:', error);
     res.status(500).json({ message: 'Error fetching subdistrict education and healthcare' });
   }
 });
@@ -419,7 +410,6 @@ router.get('/:slug/weather', async (req, res) => {
 
     res.json(weather.rows[0] || null);
   } catch (error) {
-    console.error('Error fetching subdistrict weather:', error);
     res.status(500).json({ message: 'Error fetching subdistrict weather' });
   }
 });

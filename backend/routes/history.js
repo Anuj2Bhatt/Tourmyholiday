@@ -8,7 +8,6 @@ router.get('/', async (req, res) => {
     const [history] = await pool.query('SELECT * FROM history ORDER BY created_at DESC');
     res.json(history);
   } catch (error) {
-    console.error('Error fetching history:', error);
     res.status(500).json({ error: 'Failed to fetch history' });
   }
 });
@@ -25,7 +24,6 @@ router.get('/:id', async (req, res) => {
     
     res.json(history[0]);
   } catch (error) {
-    console.error('Error fetching history entry:', error);
     res.status(500).json({ error: 'Failed to fetch history entry' });
   }
 });
@@ -49,7 +47,6 @@ router.post('/', async (req, res) => {
 
     res.status(201).json(newHistory);
   } catch (error) {
-    console.error('Error creating history entry:', error);
     res.status(500).json({ error: 'Failed to create history entry' });
   }
 });
@@ -78,7 +75,6 @@ router.put('/:id', async (req, res) => {
 
     res.json(updatedHistory);
   } catch (error) {
-    console.error('Error updating history entry:', error);
     res.status(500).json({ error: 'Failed to update history entry' });
   }
 });
@@ -95,7 +91,6 @@ router.delete('/:id', async (req, res) => {
 
     res.json({ message: 'History entry deleted successfully' });
   } catch (error) {
-    console.error('Error deleting history entry:', error);
     res.status(500).json({ error: 'Failed to delete history entry' });
   }
 });

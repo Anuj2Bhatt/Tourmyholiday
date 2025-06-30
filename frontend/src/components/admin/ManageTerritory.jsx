@@ -35,17 +35,11 @@ const ManageTerritory = () => {
   const fetchTerritories = async () => {
     try {
       setLoading(true);
-      console.log('Fetching territories...');
       const response = await territoryService.getAllTerritories();
-      console.log('Territories response:', response);
-
       if (response.success) {
         const territoriesData = Array.isArray(response.data) ? response.data : [];
-        console.log('Territories data:', territoriesData);
-        
         // Use the exact image path from backend
         const territoriesWithFullUrls = territoriesData.map(territory => {
-          console.log('Processing territory:', territory);
           let previewImageUrl = null;
           
           if (territory.preview_image) {
@@ -60,15 +54,12 @@ const ManageTerritory = () => {
             preview_image: previewImageUrl || `${API_URL}/uploads/placeholder.jpg`
           };
         });
-        console.log('Processed territories:', territoriesWithFullUrls);
         setTerritories(territoriesWithFullUrls);
       } else {
-        console.error('Failed to fetch territories:', response);
         setError('Failed to fetch territories');
         toast.error('Failed to fetch territories');
       }
     } catch (error) {
-      console.error('Error in fetchTerritories:', error);
       setError(error.message || 'Error fetching territories');
       toast.error(error.message || 'Error fetching territories');
     } finally {
@@ -82,7 +73,6 @@ const ManageTerritory = () => {
   };
 
   const handleEdit = (territory) => {
-    console.log('Editing territory:', territory);
     let previewImageUrl = null;
     
     if (territory.preview_image) {
@@ -96,7 +86,6 @@ const ManageTerritory = () => {
       capital: territory.capital || territory.state_name,
       preview_image: previewImageUrl || `${API_URL}/uploads/placeholder.jpg`
     };
-    console.log('Setting territory for edit:', territoryWithFullUrls);
     setSelectedTerritory(territoryWithFullUrls);
     setIsFormOpen(true);
   };
@@ -117,149 +106,82 @@ const ManageTerritory = () => {
 
   const handleFormSubmit = async (formData) => {
     try {
-      // Log the actual FormData contents
-      console.log('Form data entries:');
-      for (let pair of formData.entries()) {
-        console.log(pair[0] + ': ' + (pair[1] instanceof File ? pair[1].name : pair[1]));
+      // If formData is already a FormData object, use it directly
+      // Otherwise, create a new FormData object from the regular object
+      const dataToSend = formData instanceof FormData ? formData : new FormData();
+      
+      if (!(formData instanceof FormData)) {
+        // Handle regular object
+        const fieldsToInclude = [
+          'title', 'slug', 'capital', 'famous_for',
+          'meta_title', 'meta_description', 'meta_keywords',
+          'preview_image'
+        ];
+
+        fieldsToInclude.forEach(field => {
+          if (formData[field] !== null && formData[field] !== undefined) {
+            dataToSend.append(field, formData[field]);
+          } else if (field !== 'preview_image') {
+            dataToSend.append(field, '');
+          }
+        });
+
+        if (selectedTerritory) {
+          dataToSend.append('id', selectedTerritory.id);
+        }
+      }
+
+      for (let pair of dataToSend.entries()) {
       }
 
       let response;
       if (selectedTerritory) {
-        // For update, we need to ensure all fields are included
-        const territoryData = new FormData();
-        
-        // Always include the territory ID
-        territoryData.append('id', selectedTerritory.id);
-
-        // Add all form fields
-        const fieldsToInclude = [
-          'title', 'slug', 'capital', 'famous_for', 
-          'meta_title', 'meta_description', 'meta_keywords'
-        ];
-
-        // Add all text fields
-        fieldsToInclude.forEach(field => {
-          const value = formData.get(field);
-          if (value !== null && value !== undefined) {
-            console.log(`Adding field ${field}:`, value);
-            territoryData.append(field, value);
-          }
-        });
-
-        // Add image files if they exist
-        const previewImage = formData.get('preview_image');
-        if (previewImage instanceof File) {
-          console.log('Adding preview image:', previewImage.name);
-          territoryData.append('preview_image', previewImage);
-        }
-
-        // Log the exact data being sent
-        console.log('Update data being sent:');
-        for (let pair of territoryData.entries()) {
-          console.log(pair[0] + ': ' + (pair[1] instanceof File ? pair[1].name : pair[1]));
-        }
-
-        response = await territoryService.updateTerritory(selectedTerritory.id, territoryData);
+        response = await territoryService.updateTerritory(selectedTerritory.id, dataToSend);
       } else {
-        // For create, we can send FormData directly
-        response = await territoryService.createTerritory(formData);
+        response = await territoryService.createTerritory(dataToSend);
       }
 
-        if (response.success) {
-        // After successful update/create, refresh the territories list
+      if (response.success) {
         await fetchTerritories();
-        
-        // Show success message
-        if (selectedTerritory) {
-          toast.success('Territory updated successfully');
-        } else {
-          toast.success('Territory created successfully');
-        }
-        
-        // Close the form
+        toast.success(selectedTerritory ? 'Territory updated successfully' : 'Territory created successfully');
         setIsFormOpen(false);
         setSelectedTerritory(null);
-      } else {
-        // Handle validation errors
-        if (response.errors) {
-          const fieldErrors = {};
-          response.errors.forEach(err => {
-            const fieldName = err.path || err.param;
-            if (!fieldErrors[fieldName]) {
-              fieldErrors[fieldName] = [];
-            }
-            fieldErrors[fieldName].push(err.msg || err.message);
-          });
-
-          // Show each field's errors
-          Object.entries(fieldErrors).forEach(([field, messages]) => {
-            toast.error(`${field}: ${messages.join(', ')}`);
-          });
-
-          // Pass errors to form component
-          if (selectedTerritory) {
-            setSelectedTerritory(prev => ({
-              ...prev,
-              errors: fieldErrors
-            }));
-          }
-        } else {
-          toast.error('Failed to save territory');
-        }
-      }
-    } catch (error) {
-      console.error('Error saving territory:', error);
-      
-      // Handle validation errors
-      if (error.errors && Array.isArray(error.errors)) {
-        // Group errors by field
+      } else if (response.errors) {
         const fieldErrors = {};
-        error.errors.forEach(err => {
+        response.errors.forEach(err => {
           const fieldName = err.path || err.param;
-          if (!fieldErrors[fieldName]) {
-            fieldErrors[fieldName] = [];
-          }
+          if (!fieldErrors[fieldName]) fieldErrors[fieldName] = [];
           fieldErrors[fieldName].push(err.msg || err.message);
         });
 
-        // Show each field's errors
         Object.entries(fieldErrors).forEach(([field, messages]) => {
           toast.error(`${field}: ${messages.join(', ')}`);
         });
 
-        // Pass errors to form component
         if (selectedTerritory) {
-          setSelectedTerritory(prev => ({
-            ...prev,
-            errors: fieldErrors
-          }));
+          setSelectedTerritory(prev => ({ ...prev, errors: fieldErrors }));
         }
-      } else if (error.response?.data?.errors) {
-        // Handle backend validation errors
+      } else {
+        toast.error(response.message || 'Failed to save territory');
+      }
+    } catch (error) {
+      if (error.response?.data?.errors) {
         const fieldErrors = {};
         error.response.data.errors.forEach(err => {
           const fieldName = err.path || err.param;
-          if (!fieldErrors[fieldName]) {
-            fieldErrors[fieldName] = [];
-          }
+          if (!fieldErrors[fieldName]) fieldErrors[fieldName] = [];
           fieldErrors[fieldName].push(err.msg || err.message);
         });
 
-        // Show each field's errors
         Object.entries(fieldErrors).forEach(([field, messages]) => {
           toast.error(`${field}: ${messages.join(', ')}`);
         });
 
-        // Pass errors to form component
         if (selectedTerritory) {
-          setSelectedTerritory(prev => ({
-            ...prev,
-            errors: fieldErrors
-          }));
+          setSelectedTerritory(prev => ({ ...prev, errors: fieldErrors }));
         }
       } else {
-        // Handle other errors
-      toast.error(error.message || 'Error saving territory');
+        toast.error(error.message || 'Error saving territory');
       }
     }
   };
@@ -424,7 +346,6 @@ const ManageTerritory = () => {
                           className="territory-thumbnail"
                             onError={(e) => {
                               if (e.target.src !== `${API_URL}/uploads/placeholder.jpg`) {
-                                console.log('Image failed to load, using placeholder:', territory.preview_image);
                                 e.target.src = `${API_URL}/uploads/placeholder.jpg`;
                               }
                             }}

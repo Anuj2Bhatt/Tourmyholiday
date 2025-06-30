@@ -122,8 +122,6 @@ router.post('/:id/images', upload.array('images', 10), async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error uploading images:', error);
-    
     // Cleanup uploaded files on error
     if (req.files) {
       req.files.forEach(file => {
@@ -171,7 +169,6 @@ router.get('/:id/images', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error fetching village images:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching images',
@@ -215,7 +212,6 @@ router.delete('/images/:imageId', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error deleting image:', error);
     res.status(500).json({
       success: false,
       message: 'Error deleting image',

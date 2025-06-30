@@ -12,7 +12,6 @@ router.get('/room/:roomId', async (req, res) => {
         `, [req.params.roomId]);
         res.json(prices);
     } catch (error) {
-        console.error('Error fetching seasonal prices:', error);
         res.status(500).json({ message: 'Error fetching seasonal prices' });
     }
 });
@@ -26,7 +25,6 @@ router.get('/:id', async (req, res) => {
         }
         res.json(price[0]);
     } catch (error) {
-        console.error('Error fetching seasonal price:', error);
         res.status(500).json({ message: 'Error fetching seasonal price' });
     }
 });
@@ -65,7 +63,6 @@ router.post('/', async (req, res) => {
             price_per_night
         });
     } catch (error) {
-        console.error('Error creating seasonal price:', error);
         res.status(500).json({ message: 'Error creating seasonal price' });
     }
 });
@@ -116,7 +113,6 @@ router.put('/:id', async (req, res) => {
             price_per_night
         });
     } catch (error) {
-        console.error('Error updating seasonal price:', error);
         res.status(500).json({ message: 'Error updating seasonal price' });
     }
 });
@@ -127,7 +123,6 @@ router.delete('/:id', async (req, res) => {
         await db.query('DELETE FROM seasonal_prices WHERE id = ?', [req.params.id]);
         res.json({ message: 'Seasonal price deleted successfully' });
     } catch (error) {
-        console.error('Error deleting seasonal price:', error);
         res.status(500).json({ message: 'Error deleting seasonal price' });
     }
 });

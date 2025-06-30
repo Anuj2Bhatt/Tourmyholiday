@@ -2,12 +2,8 @@ const db = require('../db');
 
 async function migrateHotelAmenities() {
   try {
-    console.log('Starting migration of hotel amenities...');
-    
     // Get all hotels with their amenities
     const [hotels] = await db.query('SELECT id, amenities FROM hotels WHERE amenities IS NOT NULL');
-    console.log(`Found ${hotels.length} hotels with amenities`);
-
     // Start transaction
     const connection = await db.getConnection();
     await connection.beginTransaction();
@@ -15,8 +11,6 @@ async function migrateHotelAmenities() {
     try {
       // First clear existing hotel_amenities to avoid duplicates
       await connection.query('DELETE FROM hotel_amenities');
-      console.log('Cleared existing hotel_amenities data');
-
       // Process each hotel
       for (const hotel of hotels) {
         let amenities;
@@ -41,8 +35,7 @@ async function migrateHotelAmenities() {
                   [amenityName]
                 );
                 amenityId = result.insertId;
-                console.log(`Created new amenity: ${amenityName}`);
-              } else {
+                } else {
                 amenityId = amenityRows[0].id;
               }
 
@@ -52,19 +45,14 @@ async function migrateHotelAmenities() {
                 [hotel.id, amenityId]
               );
             }
-            console.log(`Migrated ${amenities.length} amenities for hotel ${hotel.id}`);
-          }
+            }
         } catch (err) {
-          console.error(`Error processing hotel ${hotel.id}:`, err);
-          console.error('Amenities data:', hotel.amenities);
-        }
+          }
       }
 
       // Commit transaction
       await connection.commit();
-      console.log('Successfully migrated all hotel amenities!');
-
-    } catch (error) {
+      } catch (error) {
       await connection.rollback();
       throw error;
     } finally {
@@ -72,7 +60,6 @@ async function migrateHotelAmenities() {
     }
 
   } catch (error) {
-    console.error('Migration failed:', error);
     process.exit(1);
   }
 }
@@ -80,10 +67,8 @@ async function migrateHotelAmenities() {
 // Run migration
 migrateHotelAmenities()
   .then(() => {
-    console.log('Migration completed successfully');
     process.exit(0);
   })
   .catch(error => {
-    console.error('Migration failed:', error);
     process.exit(1);
   }); 

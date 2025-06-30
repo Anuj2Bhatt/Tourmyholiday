@@ -45,7 +45,6 @@ router.get('/season/:seasonId', async (req, res) => {
         );
         res.json(images);
     } catch (error) {
-        console.error('Error fetching territory season images:', error);
         res.status(500).json({ error: 'Failed to fetch images' });
     }
 });
@@ -82,14 +81,12 @@ router.post('/season/:seasonId', upload.single('image'), async (req, res) => {
             image_order: nextOrder
         });
     } catch (error) {
-        console.error('Error uploading territory season image:', error);
         // Delete uploaded file if database insert fails
         if (req.file) {
             try {
                 fs.unlinkSync(req.file.path);
             } catch (unlinkError) {
-                console.error('Error deleting uploaded file:', unlinkError);
-            }
+                }
         }
         res.status(500).json({ error: 'Failed to upload image' });
     }
@@ -116,8 +113,7 @@ router.put('/:id', upload.single('image'), async (req, res) => {
                 try {
                     fs.unlinkSync(oldImage[0].image_url);
                 } catch (unlinkError) {
-                    console.error('Error deleting old image file:', unlinkError);
-                }
+                    }
             }
 
             updateQuery += ', image_url = ?';
@@ -137,13 +133,11 @@ router.put('/:id', upload.single('image'), async (req, res) => {
 
         res.json(updatedImage[0]);
     } catch (error) {
-        console.error('Error updating territory season image:', error);
         if (req.file) {
             try {
                 fs.unlinkSync(req.file.path);
             } catch (unlinkError) {
-                console.error('Error deleting uploaded file:', unlinkError);
-            }
+                }
         }
         res.status(500).json({ error: 'Failed to update image' });
     }
@@ -166,13 +160,11 @@ router.delete('/:id', async (req, res) => {
             try {
                 fs.unlinkSync(image[0].image_url);
             } catch (unlinkError) {
-                console.error('Error deleting image file:', unlinkError);
-            }
+                }
         }
 
         res.json({ message: 'Image deleted successfully' });
     } catch (error) {
-        console.error('Error deleting territory season image:', error);
         res.status(500).json({ error: 'Failed to delete image' });
     }
 });
@@ -187,7 +179,6 @@ router.put('/:id/order', async (req, res) => {
         );
         res.json({ message: 'Image order updated successfully' });
     } catch (error) {
-        console.error('Error updating territory season image order:', error);
         res.status(500).json({ error: 'Failed to update image order' });
     }
 });

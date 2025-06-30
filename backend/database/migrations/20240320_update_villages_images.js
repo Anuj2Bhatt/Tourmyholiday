@@ -7,10 +7,9 @@ async function migrate() {
     // Create connection
     connection = await mysql.createConnection(config);
 
-    console.log('Starting migration: Update villages table for featured image only');
 
     // First, backup any featured images from the images array
-    console.log('Backing up featured images from images array...');
+
     await connection.query(`
       UPDATE villages 
       SET featured_image = JSON_UNQUOTE(JSON_EXTRACT(images, '$[0]'))
@@ -20,22 +19,22 @@ async function migrate() {
     `);
 
     // Drop the images column
-    console.log('Dropping images column...');
+
     await connection.query(`
       ALTER TABLE villages 
       DROP COLUMN images
     `);
 
     // Ensure featured_image column is properly set up
-    console.log('Updating featured_image column...');
+
     await connection.query(`
       ALTER TABLE villages 
       MODIFY COLUMN featured_image VARCHAR(255) NULL
     `);
 
-    console.log('Migration completed successfully');
+      
   } catch (error) {
-    console.error('Migration failed:', error);
+
     throw error;
   } finally {
     if (connection) {

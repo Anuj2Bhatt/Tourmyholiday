@@ -16,7 +16,7 @@ const ManageArticles = () => {
 
   const fetchArticles = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/articles');
+      const response = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/articles`);
       setArticles(response.data);
       setLoading(false);
     } catch (err) {
@@ -29,7 +29,7 @@ const ManageArticles = () => {
     if (window.confirm('Are you sure you want to delete this article?')) {
       try {
         setLoading(true);
-        await axios.delete(`http://localhost:5000/api/articles/${id}`);
+        await axios.delete(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/articles/${id}`);
         fetchArticles();
       } catch (err) {
         setError('Failed to delete article');
@@ -45,12 +45,11 @@ const ManageArticles = () => {
         setError(null); // Clear any previous errors
         
         // Debug log to see what's being sent
-        console.log('Form data before sending:');
         for (let pair of formData.entries()) {
             const value = pair[1];
             const displayValue = value instanceof File ? `File: ${value.name} (${value.type})` : value;
             console.log(`${pair[0]}: ${displayValue}`);
-        }
+            }
 
         const config = {
             headers: {
@@ -60,17 +59,15 @@ const ManageArticles = () => {
 
         let response;
         const url = editingArticle 
-            ? `http://localhost:5000/api/articles/${editingArticle.id}`
-            : 'http://localhost:5000/api/articles';
+            ? `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/articles/${editingArticle.id}`
+            : `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/articles`;
 
         const method = editingArticle ? 'put' : 'post';
         
-        console.log(`Sending ${method.toUpperCase()} request to:`, url);
+        console.log(`Making ${method.toUpperCase()} request to:`, url);
         
         response = await axios[method](url, formData, config);
         
-        console.log('Server response:', response.data);
-
         if (response.data) {
             // Success
             await fetchArticles(); // Refresh the articles list
@@ -80,12 +77,6 @@ const ManageArticles = () => {
             alert(editingArticle ? 'Article updated successfully!' : 'Article created successfully!');
         }
     } catch (err) {
-        console.error('Error details:', {
-            message: err.message,
-            response: err.response?.data,
-            status: err.response?.status
-        });
-
         let errorMessage = 'Failed to save article. ';
         
         if (err.response) {
@@ -118,11 +109,8 @@ const ManageArticles = () => {
   };
 
   const getImageUrl = (imagePath) => {
-    console.log('Image path received:', imagePath);
-    
     // If no image path, return placeholder
     if (!imagePath) {
-      console.log('No image path, returning placeholder');
       return `${process.env.PUBLIC_URL}/images/no-image.png`;
     }
 
@@ -137,13 +125,12 @@ const ManageArticles = () => {
       
       // If path already includes 'uploads/', use it as is
       if (cleanPath.startsWith('uploads/')) {
-        return `http://localhost:5000/${cleanPath}`;
+        return `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/${cleanPath}`;
       }
       
       // Otherwise, add 'uploads/' prefix
-      return `http://localhost:5000/uploads/${cleanPath}`;
+      return `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/uploads/${cleanPath}`;
     } catch (error) {
-      console.error('Error processing image path:', error);
       return `${process.env.PUBLIC_URL}/images/no-image.png`;
     }
   };
@@ -212,7 +199,6 @@ const ManageArticles = () => {
                             backgroundColor: '#f5f5f5'
                           }}
                           onError={(e) => {
-                            console.log('Image load error for:', article.featured_image);
                             e.target.onerror = null;
                             e.target.src = '/images/no-image.png';
                           }}

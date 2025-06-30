@@ -6,13 +6,6 @@ const db = require('../config/database');
 
 // Debug middleware to log all requests
 router.use((req, res, next) => {
-  console.log('Village Image Route accessed:', {
-    method: req.method,
-    path: req.path,
-    params: req.params,
-    query: req.query,
-    body: req.body
-  });
   next();
 });
 
@@ -22,7 +15,6 @@ const storage = multer.diskStorage({
     // Determine which directory to use based on the route
     const isStateVillage = req.path.includes('/state/');
     const uploadDir = isStateVillage ? 'uploads/state-villages' : 'uploads/territory-villages';
-    console.log('Upload directory selected:', uploadDir);
     cb(null, uploadDir);
   },
   filename: function (req, file, cb) {
@@ -47,17 +39,11 @@ const upload = multer({
 
 // Get all images for a state village
 router.get('/state/:villageId', async (req, res) => {
-  console.log('GET /state/:villageId called with params:', req.params);
   try {
     const { villageId } = req.params;
-    console.log('Fetching images for state village ID:', villageId);
-    
     // First check if village exists
     const [village] = await db.query('SELECT id FROM villages WHERE id = ?', [villageId]);
-    console.log('Village check result:', village);
-
     if (village.length === 0) {
-      console.log('Village not found');
       return res.status(404).json({
         success: false,
         message: 'Village not found'
@@ -68,14 +54,11 @@ router.get('/state/:villageId', async (req, res) => {
       'SELECT * FROM village_images WHERE village_id = ? ORDER BY display_order ASC',
       [villageId]
     );
-    console.log('Images found:', images.length);
-
     res.json({
       success: true,
       data: images
     });
   } catch (error) {
-    console.error('Error in GET /state/:villageId:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch village images: ' + error.message
@@ -85,17 +68,11 @@ router.get('/state/:villageId', async (req, res) => {
 
 // Get all images for a territory village
 router.get('/territory/:villageId', async (req, res) => {
-  console.log('GET /territory/:villageId called with params:', req.params);
   try {
     const { villageId } = req.params;
-    console.log('Fetching images for territory village ID:', villageId);
-    
     // First check if village exists
     const [village] = await db.query('SELECT id FROM territory_villages WHERE id = ?', [villageId]);
-    console.log('Village check result:', village);
-
     if (village.length === 0) {
-      console.log('Village not found');
       return res.status(404).json({
         success: false,
         message: 'Village not found'
@@ -106,14 +83,11 @@ router.get('/territory/:villageId', async (req, res) => {
       'SELECT * FROM territory_village_images WHERE village_id = ? ORDER BY display_order ASC',
       [villageId]
     );
-    console.log('Images found:', images.length);
-
     res.json({
       success: true,
       data: images
     });
   } catch (error) {
-    console.error('Error in GET /territory/:villageId:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch territory village images: ' + error.message
@@ -123,19 +97,10 @@ router.get('/territory/:villageId', async (req, res) => {
 
 // Upload multiple images for a state village
 router.post('/state/:villageId', upload.array('images', 10), async (req, res) => {
-  console.log('POST /state/:villageId called with params:', req.params);
   try {
     const { villageId } = req.params;
     const { alt_texts, descriptions, display_orders } = req.body;
     const files = req.files;
-
-    console.log('Upload request details:', {
-      villageId,
-      filesCount: files?.length,
-      alt_texts,
-      descriptions,
-      display_orders
-    });
 
     if (!files || files.length === 0) {
       return res.status(400).json({
@@ -178,7 +143,6 @@ router.post('/state/:villageId', upload.array('images', 10), async (req, res) =>
       }
     });
   } catch (error) {
-    console.error('Error in POST /state/:villageId:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to upload images: ' + error.message
@@ -188,19 +152,10 @@ router.post('/state/:villageId', upload.array('images', 10), async (req, res) =>
 
 // Upload multiple images for a territory village
 router.post('/territory/:villageId', upload.array('images', 10), async (req, res) => {
-  console.log('POST /territory/:villageId called with params:', req.params);
   try {
     const { villageId } = req.params;
     const { alt_texts, descriptions, display_orders } = req.body;
     const files = req.files;
-
-    console.log('Upload request details:', {
-      villageId,
-      filesCount: files?.length,
-      alt_texts,
-      descriptions,
-      display_orders
-    });
 
     if (!files || files.length === 0) {
       return res.status(400).json({
@@ -237,7 +192,6 @@ router.post('/territory/:villageId', upload.array('images', 10), async (req, res
       message: 'Images uploaded successfully'
     });
   } catch (error) {
-    console.error('Error in POST /territory/:villageId:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to upload images: ' + error.message
@@ -247,7 +201,6 @@ router.post('/territory/:villageId', upload.array('images', 10), async (req, res
 
 // Delete a state village image
 router.delete('/village-images/state/:imageId', async (req, res) => {
-  console.log('DELETE /village-images/state/:imageId called with params:', req.params);
   try {
     const { imageId } = req.params;
 
@@ -279,7 +232,6 @@ router.delete('/village-images/state/:imageId', async (req, res) => {
       message: 'Image deleted successfully'
     });
   } catch (error) {
-    console.error('Error in DELETE /village-images/state/:imageId:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to delete image: ' + error.message
@@ -289,7 +241,6 @@ router.delete('/village-images/state/:imageId', async (req, res) => {
 
 // Delete a territory village image
 router.delete('/village-images/territory/:imageId', async (req, res) => {
-  console.log('DELETE /village-images/territory/:imageId called with params:', req.params);
   try {
     const { imageId } = req.params;
 
@@ -321,7 +272,6 @@ router.delete('/village-images/territory/:imageId', async (req, res) => {
       message: 'Image deleted successfully'
     });
   } catch (error) {
-    console.error('Error in DELETE /village-images/territory/:imageId:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to delete image: ' + error.message

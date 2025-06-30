@@ -5,12 +5,13 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// Database connection pool (reuse your config)
+// Database connection pool using environment variables
 const pool = mysql.createPool({
-  host: 'localhost',
-  user: 'root',
-  password: '',
-  database: 'tourmyholiday'
+  host: process.env.DB_HOST || 'localhost',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || '',
+  database: process.env.DB_NAME || 'tourmyholiday',
+  port: process.env.DB_PORT || 3306
 });
 
 // Multer setup for image upload
@@ -131,7 +132,6 @@ router.put('/:id', upload.single('image'), async (req, res) => {
     connection.release();
     res.json(updatedImage[0]);
   } catch (error) {
-    console.error('Error updating image:', error);
     res.status(500).json({ error: 'Failed to update image' });
   }
 });

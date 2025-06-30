@@ -1,4 +1,4 @@
-const db = require('../config/database');
+const db = require('../db');
 const { validationResult } = require('express-validator');
 
 // Get all territory villages with filters
@@ -50,7 +50,6 @@ exports.getTerritoryVillages = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error fetching territory villages:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching villages',
@@ -99,7 +98,6 @@ exports.getTerritoryVillage = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error fetching territory village:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching village',
@@ -118,6 +116,8 @@ exports.createTerritoryVillage = async (req, res) => {
         errors: errors.array()
       });
     }
+
+    // Debug log for featured_image
 
     const {
       name,
@@ -141,6 +141,17 @@ exports.createTerritoryVillage = async (req, res) => {
       territory_subdistrict_id
     } = req.body;
 
+    // Stricter sanitization for featured_image
+    let safeFeaturedImage = featured_image;
+    if (
+      !safeFeaturedImage ||
+      safeFeaturedImage === 'undefined' ||
+      safeFeaturedImage.startsWith('undefined/') ||
+      safeFeaturedImage.includes('undefined/')
+    ) {
+      safeFeaturedImage = null;
+    }
+
     const query = `
       INSERT INTO territory_villages (
         name, slug, description, location, population,
@@ -154,7 +165,7 @@ exports.createTerritoryVillage = async (req, res) => {
     const [result] = await db.query(query, [
       name, slug, description, location, population,
       main_occupation, cultural_significance, attractions,
-      how_to_reach, best_time_to_visit, featured_image,
+      how_to_reach, best_time_to_visit, safeFeaturedImage,
       status, meta_title, meta_description, meta_keywords,
       highlights, territory_id, territory_district_id, territory_subdistrict_id
     ]);
@@ -166,7 +177,6 @@ exports.createTerritoryVillage = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error creating territory village:', error);
     res.status(500).json({
       success: false,
       message: 'Error creating village',
@@ -187,6 +197,8 @@ exports.updateTerritoryVillage = async (req, res) => {
       });
     }
 
+    // Debug log for featured_image
+
     const {
       name,
       slug,
@@ -209,6 +221,17 @@ exports.updateTerritoryVillage = async (req, res) => {
       territory_subdistrict_id
     } = req.body;
 
+    // Stricter sanitization for featured_image
+    let safeFeaturedImage = featured_image;
+    if (
+      !safeFeaturedImage ||
+      safeFeaturedImage === 'undefined' ||
+      safeFeaturedImage.startsWith('undefined/') ||
+      safeFeaturedImage.includes('undefined/')
+    ) {
+      safeFeaturedImage = null;
+    }
+
     const query = `
       UPDATE territory_villages SET
         name = ?, slug = ?, description = ?, location = ?,
@@ -223,7 +246,7 @@ exports.updateTerritoryVillage = async (req, res) => {
     await db.query(query, [
       name, slug, description, location, population,
       main_occupation, cultural_significance, attractions,
-      how_to_reach, best_time_to_visit, featured_image,
+      how_to_reach, best_time_to_visit, safeFeaturedImage,
       status, meta_title, meta_description, meta_keywords,
       highlights, territory_id, territory_district_id, territory_subdistrict_id, id
     ]);
@@ -234,7 +257,6 @@ exports.updateTerritoryVillage = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error updating territory village:', error);
     res.status(500).json({
       success: false,
       message: 'Error updating village',
@@ -276,7 +298,6 @@ exports.deleteTerritoryVillage = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error deleting territory village:', error);
     res.status(500).json({
       success: false,
       message: 'Error deleting village',

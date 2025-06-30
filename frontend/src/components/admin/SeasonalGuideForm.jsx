@@ -69,7 +69,6 @@ const SeasonalGuideForm = ({ formData, onSubmit, onCancel }) => {
       setImageAltTexts(prev => ({ ...prev, ...newAltTexts }));
 
     } catch (error) {
-      console.error('Error creating image previews:', error);
       alert('Error creating image previews. Please try again.');
     } finally {
       setUploadingImages(false);
@@ -118,10 +117,8 @@ const SeasonalGuideForm = ({ formData, onSubmit, onCancel }) => {
         travel_tips: formState.travel_tips || ''
       };
 
-      console.log('Submitting form data:', formDataToSubmit);
       await onSubmit(formDataToSubmit);
     } catch (error) {
-      console.error('Error submitting form:', error);
       alert('Error submitting form: ' + error.message);
     }
   };

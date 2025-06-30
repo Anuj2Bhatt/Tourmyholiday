@@ -657,6 +657,8 @@
 .places-to-visit-section {
   padding: 40px 20px;
   background-color: #f8f9fa;
+  margin: 40px 0;
+  position: relative;
 }
 
 .places-to-visit-section h2 {
@@ -664,33 +666,61 @@
   color: #333;
   margin-bottom: 2rem;
   font-size: 2rem;
+  position: relative;
+  padding-bottom: 15px;
 }
 
-.places-slider-container {
+.places-to-visit-section h2:after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 3px;
+  background: #4CAF50;
+}
+
+.places-container {
   position: relative;
   width: 100%;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 60px; /* Increased padding for navigation buttons */
 }
 
 .places-grid {
   display: flex;
-  overflow-x: hidden;
+  gap: 30px;
+  overflow-x: hidden; /* Changed from auto to hidden */
   scroll-behavior: smooth;
-  gap: 20px;
-  padding: 20px 30px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 20px 0;
+  width: 100%;
 }
 
-.places-slider-btn {
+.places-grid::-webkit-scrollbar {
+  display: none;
+}
+
+/* Make each card take up exactly 1/4 of the container width minus gaps */
+.places-grid .places-to-visit-card {
+  flex: 0 0 calc(25% - 23px); /* 25% for 4 cards, minus gap space */
+  min-width: calc(25% - 23px);
+  max-width: calc(25% - 23px);
+}
+
+.places-nav-btn {
   position: absolute;
   top: 50%;
-  transform: translateY(-40%);
-  background: white;
-  border: none;
+  transform: translateY(-50%);
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -701,23 +731,111 @@
   transition: all 0.3s ease;
 }
 
-.places-slider-btn:hover {
-  background: #007bff;
+.places-nav-btn:hover {
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.places-nav-btn.left {
+  left: 10px;
+}
+
+.places-nav-btn.right {
+  right: 10px;
+}
+
+/* Responsive styles */
+@media (max-width: 1200px) {
+  .places-grid .places-to-visit-card {
+    flex: 0 0 calc(33.333% - 20px); /* 3 cards per row */
+    min-width: calc(33.333% - 20px);
+    max-width: calc(33.333% - 20px);
+}
+}
+
+@media (max-width: 992px) {
+  .places-grid .places-to-visit-card {
+    flex: 0 0 calc(50% - 15px); /* 2 cards per row */
+    min-width: calc(50% - 15px);
+    max-width: calc(50% - 15px);
+  }
+}
+
+@media (max-width: 576px) {
+  .places-grid .places-to-visit-card {
+    flex: 0 0 calc(100% - 10px); /* 1 card per row */
+    min-width: calc(100% - 10px);
+    max-width: calc(100% - 10px);
+}
+
+  .places-container {
+    padding: 0 40px;
+  }
+}
+
+.loading-container,
+.error-container,
+.no-places-message {
+  text-align: center;
+  padding: 40px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin: 20px auto;
+  max-width: 600px;
+}
+
+.loading-spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #4CAF50;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.retry-btn {
+  background: #4CAF50;
   color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-top: 15px;
+  transition: background-color 0.3s;
 }
 
-.places-slider-btn.prev {
-  left: 0;
-}
-
-.places-slider-btn.next {
-  right: 0;
+.retry-btn:hover {
+  background: #45a049;
 }
 
 @media (max-width: 768px) {
   .places-grid {
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 1rem;
+    gap: 20px;
+    padding: 10px;
+  }
+
+  .places-to-visit-section h2 {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .places-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .places-to-visit-section {
+    padding: 20px 10px;
   }
 }
 
@@ -989,4 +1107,337 @@
   background-color: white;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Season Section Styles */
+.state-season-section {
+  padding: 40px 20px;
+  background: #fff;
+  margin: 30px 0;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.state-season-heading {
+  font-size: 2rem;
+  color: #333;
+  margin-bottom: 30px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.state-season-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.state-season-card {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 25px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.state-season-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.state-season-card.active {
+  background: #fff;
+  border-color: #4a90e2;
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.15);
+}
+
+.state-season-icon {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.state-season-icon i {
+  font-size: 24px;
+  color: #4a90e2;
+}
+
+.state-season-card h3 {
+  font-size: 1.2rem;
+  color: #333;
+  margin: 0 0 8px 0;
+  font-weight: 600;
+}
+
+.state-season-card p {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0;
+}
+
+/* Places Grid */
+.state-places-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 30px;
+  padding: 20px 0;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .state-season-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .state-season-section {
+    padding: 30px 15px;
+  }
+
+  .state-season-heading {
+    font-size: 1.8rem;
+  }
+
+  .state-season-cards {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .state-season-card {
+    padding: 20px 15px;
+  }
+}
+
+/* Seasonal Highlights Section */
+.seasonal-highlights-section {
+  padding: 2rem 0;
+  background-color: #f8f9fa;
+}
+
+.seasonal-highlights-section .section-title {
+  text-align: center;
+  font-size: 2rem;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.seasonal-highlights-section .section-description {
+  text-align: center;
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.season-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.season-tab {
+  padding: 0.5rem 1.5rem;
+  border: none;
+  border-radius: 25px;
+  background-color: #fff;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.season-tab:hover {
+  background-color: #f0f0f0;
+}
+
+.season-tab.active {
+  background-color: #007bff;
+  color: white;
+}
+
+.seasonal-images-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  padding: 0 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.seasonal-image-container {
+  position: relative;
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.seasonal-image-title {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 0.75rem 1rem;
+  margin: 0;
+  font-size: 1.1rem;
+  z-index: 1;
+}
+
+
+.seasonal-image-container:hover .seasonal-image {
+  transform: scale(1.05);
+}
+
+.seasonal-image-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 0.75rem 1rem;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.no-images-message {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+  .seasonal-images-grid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    padding: 0 1rem;
+  }
+
+  .seasonal-image {
+    height: 250px;
+  }
+
+  .season-tabs {
+    gap: 0.5rem;
+  }
+
+  .season-tab {
+    padding: 0.4rem 1rem;
+    font-size: 0.9rem;
+  }
 } 
+
+.seasonal-images-carousel-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-top: 1rem;
+  overflow: hidden;
+}
+
+.scroll-button {
+  background: rgba(255, 255, 255, 0.8);
+  border: none;
+  padding: 10px 15px;
+  font-size: 20px;
+  cursor: pointer;
+  z-index: 10;
+  transition: background 0.3s ease;
+}
+
+.scroll-button:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.scroll-button.left {
+  position: absolute;
+  left: 0;
+  top: 40%;
+  transform: translateY(-50%);
+}
+
+.scroll-button.right {
+  position: absolute;
+  right: 0;
+  top: 40%;
+  transform: translateY(-50%);
+}
+
+.seasonal-images-carousel {
+  display: flex;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  gap: 1.5rem;
+  padding: 1rem 2.5rem;
+  width: 100%;
+  height: 100%;
+
+  scrollbar-width: none;
+  -ms-overflow-style:none;
+}
+.seasonal-images-carousel::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
+
+.seasonal-image-card {
+  position: relative;
+  flex: 0 0 calc(25% - 1.5rem); /* For 4 images per row */
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  height: 30vh;
+}
+
+.seasonal-image-card:hover {
+  transform: scale(1.03);
+}
+
+.seasonal-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: 2px;
+}
+
+/* Title overlay on hover */
+.seasonal-image-title {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  font-weight: bold;
+  text-align: center;
+  padding: 8px;
+  font-size: 1rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.seasonal-image-card:hover .seasonal-image-title {
+  opacity: 1;
+}
+
+.seasonal-image-caption {
+  margin-top: 5px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #555;
+}

@@ -21,13 +21,12 @@ const ManageBookings = () => {
 
     const fetchHotels = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/api/hotels');
+            const response = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/hotels`);
             if (response.data) {
                 setHotels(response.data);
             }
         } catch (error) {
             console.error('Error fetching hotels:', error);
-            setError('Failed to load hotels. Please try again later.');
         }
     };
 
@@ -35,13 +34,13 @@ const ManageBookings = () => {
         try {
             setLoading(true);
             setError(null);
-            let url = 'http://localhost:5000/api/room-bookings';
+            let url = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/room-bookings`;
             
             // Add filters if selected
             if (selectedHotel) {
-                url = `http://localhost:5000/api/room-bookings/hotel/${selectedHotel}`;
+                url = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/room-bookings/hotel/${selectedHotel}`;
             } else if (dateRange.startDate && dateRange.endDate) {
-                url = `http://localhost:5000/api/room-bookings/date-range?start_date=${dateRange.startDate}&end_date=${dateRange.endDate}`;
+                url = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/room-bookings/date-range?start_date=${dateRange.startDate}&end_date=${dateRange.endDate}`;
             }
 
             const response = await axios.get(url);
@@ -52,13 +51,6 @@ const ManageBookings = () => {
             }
         } catch (error) {
             console.error('Error fetching bookings:', error);
-            if (error.response) {
-                setError(`Error: ${error.response.data.message || 'Failed to fetch bookings'}`);
-            } else if (error.request) {
-                setError('No response from server. Please check your connection.');
-            } else {
-                setError('Error setting up the request. Please try again.');
-            }
         } finally {
             setLoading(false);
         }
@@ -66,30 +58,37 @@ const ManageBookings = () => {
 
     const handleStatusUpdate = async (bookingId, newStatus) => {
         try {
-            setError(null);
-            const response = await axios.put(`http://localhost:5000/api/room-bookings/${bookingId}/status`, {
-                booking_status: newStatus,
-                payment_status: newStatus === 'confirmed' ? 'paid' : 'pending'
+            const response = await axios.put(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/room-bookings/${bookingId}/status`, {
+                status: newStatus
             });
-            if (response.data) {
-                fetchBookings(); // Refresh the list
+            
+            if (response.data.success) {
+                alert(`Booking status updated to ${newStatus}`);
+                fetchBookings();
+            } else {
+                alert('Failed to update booking status');
             }
         } catch (error) {
-            console.error('Error updating status:', error);
-            setError('Failed to update booking status. Please try again.');
+            console.error('Error updating booking status:', error);
+            alert('Error updating booking status');
         }
     };
 
     const handleCancelBooking = async (bookingId) => {
-        try {
-            setError(null);
-            const response = await axios.put(`http://localhost:5000/api/room-bookings/${bookingId}/cancel`);
-            if (response.data) {
-                fetchBookings(); // Refresh the list
+        if (window.confirm('Are you sure you want to cancel this booking?')) {
+            try {
+                const response = await axios.put(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/room-bookings/${bookingId}/cancel`);
+                
+                if (response.data.success) {
+                    alert('Booking cancelled successfully');
+                    fetchBookings();
+                } else {
+                    alert('Failed to cancel booking');
+                }
+            } catch (error) {
+                console.error('Error cancelling booking:', error);
+                alert('Error cancelling booking');
             }
-        } catch (error) {
-            console.error('Error cancelling booking:', error);
-            setError('Failed to cancel booking. Please try again.');
         }
     };
 

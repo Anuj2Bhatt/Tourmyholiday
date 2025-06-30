@@ -12,8 +12,15 @@ class Culture {
     const values = [subdistrict_id, title, slug, description, featured_image, meta_title, meta_description, meta_keywords];
     
     try {
-      const [result] = await db.query(query, values);
-      return result.insertId;
+      const result = await db.query(query, values);
+
+      // Check if result is valid and has insertId
+      if (!result || !result.insertId) {
+        throw new Error('Failed to create culture: Invalid database response');
+      }
+
+      const insertId = result.insertId;
+      return insertId;
     } catch (error) {
       throw error;
     }
@@ -48,10 +55,20 @@ class Culture {
   }
 
   static async getBySubdistrict(subdistrictId) {
-    const query = 'SELECT * FROM cultures WHERE subdistrict_id = ?';
     try {
-      const [rows] = await db.query(query, [subdistrictId]);
+      // Get the full records
+      const query = 'SELECT * FROM cultures WHERE subdistrict_id = ? ORDER BY id ASC';
+
+      const result = await db.query(query, [parseInt(subdistrictId)]);
+      const rows = result[0]; // Get the first element of the result array
+      
+      // Ensure we return an array
+      if (!Array.isArray(rows)) {
+        return [];
+      }
+
       return rows;
+
     } catch (error) {
       throw error;
     }
@@ -60,27 +77,61 @@ class Culture {
   static async getById(id) {
     const query = 'SELECT * FROM cultures WHERE id = ?';
     try {
-      const [rows] = await db.query(query, [id]);
-      return rows[0];
+      // Execute query with explicit type conversion
+      const [rows] = await db.query(query, [parseInt(id)]);
+      
+      // Handle both array and object responses
+      if (rows && typeof rows === 'object') {
+        // If rows is an object with id property, it's a single row
+        if (rows.id) {
+          return rows;
+        }
+        // If rows is an array-like object, get the first item
+        if (Object.keys(rows).length > 0) {
+          return rows;
+        }
+      }
+      
+      // If no valid data found, return null
+      return null;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async getBySlug(slug) {
+    const query = 'SELECT * FROM cultures WHERE slug = ?';
+    try {
+      const [rows] = await db.query(query, [slug]);
+      
+      if (rows && rows.length > 0) {
+        return rows[0];
+      }
+      return null;
     } catch (error) {
       throw error;
     }
   }
 
   static async checkSlugExists(slug, excludeId = null) {
-    let query = 'SELECT COUNT(*) as count FROM cultures WHERE slug = ?';
+    let query = `
+      SELECT EXISTS(
+        SELECT 1 
+        FROM cultures 
+        WHERE slug = ? 
+        ${excludeId ? 'AND id != ?' : ''}
+      ) as exists_flag
+    `;
     const values = [slug];
-    
     if (excludeId) {
-      query += ' AND id != ?';
       values.push(excludeId);
     }
     
     try {
       const [rows] = await db.query(query, values);
-      return rows[0].count > 0;
+      return rows[0]?.exists_flag === 1;
     } catch (error) {
-      throw error;
+      throw new Error('Failed to check if slug exists');
     }
   }
 }

@@ -12,7 +12,6 @@ router.get('/district/:districtId', async (req, res) => {
     }
     res.json(stats);
   } catch (error) {
-    console.error('Error fetching district stats:', error);
     res.status(500).json({ error: 'Failed to fetch district statistics' });
   }
 });
@@ -23,7 +22,6 @@ router.get('/territory/:territoryId', async (req, res) => {
     const stats = await TerritoryDistrictStats.getByTerritoryId(req.params.territoryId);
     res.json(stats);
   } catch (error) {
-    console.error('Error fetching territory stats:', error);
     res.status(500).json({ error: 'Failed to fetch territory statistics' });
   }
 });
@@ -37,7 +35,6 @@ router.get('/territory/:territoryId/summary', async (req, res) => {
     }
     res.json(summary);
   } catch (error) {
-    console.error('Error fetching territory summary:', error);
     res.status(500).json({ error: 'Failed to fetch territory summary' });
   }
 });
@@ -89,7 +86,6 @@ router.post('/district/:districtId', async function(req, res) {
       });
     }
   } catch (error) {
-    console.error('Error saving district stats:', error);
     res.status(500).json({ error: 'Failed to save district statistics' });
   }
 });
@@ -103,7 +99,6 @@ router.delete('/district/:districtId', authenticateToken, async function(req, re
     }
     res.json({ message: 'Statistics deleted successfully' });
   } catch (error) {
-    console.error('Error deleting district stats:', error);
     res.status(500).json({ error: 'Failed to delete district statistics' });
   }
 });

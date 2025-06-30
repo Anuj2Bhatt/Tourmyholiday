@@ -1,4 +1,4 @@
-const pool = require('../src/db');
+const pool = require('../db');
 
 const villageEducationController = {
   // Get state village education data
@@ -34,7 +34,6 @@ const villageEducationController = {
         data: education[0]
       });
     } catch (error) {
-      console.error('Error fetching state village education:', error);
       res.status(500).json({
         success: false,
         message: 'Failed to fetch village education data',
@@ -128,7 +127,6 @@ const villageEducationController = {
         message: 'Village education data updated successfully'
       });
     } catch (error) {
-      console.error('Error updating state village education:', error);
       res.status(500).json({
         success: false,
         message: 'Failed to update village education data',
@@ -170,7 +168,6 @@ const villageEducationController = {
         data: education[0]
       });
     } catch (error) {
-      console.error('Error fetching territory village education:', error);
       res.status(500).json({
         success: false,
         message: 'Failed to fetch village education data',
@@ -264,7 +261,6 @@ const villageEducationController = {
         message: 'Village education data updated successfully'
       });
     } catch (error) {
-      console.error('Error updating territory village education:', error);
       res.status(500).json({
         success: false,
         message: 'Failed to update village education data',

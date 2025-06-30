@@ -25,8 +25,7 @@ const WebStoryInteraction = ({ storyId, userEmail }) => {
             const response = await axios.get(`/api/web-stories/${storyId}/like-status?userEmail=${userEmail}`);
             setLiked(response.data.liked);
         } catch (error) {
-            console.error('Error fetching like status:', error);
-        }
+            }
     };
 
     const fetchLikesCount = async () => {
@@ -34,8 +33,7 @@ const WebStoryInteraction = ({ storyId, userEmail }) => {
             const response = await axios.get(`/api/web-stories/${storyId}/likes`);
             setLikesCount(response.data.likes);
         } catch (error) {
-            console.error('Error fetching likes count:', error);
-        }
+            }
     };
 
     const fetchComments = async () => {
@@ -43,8 +41,7 @@ const WebStoryInteraction = ({ storyId, userEmail }) => {
             const response = await axios.get(`/api/web-stories/${storyId}/comments`);
             setComments(response.data);
         } catch (error) {
-            console.error('Error fetching comments:', error);
-        }
+            }
     };
 
     const fetchShareUrl = async () => {
@@ -52,8 +49,7 @@ const WebStoryInteraction = ({ storyId, userEmail }) => {
             const response = await axios.get(`/api/web-stories/${storyId}/share-url`);
             setShareUrl(response.data.shareUrl);
         } catch (error) {
-            console.error('Error fetching share URL:', error);
-        }
+            }
     };
 
     const handleLike = async () => {
@@ -67,8 +63,7 @@ const WebStoryInteraction = ({ storyId, userEmail }) => {
             setLiked(response.data.liked);
             fetchLikesCount();
         } catch (error) {
-            console.error('Error handling like:', error);
-        }
+            }
     };
 
     const handleComment = async (e) => {
@@ -88,8 +83,7 @@ const WebStoryInteraction = ({ storyId, userEmail }) => {
             setNewComment('');
             fetchComments();
         } catch (error) {
-            console.error('Error posting comment:', error);
-        }
+            }
     };
 
     const handleShare = async () => {
@@ -98,8 +92,7 @@ const WebStoryInteraction = ({ storyId, userEmail }) => {
                 await navigator.clipboard.writeText(shareUrl);
                 alert('Share link copied to clipboard!');
             } catch (error) {
-                console.error('Error copying to clipboard:', error);
-            }
+                }
         }
     };
 

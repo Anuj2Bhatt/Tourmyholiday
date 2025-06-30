@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../../src/db');
+const pool = require('../../db');
 const slugify = require('slugify');
 const multer = require('multer');
 const path = require('path');
-const db = require('../../src/db');
+const db = require('../../db');
 const fs = require('fs');
 
 // Configure multer for image upload
@@ -59,12 +59,11 @@ router.get('/state/:subdistrictId', async (req, res) => {
     const formattedTravelInfo = travelInfo.map(info => ({
       ...info,
       featured_image: info.featured_image ? 
-        `http://localhost:5000/${info.featured_image}` : 
+        `${process.env.API_BASE_URL || 'http://localhost:5000'}/${info.featured_image}` : 
         null
     }));
     res.json(formattedTravelInfo);
   } catch (error) {
-    console.error('Error fetching travel info:', error);
     res.status(500).json({ message: 'Error fetching travel info' });
   }
 });
@@ -125,13 +124,12 @@ router.post('/state/:subdistrictId', upload.single('featured_image'), async (req
     const formattedTravelInfo = {
       ...newTravelInfo[0],
       featured_image: newTravelInfo[0].featured_image ? 
-        `http://localhost:5000/${newTravelInfo[0].featured_image}` : 
+        `${process.env.API_BASE_URL || 'http://localhost:5000'}/${newTravelInfo[0].featured_image}` : 
         null
     };
 
     res.status(201).json(formattedTravelInfo);
   } catch (error) {
-    console.error('Error adding travel info:', error);
     if (error.code === 'ER_DUP_ENTRY') {
       return res.status(400).json({ message: 'A travel entry with this title already exists in this subdistrict' });
     }
@@ -237,9 +235,9 @@ router.put('/:id', upload.single('featured_image'), async (req, res) => {
     // Format the response
     const formattedTravelInfo = {
       ...updatedTravelInfo[0],
-      featured_image: updatedTravelInfo[0].featured_image 
-        ? `http://localhost:5000/${updatedTravelInfo[0].featured_image}`
-        : null
+      featured_image: updatedTravelInfo[0].featured_image ? 
+        `${process.env.API_BASE_URL || 'http://localhost:5000'}/${updatedTravelInfo[0].featured_image}` :
+        null
     };
 
     res.json({
@@ -248,7 +246,6 @@ router.put('/:id', upload.single('featured_image'), async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error updating travel info:', error);
     res.status(500).json({ 
       message: 'Failed to update travel information',
       error: error.message 
@@ -272,7 +269,6 @@ router.delete('/state/:travelInfoId', async (req, res) => {
 
     res.json({ message: 'Travel info deleted successfully' });
   } catch (error) {
-    console.error('Error deleting travel info:', error);
     res.status(500).json({ message: 'Error deleting travel info' });
   }
 });

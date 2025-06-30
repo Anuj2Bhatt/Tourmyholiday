@@ -2,7 +2,7 @@ const db = require('../db');
 
 async function addDefaultBonfire() {
   try {
-    console.log('Starting to add Bonfire as default amenity...');
+     
     
     // Get connection and start transaction
     const connection = await db.getConnection();
@@ -23,16 +23,12 @@ async function addDefaultBonfire() {
           ['Bonfire']
         );
         bonfireId = result.insertId;
-        console.log('Created new Bonfire amenity');
-      } else {
+        } else {
         bonfireId = amenityRows[0].id;
-        console.log('Found existing Bonfire amenity');
-      }
+        }
 
       // Get all hotels
       const [hotels] = await connection.query('SELECT id FROM hotels');
-      console.log(`Found ${hotels.length} hotels`);
-
       // Add Bonfire to each hotel if not already present
       for (const hotel of hotels) {
         // Check if hotel already has Bonfire
@@ -47,17 +43,13 @@ async function addDefaultBonfire() {
             'INSERT INTO hotel_amenities (hotel_id, amenity_id) VALUES (?, ?)',
             [hotel.id, bonfireId]
           );
-          console.log(`Added Bonfire to hotel ${hotel.id}`);
-        } else {
-          console.log(`Hotel ${hotel.id} already has Bonfire`);
-        }
+          } else {
+          }
       }
 
       // Commit transaction
       await connection.commit();
-      console.log('Successfully added Bonfire to all hotels!');
-
-    } catch (error) {
+      } catch (error) {
       await connection.rollback();
       throw error;
     } finally {
@@ -65,7 +57,6 @@ async function addDefaultBonfire() {
     }
 
   } catch (error) {
-    console.error('Update failed:', error);
     process.exit(1);
   }
 }
@@ -73,10 +64,8 @@ async function addDefaultBonfire() {
 // Run update
 addDefaultBonfire()
   .then(() => {
-    console.log('Update completed successfully');
     process.exit(0);
   })
   .catch(error => {
-    console.error('Update failed:', error);
     process.exit(1);
   }); 

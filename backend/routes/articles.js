@@ -50,12 +50,9 @@ const generateUniqueSlug = async (baseSlug) => {
 // Get all articles
 router.get('/', async (req, res) => {
   try {
-    console.log('Fetching all articles...');
     const [rows] = await db.query('SELECT * FROM articles ORDER BY created_at DESC');
-    console.log(`Found ${rows.length} articles`);
     res.json(rows);
   } catch (error) {
-    console.error('Error fetching articles:', error);
     res.status(500).json({ message: 'Failed to fetch articles', error: error.message });
   }
 });
@@ -64,16 +61,12 @@ router.get('/', async (req, res) => {
 router.get('/slug/:slug', async (req, res) => {
   try {
     const { slug } = req.params;
-    console.log('Fetching article with slug:', slug);
     const [rows] = await db.query('SELECT * FROM articles WHERE slug = ?', [slug]);
     if (rows.length === 0) {
-      console.log('Article not found with slug:', slug);
       return res.status(404).json({ message: 'Article not found' });
     }
-    console.log('Found article:', rows[0]);
     res.json(rows[0]);
   } catch (error) {
-    console.error('Error fetching article:', error);
     res.status(500).json({ message: 'Failed to fetch article', error: error.message });
   }
 });
@@ -82,16 +75,12 @@ router.get('/slug/:slug', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('Fetching article with ID:', id);
     const [rows] = await db.query('SELECT * FROM articles WHERE id = ?', [id]);
     if (rows.length === 0) {
-      console.log('Article not found with ID:', id);
       return res.status(404).json({ message: 'Article not found' });
     }
-    console.log('Found article:', rows[0]);
     res.json(rows[0]);
   } catch (error) {
-    console.error('Error fetching article:', error);
     res.status(500).json({ message: 'Failed to fetch article', error: error.message });
   }
 });
@@ -99,11 +88,6 @@ router.get('/:id', async (req, res) => {
 // Create new article
 router.post('/', upload.single('featured_image'), async (req, res) => {
   try {
-    console.log('Received request:');
-    console.log('Headers:', req.headers);
-    console.log('Body:', req.body);
-    console.log('File:', req.file);
-
     // Validate required fields
     const requiredFields = ['title', 'slug', 'content', 'description', 'category_id', 'author', 'meta_title', 'meta_description'];
     const missingFields = requiredFields.filter(field => !req.body[field]);
@@ -142,12 +126,6 @@ router.post('/', upload.single('featured_image'), async (req, res) => {
     const featured_image = req.file ? cleanImagePath(req.file) : 'uploads/default-article.jpg';
     const slug = await generateUniqueSlug(baseSlug);
 
-    console.log('Prepared data for insert:', {
-      title, slug, content, description, featured_image,
-      category, category_id, status, featured,
-      meta_title, meta_description, meta_keywords, author, packages_id
-    });
-
     const [result] = await db.query(
       `INSERT INTO articles (
         title, slug, content, description, featured_image,
@@ -164,7 +142,6 @@ router.post('/', upload.single('featured_image'), async (req, res) => {
     const [newArticle] = await db.query('SELECT * FROM articles WHERE id = ?', [result.insertId]);
     res.status(201).json(newArticle[0]);
   } catch (error) {
-    console.error('Error creating article:', error);
     res.status(500).json({ 
       message: 'Failed to create article', 
       error: error.message,
@@ -232,7 +209,6 @@ router.put('/:id', upload.single('featured_image'), async (req, res) => {
     const [updatedArticle] = await db.query('SELECT * FROM articles WHERE id = ?', [id]);
     res.json({ id, ...req.body, featured_image, category });
   } catch (error) {
-    console.error('Error updating article:', error);
     res.status(500).json({ message: 'Failed to update article', error: error.message });
   }
 });
@@ -241,17 +217,69 @@ router.put('/:id', upload.single('featured_image'), async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('Deleting article with ID:', id);
     const [result] = await db.query('DELETE FROM articles WHERE id = ?', [id]);
     if (result.affectedRows === 0) {
-      console.log('Article not found with ID:', id);
       return res.status(404).json({ message: 'Article not found' });
     }
-    console.log('Article deleted successfully');
     res.json({ message: 'Article deleted successfully' });
   } catch (error) {
-    console.error('Error deleting article:', error);
     res.status(500).json({ message: 'Failed to delete article', error: error.message });
+  }
+});
+
+// Upload image for editor
+router.post('/upload-image', upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No image file provided' });
+    }
+
+    // Get the alt text from the request
+    const altText = req.body.alt || '';
+
+    // Clean the image path
+    const imagePath = cleanImagePath(req.file);
+
+    // Return the URL and alt text
+    res.json({
+      url: `http://localhost:5000/${imagePath}`,
+      alt: altText
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Failed to upload image', 
+      error: error.message 
+    });
+  }
+});
+
+// Update the upload route with debugging
+router.post('/upload', upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ 
+        message: 'No image file provided',
+        receivedFields: Object.keys(req.body),
+        receivedFile: req.file
+      });
+    }
+
+    // Get the alt text from the request
+    const altText = req.body.alt || '';
+    // Clean the image path
+    const imagePath = cleanImagePath(req.file);
+    // Return the URL and alt text
+    const response = {
+      url: `http://localhost:5000/${imagePath}`,
+      alt: altText
+    };
+    res.json(response);
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Failed to upload image', 
+      error: error.message,
+      stack: error.stack
+    });
   }
 });
 

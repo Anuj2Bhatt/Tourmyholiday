@@ -22,6 +22,7 @@ const seasonImagesRouter = require('./seasonImages');
 const videosRouter = require('./videos');
 const hotelCategoriesRouter = require('./hotelCategories');
 const territoryRoutes = require('./territoryRoutes');
+const hotelsRouter = require('./hotels');
 
 // Register all routes
 router.use('/auth', authRoutes);
@@ -43,6 +44,7 @@ router.use('/seasons', seasonsRouter);
 router.use('/season-images', seasonImagesRouter);
 router.use('/videos', videosRouter);
 router.use('/hotel-categories', hotelCategoriesRouter);
+router.use('/hotels', hotelsRouter);
 router.use('/territories', territoryRoutes);
 
 module.exports = router; 

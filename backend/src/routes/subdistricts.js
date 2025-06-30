@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../db');
+const pool = require('../../db');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -65,8 +65,6 @@ const generateSlug = (title) => {
 router.get('/district/:districtId', async (req, res) => {
   try {
     const { districtId } = req.params;
-    console.log('Fetching subdistricts for district:', districtId);
-
     // First check if district exists
     const [district] = await pool.query('SELECT id FROM districts WHERE id = ?', [districtId]);
     if (district.length === 0) {
@@ -79,19 +77,16 @@ router.get('/district/:districtId', async (req, res) => {
       [districtId]
     );
     
-    console.log(`Found ${subdistricts.length} subdistricts`);
-    
     // Format image paths
     const formattedSubdistricts = subdistricts.map(subdistrict => ({
       ...subdistrict,
       featured_image: subdistrict.featured_image ? 
-        `http://localhost:5000/${subdistrict.featured_image}` : 
+        `${process.env.API_BASE_URL || 'http://localhost:5000'}/${subdistrict.featured_image}` : 
         null
     }));
     
     res.json(formattedSubdistricts);
   } catch (error) {
-    console.error('Error fetching subdistricts:', error);
     res.status(500).json({ error: 'Failed to fetch subdistricts' });
   }
 });
@@ -109,12 +104,11 @@ router.get('/:id', async (req, res) => {
     // Format image path
     const subdistrict = subdistricts[0];
     if (subdistrict.featured_image) {
-      subdistrict.featured_image = `http://localhost:5000/${subdistrict.featured_image}`;
+      subdistrict.featured_image = `${process.env.API_BASE_URL || 'http://localhost:5000'}/${subdistrict.featured_image}`;
     }
     
     res.json(subdistrict);
   } catch (error) {
-    console.error('Error fetching subdistrict:', error);
     res.status(500).json({ error: 'Failed to fetch subdistrict', details: error.message });
   }
 });
@@ -132,12 +126,11 @@ router.get('/slug/:slug', async (req, res) => {
     // Format image path
     const subdistrict = subdistricts[0];
     if (subdistrict.featured_image) {
-      subdistrict.featured_image = `http://localhost:5000/${subdistrict.featured_image}`;
+      subdistrict.featured_image = `${process.env.API_BASE_URL || 'http://localhost:5000'}/${subdistrict.featured_image}`;
     }
     
     res.json(subdistrict);
   } catch (error) {
-    console.error('Error fetching subdistrict by slug:', error);
     res.status(500).json({ error: 'Failed to fetch subdistrict', details: error.message });
   }
 });
@@ -190,7 +183,7 @@ router.post('/', upload.single('featured_image'), async (req, res) => {
       title,
       slug,
       description,
-      featured_image: imagePath ? `http://localhost:5000/${imagePath}` : null,
+      featured_image: imagePath ? `${process.env.API_BASE_URL || 'http://localhost:5000'}/${imagePath}` : null,
       status: status || 'publish',
       meta_title,
       meta_description,
@@ -201,7 +194,6 @@ router.post('/', upload.single('featured_image'), async (req, res) => {
 
     res.status(201).json(newSubdistrict);
   } catch (error) {
-    console.error('Error creating subdistrict:', error);
     res.status(500).json({ error: 'Failed to create subdistrict' });
   }
 });
@@ -221,7 +213,7 @@ router.put('/:id', upload.single('featured_image'), async (req, res) => {
       longitude
     } = req.body;
     
-    console.log('Update request body:', req.body); // Log request body
+    // Log request body
     
     // Get current subdistrict data
     const [current] = await pool.query('SELECT featured_image FROM subdistricts WHERE id = ?', [id]);
@@ -244,14 +236,6 @@ router.put('/:id', upload.single('featured_image'), async (req, res) => {
     }
 
     // Log the values before query
-    console.log('Update values:', {
-      title, slug, description, imagePath,
-      status, meta_title, meta_description, meta_keywords,
-      latitude: latitude ? parseFloat(latitude) : null,
-      longitude: longitude ? parseFloat(longitude) : null,
-      id
-    });
-
     const [result] = await pool.query(
       `UPDATE subdistricts SET 
         title = ?, slug = ?, description = ?, featured_image = ?, 
@@ -276,7 +260,7 @@ router.put('/:id', upload.single('featured_image'), async (req, res) => {
       title,
       slug,
       description,
-      featured_image: imagePath ? `http://localhost:5000/${imagePath}` : null,
+      featured_image: imagePath ? `${process.env.API_BASE_URL || 'http://localhost:5000'}/${imagePath}` : null,
       status,
       meta_title,
       meta_description,
@@ -287,13 +271,6 @@ router.put('/:id', upload.single('featured_image'), async (req, res) => {
 
     res.json(updatedSubdistrict);
   } catch (error) {
-    console.error('Error updating subdistrict:', error);
-    console.error('Error details:', {
-      message: error.message,
-      code: error.code,
-      sqlMessage: error.sqlMessage,
-      sqlState: error.sqlState
-    });
     res.status(500).json({ 
       error: 'Failed to update subdistrict',
       details: error.message,
@@ -329,7 +306,6 @@ router.delete('/:id', async (req, res) => {
 
     res.json({ message: 'Subdistrict deleted successfully' });
   } catch (error) {
-    console.error('Error deleting subdistrict:', error);
     res.status(500).json({ error: 'Failed to delete subdistrict', details: error.message });
   }
 });

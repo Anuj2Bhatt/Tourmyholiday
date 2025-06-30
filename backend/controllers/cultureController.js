@@ -28,23 +28,27 @@ const deleteOldImage = async (imagePath) => {
     const fullPath = path.join(__dirname, '../uploads', imagePath);
     await fs.unlink(fullPath);
   } catch (error) {
-    console.error('Error deleting old image:', error);
-  }
+    }
 };
 
 // State Culture Controllers
 exports.createCulture = async (req, res) => {
   try {
     const { title, slug, description, meta_title, meta_description, meta_keywords, subdistrict_id } = req.body;
+
     
     // Check if slug exists
     const slugExists = await Culture.checkSlugExists(slug);
+    
     if (slugExists) {
       return res.status(400).json({ message: 'Slug already exists' });
     }
     
     // Handle image upload
-    const featured_image = req.file ? await handleImageUpload(req.file) : null;
+    let featured_image = null;
+    if (req.file) {
+      featured_image = await handleImageUpload(req.file);
+    }
     
     const cultureData = {
       subdistrict_id,
@@ -58,10 +62,20 @@ exports.createCulture = async (req, res) => {
     };
     
     const id = await Culture.create(cultureData);
-    res.status(201).json({ id, message: 'Culture created successfully' });
+    
+    res.status(201).json({ 
+      id, 
+      message: 'Culture created successfully',
+      culture: {
+        id,
+        ...cultureData
+      }
+    });
   } catch (error) {
-    console.error('Error creating culture:', error);
-    res.status(500).json({ message: 'Error creating culture' });
+    res.status(500).json({ 
+      message: 'Error creating culture',
+      error: error.message 
+    });
   }
 };
 
@@ -109,7 +123,6 @@ exports.updateCulture = async (req, res) => {
       res.status(404).json({ message: 'Culture not found' });
     }
   } catch (error) {
-    console.error('Error updating culture:', error);
     res.status(500).json({ message: 'Error updating culture' });
   }
 };
@@ -131,7 +144,6 @@ exports.deleteCulture = async (req, res) => {
       res.status(404).json({ message: 'Culture not found' });
     }
   } catch (error) {
-    console.error('Error deleting culture:', error);
     res.status(500).json({ message: 'Error deleting culture' });
   }
 };
@@ -139,11 +151,16 @@ exports.deleteCulture = async (req, res) => {
 exports.getCulturesBySubdistrict = async (req, res) => {
   try {
     const { subdistrictId } = req.params;
+    
+    // Get cultures from database
     const cultures = await Culture.getBySubdistrict(subdistrictId);
+    // Send the response directly
     res.json(cultures);
   } catch (error) {
-    console.error('Error fetching cultures:', error);
-    res.status(500).json({ message: 'Error fetching cultures' });
+    res.status(500).json({ 
+      message: 'Error fetching cultures',
+      error: error.message 
+    });
   }
 };
 
@@ -175,7 +192,6 @@ exports.createTerritoryCulture = async (req, res) => {
     const id = await TerritoryCulture.create(cultureData);
     res.status(201).json({ id, message: 'Territory culture created successfully' });
   } catch (error) {
-    console.error('Error creating territory culture:', error);
     res.status(500).json({ message: 'Error creating territory culture' });
   }
 };
@@ -224,7 +240,6 @@ exports.updateTerritoryCulture = async (req, res) => {
       res.status(404).json({ message: 'Territory culture not found' });
     }
   } catch (error) {
-    console.error('Error updating territory culture:', error);
     res.status(500).json({ message: 'Error updating territory culture' });
   }
 };
@@ -246,7 +261,6 @@ exports.deleteTerritoryCulture = async (req, res) => {
       res.status(404).json({ message: 'Territory culture not found' });
     }
   } catch (error) {
-    console.error('Error deleting territory culture:', error);
     res.status(500).json({ message: 'Error deleting territory culture' });
   }
 };
@@ -257,7 +271,49 @@ exports.getTerritoryCulturesBySubdistrict = async (req, res) => {
     const cultures = await TerritoryCulture.getBySubdistrict(subdistrictId);
     res.json(cultures);
   } catch (error) {
-    console.error('Error fetching territory cultures:', error);
     res.status(500).json({ message: 'Error fetching territory cultures' });
+  }
+};
+
+exports.getCultureById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Get single culture by ID
+    const culture = await Culture.getById(id);
+
+    
+    if (!culture) {
+      return res.status(404).json({ message: 'Culture not found' });
+    }
+    
+    // Send single culture object
+    res.json(culture);
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Error fetching culture',
+      error: error.message 
+    });
+  }
+};
+
+exports.getCultureBySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    
+    // Get single culture by slug
+    const culture = await Culture.getBySlug(slug);
+    
+    if (!culture) {
+      return res.status(404).json({ message: 'Culture not found' });
+    }
+    
+    // Send single culture object
+    res.json(culture);
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Error fetching culture',
+      error: error.message 
+    });
   }
 }; 

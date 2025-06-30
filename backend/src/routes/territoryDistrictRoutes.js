@@ -56,12 +56,11 @@ router.get('/slug/:slug', async (req, res) => {
     // Format image path
     const district = districts[0];
     if (district.featured_image) {
-      district.featured_image = `http://localhost:5000${district.featured_image}`;
+      district.featured_image = `${process.env.API_BASE_URL || 'http://localhost:5000'}${district.featured_image}`;
     }
     
     res.json(district);
   } catch (error) {
-    console.error('Error fetching district by slug:', error);
     res.status(500).json({ error: 'Failed to fetch district by slug', details: error.message });
   }
 });

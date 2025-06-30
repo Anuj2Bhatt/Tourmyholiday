@@ -1,4 +1,4 @@
-const pool = require('../src/db');
+const pool = require('../db');
 const { validationResult } = require('express-validator');
 
 // Get population data for a village
@@ -67,7 +67,6 @@ exports.getVillagePopulation = async (req, res) => {
             data: results[0]
         });
     } catch (error) {
-        console.error('Error in getVillagePopulation:', error);
         res.status(500).json({ 
             success: false, 
             message: 'Internal server error' 
@@ -105,7 +104,6 @@ exports.getTerritoryVillagePopulation = async (req, res) => {
             data: results[0]
         });
     } catch (error) {
-        console.error('Error in getTerritoryVillagePopulation:', error);
         res.status(500).json({ 
             success: false, 
             message: 'Internal server error' 
@@ -219,7 +217,6 @@ exports.updateVillagePopulation = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Error in updateVillagePopulation:', error);
         res.status(500).json({ 
             success: false, 
             message: 'Internal server error' 
@@ -333,7 +330,6 @@ exports.updateTerritoryVillagePopulation = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Error in updateTerritoryVillagePopulation:', error);
         res.status(500).json({ 
             success: false, 
             message: 'Internal server error' 

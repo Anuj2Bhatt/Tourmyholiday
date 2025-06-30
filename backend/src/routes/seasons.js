@@ -1,14 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../db');
+const pool = require('../../db');
 const path = require('path');
 
 // Get seasons by district ID with images
 router.get('/district/:districtId', async (req, res) => {
   try {
     const { districtId } = req.params;
-    console.log('Fetching seasons for district ID:', districtId);
-
     // First check if district exists
     const [districts] = await pool.query('SELECT id FROM districts WHERE id = ?', [districtId]);
     if (districts.length === 0) {
@@ -35,7 +33,7 @@ router.get('/district/:districtId', async (req, res) => {
       // Format image URLs
       const formattedImages = images.map(image => ({
         ...image,
-        image_url: image.image_url ? `http://localhost:5000/${image.image_url.replace(/\\/g, '/')}` : null
+        image_url: image.image_url ? `${process.env.API_BASE_URL || 'http://localhost:5000'}/${image.image_url.replace(/\\/g, '/')}` : null
       }));
 
       return {
@@ -44,10 +42,8 @@ router.get('/district/:districtId', async (req, res) => {
       };
     }));
 
-    console.log(`Found ${seasons.length} seasons for district ${districtId}`);
     res.json(seasonsWithImages);
   } catch (error) {
-    console.error('Error fetching district seasons:', error);
     res.status(500).json({ message: 'Failed to fetch district seasons', error: error.message });
   }
 });
@@ -56,8 +52,6 @@ router.get('/district/:districtId', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('Fetching season with ID:', id);
-
     const [seasons] = await pool.query(`
       SELECT s.*, d.name as district_name, d.state_name
       FROM seasons s
@@ -79,7 +73,7 @@ router.get('/:id', async (req, res) => {
     // Format image URLs
     const formattedImages = images.map(image => ({
       ...image,
-      image_url: image.image_url ? `http://localhost:5000/${image.image_url.replace(/\\/g, '/')}` : null
+      image_url: image.image_url ? `${process.env.API_BASE_URL || 'http://localhost:5000'}/${image.image_url.replace(/\\/g, '/')}` : null
     }));
 
     const season = {
@@ -89,7 +83,6 @@ router.get('/:id', async (req, res) => {
 
     res.json(season);
   } catch (error) {
-    console.error('Error fetching season:', error);
     res.status(500).json({ message: 'Failed to fetch season', error: error.message });
   }
 });

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../db');
+const pool = require('../../db');
 const slugify = require('slugify');
 
 // Get healthcare info for a subdistrict
@@ -24,7 +24,6 @@ router.get('/:subdistrictId', async (req, res) => {
 
     res.json(healthcare[0]);
   } catch (error) {
-    console.error('Error fetching healthcare info:', error);
     res.status(500).json({ message: 'Error fetching healthcare info' });
   }
 });
@@ -50,7 +49,6 @@ router.get('/by-slug/:slug', async (req, res) => {
 
     res.json(healthcare[0]);
   } catch (error) {
-    console.error('Error fetching healthcare info:', error);
     res.status(500).json({ message: 'Error fetching healthcare info' });
   }
 });
@@ -112,7 +110,6 @@ router.post('/:subdistrictId', async (req, res) => {
 
     res.status(201).json(newHealthcare[0]);
   } catch (error) {
-    console.error('Error adding healthcare info:', error);
     if (error.code === 'ER_DUP_ENTRY') {
       return res.status(400).json({ message: 'Healthcare info already exists for this subdistrict' });
     }
@@ -189,7 +186,6 @@ router.put('/:healthcareId', async (req, res) => {
 
     res.json(updatedHealthcare[0]);
   } catch (error) {
-    console.error('Error updating healthcare info:', error);
     if (error.code === 'ER_DUP_ENTRY') {
       return res.status(400).json({ message: 'A healthcare info with this meta title already exists' });
     }
@@ -213,7 +209,6 @@ router.delete('/:healthcareId', async (req, res) => {
 
     res.json({ message: 'Healthcare info deleted successfully' });
   } catch (error) {
-    console.error('Error deleting healthcare info:', error);
     res.status(500).json({ message: 'Error deleting healthcare info' });
   }
 });

@@ -15,6 +15,9 @@ const stripHtml = (html) => {
 };
 
 const ManageVillages = () => {
+  
+  
+  
   // Tab state
   const [mainTab, setMainTab] = useState('Manage Village');
   const [tableTab, setTableTab] = useState('Population');
@@ -132,6 +135,8 @@ const ManageVillages = () => {
     nearest_family_welfare_centre: ''
   });
 
+  const [imageGalleryKey, setImageGalleryKey] = useState(0);
+
   useEffect(() => {
     fetchStates();
     fetchTerritories();
@@ -162,52 +167,43 @@ const ManageVillages = () => {
           url = `${API_URL}/api/territory-villages`;
         }
       
-      // Add query parameters based on selections
-      const params = new URLSearchParams();
+        // Add query parameters based on selections
+        const params = new URLSearchParams();
         if (selectedState) {
           params.append('state_id', selectedState);
-      if (selectedDistrict) params.append('district_id', selectedDistrict);
-      if (selectedSubdistrict) params.append('subdistrict_id', selectedSubdistrict);
+          if (selectedDistrict) params.append('district_id', selectedDistrict);
+          if (selectedSubdistrict) params.append('subdistrict_id', selectedSubdistrict);
         } else if (selectedTerritory) {
           params.append('territory_id', selectedTerritory);
           if (selectedDistrict) params.append('territory_district_id', selectedDistrict);
           if (selectedSubdistrict) params.append('territory_subdistrict_id', selectedSubdistrict);
         }
       
-      if (params.toString()) {
-        url += `?${params.toString()}`;
+        if (params.toString()) {
+          url += `?${params.toString()}`;
         }
       }
 
-      console.log('Fetching villages from URL:', url);
+      
       const response = await axios.get(url);
       
       if (!response.data) {
-        console.error('Empty response data');
         setVillages([]);
         setError('Empty response from server');
         return;
       }
 
       if (!response.data.success) {
-        console.error('API returned error:', response.data);
         setVillages([]);
         setError(response.data.message || 'Error from server');
         return;
       }
 
       const villagesData = Array.isArray(response.data.data) ? response.data.data : [];
-      console.log('Processed villages data:', villagesData);
       
       setVillages(villagesData);
       setError(null);
     } catch (err) {
-      console.error('Error fetching villages:', err);
-      console.error('Error details:', {
-        message: err.message,
-        response: err.response?.data,
-        status: err.response?.status
-      });
       setError('Failed to fetch villages: ' + (err.response?.data?.message || err.message));
       setVillages([]);
     } finally {
@@ -220,8 +216,7 @@ const ManageVillages = () => {
       const response = await axios.get(`${API_URL}/api/states`);
       setStates(Array.isArray(response.data) ? response.data : (response.data.states || []));
     } catch (err) {
-      console.error('Error fetching states:', err);
-    }
+      }
   };
 
   const fetchTerritories = async () => {
@@ -233,56 +228,46 @@ const ManageVillages = () => {
           : (response.data.data || response.data.territories || [])
       );
     } catch (err) {
-      console.error('Error fetching territories:', err);
-    }
+      }
   };
 
   const fetchDistricts = async (parentId, type) => {
     try {
       let url = '';
-      console.log('Fetching districts for:', { parentId, type }); // Debug log
 
       if (type === 'state') {
         // For state districts, use the state name endpoint
-        console.log('Fetching state name for ID:', parentId); // Debug log
         const stateResponse = await axios.get(`${API_URL}/api/states/${parentId}`);
-        console.log('State response:', stateResponse.data); // Debug log
         
         const stateName = stateResponse.data.name;
         url = `${API_URL}/api/districts/state/${encodeURIComponent(stateName)}`;
-        console.log('Fetching districts from URL:', url); // Debug log
       } else if (type === 'territory') {
         url = `${API_URL}/api/territory-districts/territory/${parentId}`;
-        console.log('Fetching territory districts from URL:', url); // Debug log
       }
       
       const response = await axios.get(url);
-      console.log('Districts API Response:', response.data); // Debug log
       
       // Handle different response formats
       let districts = [];
       if (type === 'state') {
         // State districts should be an array directly
         districts = Array.isArray(response.data) ? response.data : [];
-        console.log('Processed state districts:', districts); // Debug log
       } else {
-        // Territory districts might be nested
-        districts = response.data.districts || [];
-        console.log('Processed territory districts:', districts); // Debug log
+        // Territory districts might be nested or direct array
+        if (Array.isArray(response.data)) {
+          districts = response.data;
+        } else if (Array.isArray(response.data.districts)) {
+          districts = response.data.districts;
+        } else {
+          districts = [];
+        }
       }
       
       if (districts.length === 0) {
-        console.log('No districts found for:', { parentId, type }); // Debug log
       }
       
       setDistricts(districts);
     } catch (err) {
-      console.error('Error fetching districts:', err);
-      console.error('Error details:', {
-        message: err.message,
-        response: err.response?.data,
-        status: err.response?.status
-      });
       setDistricts([]);
     }
   };
@@ -295,7 +280,6 @@ const ManageVillages = () => {
         return;
       }
 
-      console.log('Fetching subdistricts for district:', districtId);
       let url;
       
       if (selectedState) {
@@ -304,24 +288,31 @@ const ManageVillages = () => {
         url = `${API_URL}/api/territory-subdistricts/district/${districtId}`;
       }
 
-      console.log('Fetching subdistricts from URL:', url);
       const response = await axios.get(url);
-      console.log('Fetched subdistricts:', response.data);
       
       // Format the subdistricts data
-      const formattedSubdistricts = response.data.map(subdistrict => ({
+      let subdistricts = [];
+      if (Array.isArray(response.data)) {
+        subdistricts = response.data;
+      } else if (Array.isArray(response.data.subdistricts)) {
+        subdistricts = response.data.subdistricts;
+      } else if (response.data && typeof response.data === 'object') {
+        // Sometimes backend returns an object with keys as subdistricts
+        subdistricts = Object.values(response.data).filter(item => typeof item === 'object');
+      } else {
+        subdistricts = [];
+      }
+      const formattedSubdistricts = subdistricts.map(subdistrict => ({
         ...subdistrict,
-        name: subdistrict.title, // Map title to name for consistency
+        name: subdistrict.title || subdistrict.name, // Map title to name for consistency
         featured_image: subdistrict.featured_image ? 
           (subdistrict.featured_image.startsWith('http') ? 
             subdistrict.featured_image : 
             `${API_URL}/${subdistrict.featured_image}`) : 
           null
       }));
-      
       setSubdistricts(formattedSubdistricts);
     } catch (error) {
-      console.error('Error fetching subdistricts:', error);
       setError('Failed to fetch subdistricts');
       setSubdistricts([]);
     }
@@ -329,7 +320,6 @@ const ManageVillages = () => {
 
   const handleStateChange = async (e) => {
     const stateId = e.target.value;
-    console.log('State changed to:', stateId); // Debug log
     
     setSelectedState(stateId);
     setSelectedTerritory('');
@@ -339,7 +329,6 @@ const ManageVillages = () => {
     setSubdistricts([]);
     
     if (stateId) {
-      console.log('Fetching districts for state:', stateId); // Debug log
       await fetchDistricts(stateId, 'state');
     }
   };
@@ -384,13 +373,22 @@ const ManageVillages = () => {
     });
   };
 
-  // Update handleInputChange to not auto-generate slug
+  // Update handleInputChange to auto-generate slug when name changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => {
+      const updated = {
+        ...prev,
+        [name]: value
+      };
+      
+      // Auto-generate slug when name changes
+      if (name === 'name' && value) {
+        updated.slug = generateSlug(value);
+      }
+      
+      return updated;
+    });
   };
 
   const handleRichTextChange = (name) => (content) => {
@@ -502,35 +500,13 @@ const ManageVillages = () => {
 
   // Update the formatImageUrl helper function
   const formatImageUrl = (imagePath) => {
-    if (!imagePath) return '';
-    
+    if (!imagePath) return `${API_URL}/uploads/default-image.jpg`;
     // If it's already a full URL, return as is
     if (imagePath.startsWith('http')) return imagePath;
-    
-    // Remove any 'undefined/uploads/' from the path
-    let cleanPath = imagePath.replace(/^undefined\/uploads\//, '');
-    
-    // If it's a filename with timestamp (like 1747983610346-899841122.webp)
-    if (cleanPath.match(/^\d+-\d+\.\w+$/)) {
-      return `${API_URL}/uploads/${cleanPath}`;
-    }
-    
-    // Remove any leading 'uploads/' from the path
-    cleanPath = cleanPath.replace(/^uploads\//, '');
-    
-    // If path already has /uploads/ prefix, return as is
-    if (cleanPath.startsWith('/uploads/')) {
-      return `${API_URL}${cleanPath}`;
-    }
-    
-    // Log the path processing
-    console.log('Image path processing:', {
-      original: imagePath,
-      cleaned: cleanPath,
-      final: `${API_URL}/uploads/${cleanPath}`
-    });
-    
-    return `${API_URL}/uploads/${cleanPath}`;
+    // If it starts with /uploads/, prepend API_URL if missing
+    if (imagePath.startsWith('/uploads/')) return `${API_URL}${imagePath}`;
+    // If it's just a filename, prepend /uploads/
+    return `${API_URL}/uploads/${imagePath}`;
   };
 
   const handleSubmit = async (e) => {
@@ -546,7 +522,6 @@ const ManageVillages = () => {
 
       // Upload featured image if it's a new file
       if (imagePreviews.length > 0 && imagePreviews[0].file) {
-        console.log('Uploading image:', imagePreviews[0].file);
         
         const formDataObj = new FormData();
         formDataObj.append('featured_image', imagePreviews[0].file);
@@ -558,18 +533,13 @@ const ManageVillages = () => {
             }
           });
           
-          console.log('Upload response:', uploadResponse.data);
-          
           if (uploadResponse.data.images && uploadResponse.data.images.length > 0) {
             featuredImagePath = uploadResponse.data.images[0];
-            console.log('Image uploaded successfully, path:', featuredImagePath);
           } else {
-            console.error('No image path in upload response');
             toast.error('Failed to upload image: No path received');
             return;
           }
         } catch (uploadError) {
-          console.error('Error uploading image:', uploadError);
           toast.error('Failed to upload image: ' + (uploadError.response?.data?.message || uploadError.message));
           return;
         }
@@ -583,16 +553,34 @@ const ManageVillages = () => {
         } else {
           featuredImagePath = imageUrl;
         }
-        console.log('Using existing image:', featuredImagePath);
       }
 
+      // Always ensure slug is set before sending
+      let slugToSend = formData.slug;
+      if (!slugToSend && formData.name) {
+        slugToSend = generateSlug(formData.name);
+      }
+      // Always send only the filename for featured_image
+      let featuredImageToSend = featuredImagePath; // Use uploaded image if available
+      if (!featuredImageToSend && formData.featured_image) {
+        const parts = formData.featured_image.split('/');
+        featuredImageToSend = parts[parts.length - 1];
+      }
+      // FINAL strict check
+      if (
+        !featuredImageToSend ||
+        featuredImageToSend === 'undefined' ||
+        featuredImageToSend.startsWith('undefined/') ||
+        featuredImageToSend.includes('undefined/')
+      ) {
+        featuredImageToSend = null;
+      }
       // Create village data with the featured image path
       const villageData = {
         ...formData,
-        featured_image: featuredImagePath || null // Ensure it's null if no image
+        slug: slugToSend,
+        featured_image: featuredImageToSend,
       };
-
-      console.log('Submitting village data:', villageData);
 
       // Add appropriate IDs based on selection
       if (selectedState) {
@@ -600,52 +588,82 @@ const ManageVillages = () => {
         villageData.district_id = selectedDistrict;
         villageData.subdistrict_id = selectedSubdistrict;
         villageData.village_type = 'state';
-      } else if (selectedTerritory) {
-        // For territory villages, use a different endpoint
-        const territoryVillageData = {
-          ...villageData,
-          territory_id: selectedTerritory,
-          territory_district_id: selectedDistrict,
-          territory_subdistrict_id: selectedSubdistrict,
-          village_type: 'territory'
-        };
-        
         let url = '';
         let response;
-
-      if (selectedVillage) {
-          url = `${API_URL}/api/territory-villages/${selectedVillage.id}`;
-          response = await axios.put(url, territoryVillageData);
-      } else {
-          url = `${API_URL}/api/territory-villages`;
-          response = await axios.post(url, territoryVillageData);
-      }
-
+        if (selectedVillage) {
+          url = `${API_URL}/api/villages/${selectedVillage.id}`;
+          response = await axios.put(url, villageData);
+        } else {
+          url = `${API_URL}/api/villages`;
+          response = await axios.post(url, villageData);
+        }
         if (response.data.success) {
-      setShowForm(false);
-      setFormData({
-        name: '',
+          setShowForm(false);
+          setFormData({
+            name: '',
             slug: '',
-        description: '',
-        location: '',
-        population: '',
-        main_occupation: '',
-        cultural_significance: '',
-        attractions: '',
-        how_to_reach: '',
-        best_time_to_visit: '',
+            description: '',
+            location: '',
+            population: '',
+            main_occupation: '',
+            cultural_significance: '',
+            attractions: '',
+            how_to_reach: '',
+            best_time_to_visit: '',
             featured_image: '',
             status: 'draft',
             meta_title: '',
             meta_description: '',
             meta_keywords: '',
             highlights: ''
-      });
-      setImagePreviews([]);
-      setSelectedVillage(null);
-      fetchVillages();
+          });
+          setImagePreviews([]);
+          setSelectedVillage(null);
+          fetchVillages();
+          toast.success(selectedVillage ? 'State village updated successfully' : 'State village created successfully');
+        } else {
+          throw new Error(response.data.message || 'Failed to save village');
+        }
+      } else if (selectedTerritory) {
+        villageData.territory_id = selectedTerritory;
+        villageData.territory_district_id = selectedDistrict;
+        villageData.territory_subdistrict_id = selectedSubdistrict;
+        villageData.village_type = 'territory';
+        let url = '';
+        let response;
+        if (selectedVillage) {
+          url = `${API_URL}/api/territory-villages/${selectedVillage.id}`;
+          response = await axios.put(url, villageData);
+        } else {
+          url = `${API_URL}/api/territory-villages`;
+          response = await axios.post(url, villageData);
+        }
+        if (response.data.success) {
+          setShowForm(false);
+          setFormData({
+            name: '',
+            slug: '',
+            description: '',
+            location: '',
+            population: '',
+            main_occupation: '',
+            cultural_significance: '',
+            attractions: '',
+            how_to_reach: '',
+            best_time_to_visit: '',
+            featured_image: '',
+            status: 'draft',
+            meta_title: '',
+            meta_description: '',
+            meta_keywords: '',
+            highlights: ''
+          });
+          setImagePreviews([]);
+          setSelectedVillage(null);
+          fetchVillages();
           toast.success(selectedVillage ? 'Territory village updated successfully' : 'Territory village created successfully');
-          return;
+        } else {
+          throw new Error(response.data.message || 'Failed to save village');
         }
       }
 
@@ -660,8 +678,6 @@ const ManageVillages = () => {
         url = `${API_URL}/api/villages`;
         response = await axios.post(url, villageData);
       }
-
-      console.log('Server response:', response.data);
 
       if (response.data.success) {
         setShowForm(false);
@@ -691,12 +707,6 @@ const ManageVillages = () => {
         throw new Error(response.data.message || 'Failed to save village');
       }
     } catch (err) {
-      console.error('Error saving village:', err);
-      console.error('Error details:', {
-        message: err.message,
-        response: err.response?.data,
-        status: err.response?.status
-      });
       toast.error('Failed to save village: ' + (err.response?.data?.message || err.message));
     }
   };
@@ -705,20 +715,20 @@ const ManageVillages = () => {
     setSelectedVillage(village);
     setFormData({
       ...village,
-      featured_image: village.featured_image || ''
+      featured_image: village.featured_image, // Use raw value, not formatImageUrl
+      slug: village.slug || generateSlug(village.name || '')
     });
-
     // Set image preview for featured image
-    if (village.featured_image) {
+    if (village.featured_image && village.featured_image !== 'undefined' && village.featured_image !== '') {
+      const previewUrl = formatImageUrl(village.featured_image);
       setImagePreviews([{
-        preview: formatImageUrl(village.featured_image),
+        preview: previewUrl,
         file: null,
         isFeatured: true
       }]);
     } else {
       setImagePreviews([]);
     }
-
     setSelectedState(village.state_id);
     setSelectedDistrict(village.district_id);
     setSelectedSubdistrict(village.subdistrict_id);
@@ -740,7 +750,6 @@ const ManageVillages = () => {
         await axios.delete(url);
         fetchVillages();
       } catch (err) {
-        console.error('Error deleting village:', err);
         alert('Failed to delete village: ' + (err.response?.data?.message || err.message));
       }
     }
@@ -827,7 +836,6 @@ const ManageVillages = () => {
       // Use the correct endpoint for state_village_images
       const endpoint = `${API_URL}/api/state-village-images`;
       formData.append('village_id', selectedVillage.id);
-      console.log('Uploading images to:', endpoint);
 
       const response = await axios.post(endpoint, formData, {
         headers: { 
@@ -844,7 +852,6 @@ const ManageVillages = () => {
       setMultipleImages([]);
       fetchVillages(); // Refresh to show new images
     } catch (err) {
-      console.error('Error uploading images:', err);
       toast.error('Failed to upload images: ' + (err.response?.data?.message || err.message));
     }
   };
@@ -854,15 +861,18 @@ const ManageVillages = () => {
     const [images, setImages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [hoveredImage, setHoveredImage] = useState(null);
+    const [selectedImages, setSelectedImages] = useState([]);
+    const [isSelectionMode, setIsSelectionMode] = useState(false);
 
     const handleDeleteImage = async (imageId) => {
-      if (!window.confirm('Are you sure you want to delete this image?')) return;
+
+      if (!window.confirm('Are you sure you want to delete this image? This action cannot be undone.')) return;
       try {
         let endpoint = '';
         if (village.state_id) {
-          endpoint = `${API_URL}/api/village-image/${imageId}/state`;
+          endpoint = `${API_URL}/api/state-village-images/${imageId}`;
         } else if (village.territory_id) {
-          endpoint = `${API_URL}/api/village-image/${imageId}/territory`;
+          endpoint = `${API_URL}/api/territory-village-images/${imageId}`;
         } else {
           toast.error('No village type selected');
           return;
@@ -874,8 +884,71 @@ const ManageVillages = () => {
         toast.success('Image deleted successfully');
         setImages(prev => prev.filter(img => img.id !== imageId));
       } catch (err) {
-        console.error('Error deleting image:', err);
         toast.error('Failed to delete image: ' + (err.response?.data?.message || err.message));
+      }
+    };
+
+    const handleImageSelect = (imageId) => {
+      setSelectedImages(prev => {
+        if (prev.includes(imageId)) {
+          return prev.filter(id => id !== imageId);
+        } else {
+          return [...prev, imageId];
+        }
+      });
+    };
+
+    const handleCutSelected = async () => {
+      if (selectedImages.length === 0) {
+        toast.warning('Please select images to cut');
+        return;
+      }
+      
+      if (!window.confirm(`Are you sure you want to delete ${selectedImages.length} selected image(s)? This action cannot be undone.`)) return;
+      
+      try {
+        let successCount = 0;
+        let failCount = 0;
+        
+        for (const imageId of selectedImages) {
+          try {
+            let endpoint = '';
+            if (village.state_id) {
+              endpoint = `${API_URL}/api/state-village-images/${imageId}`;
+            } else if (village.territory_id) {
+              endpoint = `${API_URL}/api/territory-village-images/${imageId}`;
+            }
+            
+            const response = await axios.delete(endpoint);
+            if (response.data.success) {
+              successCount++;
+            } else {
+              failCount++;
+            }
+          } catch (err) {
+            failCount++;
+            }
+        }
+        
+        if (successCount > 0) {
+          toast.success(`Successfully deleted ${successCount} image(s)`);
+          setImages(prev => prev.filter(img => !selectedImages.includes(img.id)));
+          setSelectedImages([]);
+          setIsSelectionMode(false);
+        }
+        
+        if (failCount > 0) {
+          toast.error(`Failed to delete ${failCount} image(s)`);
+        }
+      } catch (err) {
+        toast.error('Error occurred during bulk delete');
+      }
+    };
+
+    const toggleSelectionMode = () => {
+      setIsSelectionMode(!isSelectionMode);
+      if (isSelectionMode) {
+        setSelectedImages([]);
       }
     };
 
@@ -884,10 +957,8 @@ const ManageVillages = () => {
         try {
           setLoading(true);
           const endpoint = `${API_URL}/api/state-village-images/${village.id}`;
-          console.log('Fetching images from:', endpoint);
 
           const response = await axios.get(endpoint);
-          console.log('Images response:', response.data);
           
           if (!response.data.success) {
             throw new Error(response.data.message || 'Failed to fetch village images');
@@ -895,7 +966,6 @@ const ManageVillages = () => {
 
           setImages(response.data.data || []);
         } catch (err) {
-          console.error('Error fetching village images:', err);
           toast.error('Failed to fetch village images: ' + (err.response?.data?.message || err.message));
           setImages([]);
         } finally {
@@ -919,25 +989,72 @@ const ManageVillages = () => {
 
     return (
       <div className="village-image-gallery">
+        {/* Gallery Header with Cut Option */}
+        <div className="gallery-header">
+          <div className="gallery-info">
+            <h4>Village Images ({images.length})</h4>
+            {isSelectionMode && (
+              <span className="selection-info">
+                {selectedImages.length} image(s) selected
+              </span>
+            )}
+          </div>
+          <div className="gallery-actions">
+            <button
+              className={`selection-toggle-btn ${isSelectionMode ? 'active' : ''}`}
+              onClick={toggleSelectionMode}
+              title={isSelectionMode ? 'Exit Selection Mode' : 'Enter Selection Mode'}
+            >
+              <i className="fas fa-check-square"></i>
+              {isSelectionMode ? ' Exit Selection' : ' Select Images'}
+            </button>
+            {isSelectionMode && selectedImages.length > 0 && (
+              <button
+                className="cut-selected-btn"
+                onClick={handleCutSelected}
+                title={`Delete ${selectedImages.length} selected image(s)`}
+              >
+                <i className="fas fa-cut"></i>
+                Cut Selected ({selectedImages.length})
+              </button>
+            )}
+          </div>
+        </div>
+
         {images.length > 0 ? (
           <div className="mv-gallery-image-grid">
             {images.map((image, index) => (
               <div 
                 key={image.id} 
-                className="mv-gallery-image-container"
-                onMouseEnter={() => setHoveredImage(image.id)}
-                onMouseLeave={() => setHoveredImage(null)}
+                className={`mv-gallery-image-container ${isSelectionMode && selectedImages.includes(image.id) ? 'selected' : ''}`}
+                onMouseEnter={() => {
+                  setHoveredImage(image.id);
+                }}
+                onMouseLeave={() => {
+                  setHoveredImage(null);
+                }}
+                onClick={() => isSelectionMode && handleImageSelect(image.id)}
               >
+                {isSelectionMode && (
+                  <div className="selection-checkbox">
+                    <input
+                      type="checkbox"
+                      checked={selectedImages.includes(image.id)}
+                      onChange={() => handleImageSelect(image.id)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                )}
                 <img
                   src={formatImageUrl(image.image_path)}
                   alt={image.alt_text || `${village.name} image ${index + 1}`}
                   className="mv-gallery-image"
                   onError={(e) => {
                     e.target.onerror = null;
-                    e.target.src = `${API_URL}/uploads/default-image.jpg`;
+                    e.target.src = `${API_URL}/uploads/no-image.png`;
                   }}
                 />
-                {hoveredImage === image.id && (
+                {hoveredImage === image.id && !isSelectionMode && (
                   <div className="image-overlay">
                     <div className="image-actions">
                       <button
@@ -953,7 +1070,7 @@ const ManageVillages = () => {
                             description: image.description || ''
                           }]);
                         }}
-                        title="Edit Image"
+                        title="Edit Image Details"
                       >
                         <i className="fas fa-edit"></i>
                       </button>
@@ -974,6 +1091,7 @@ const ManageVillages = () => {
           <div className="no-images-message">
             <i className="fas fa-images"></i>
             <p>No images available for this village</p>
+            <small>Click "Add New Image" to upload images</small>
           </div>
         )}
       </div>
@@ -986,6 +1104,12 @@ const ManageVillages = () => {
       <div className="village-image-card">
         <div className="village-header">
           <h3>{village.name}</h3>
+          <div className="village-image-stats">
+            <span className="image-count">
+              <i className="fas fa-images"></i>
+              <span id="image-count">Loading...</span> images
+            </span>
+          </div>
         </div>
         <VillageImageGallery village={village} />
       </div>
@@ -1063,13 +1187,8 @@ const ManageVillages = () => {
     }
 
     try {
-      console.log('Saving population data for village:', selectedVillage.id);
-      console.log('Population data:', populationData);
-
       const url = `${API_URL}/api/village-population/village/${selectedVillage.id}`;
       const response = await axios.put(url, populationData);
-
-      console.log('Save response:', response.data);
 
       if (response.data.success) {
         toast.success('Population data saved successfully');
@@ -1079,12 +1198,6 @@ const ManageVillages = () => {
         throw new Error(response.data.message || 'Failed to save population data');
       }
     } catch (error) {
-      console.error('Error saving population data:', error);
-      console.error('Error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status
-      });
       toast.error('Failed to save population data: ' + (error.response?.data?.message || error.message));
     }
   };
@@ -1118,7 +1231,6 @@ const ManageVillages = () => {
         });
       }
     } catch (error) {
-      console.error('Error fetching population data:', error);
       toast.error('Failed to fetch population data: ' + (error.response?.data?.message || error.message));
     }
   };
@@ -1148,7 +1260,6 @@ const ManageVillages = () => {
         });
       }
     } catch (error) {
-      console.error('Error fetching employment data:', error);
       toast.error('Failed to fetch employment data');
     }
   };
@@ -1169,15 +1280,10 @@ const ManageVillages = () => {
     }
 
     try {
-      console.log('Saving employment data for village:', selectedVillage.id);
-      console.log('Employment data to save:', employmentData);
-
       const response = await axios.put(
         `${API_URL}/api/village-employment/state/village/${selectedVillage.id}`,
         employmentData
       );
-
-      console.log('Save response:', response.data);
 
       if (response.data.success) {
         toast.success('Employment data saved successfully');
@@ -1187,12 +1293,6 @@ const ManageVillages = () => {
         throw new Error(response.data.message || 'Failed to save employment data');
       }
     } catch (error) {
-      console.error('Error saving employment data:', error);
-      console.error('Error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status
-      });
       toast.error('Failed to save employment data: ' + (error.response?.data?.message || error.message));
     }
   };
@@ -1223,7 +1323,6 @@ const ManageVillages = () => {
         });
       }
     } catch (error) {
-      console.error('Error fetching education employment data:', error);
       toast.error('Failed to fetch education employment data');
     }
   };
@@ -1236,15 +1335,10 @@ const ManageVillages = () => {
     }
 
     try {
-      console.log('Saving education employment data for village:', selectedVillage.id);
-      console.log('Education employment data to save:', educationEmploymentData);
-
       const response = await axios.put(
         `${API_URL}/api/village-education-employment/state/village/${selectedVillage.id}`,
         educationEmploymentData
       );
-
-      console.log('Save response:', response.data);
 
       if (response.data.success) {
         toast.success('Education employment data saved successfully');
@@ -1253,12 +1347,6 @@ const ManageVillages = () => {
         throw new Error(response.data.message || 'Failed to save education employment data');
       }
     } catch (error) {
-      console.error('Error saving education employment data:', error);
-      console.error('Error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status
-      });
       toast.error('Failed to save education employment data: ' + (error.response?.data?.message || error.message));
     }
   };
@@ -1271,7 +1359,6 @@ const ManageVillages = () => {
         ? `${API_URL}/api/village-education/state/village/${villageId}`
         : `${API_URL}/api/village-education/territory/village/${villageId}`;
 
-      console.log('Fetching education data from:', endpoint);
       const response = await axios.get(endpoint);
 
       if (response.data.success) {
@@ -1290,7 +1377,6 @@ const ManageVillages = () => {
         throw new Error(response.data.message || 'Failed to fetch education data');
       }
     } catch (error) {
-      console.error('Error fetching education data:', error);
       toast.error('Failed to fetch education data: ' + (error.response?.data?.message || error.message));
       // Set default empty values on error
       setEducationData({
@@ -1315,17 +1401,12 @@ const ManageVillages = () => {
     }
 
     try {
-      console.log('Saving education data for village:', selectedVillage.id);
-      console.log('Education data to save:', educationData);
-
       // Determine if it's a state or territory village
       const endpoint = selectedState 
         ? `${API_URL}/api/village-education/state/village/${selectedVillage.id}`
         : `${API_URL}/api/village-education/territory/village/${selectedVillage.id}`;
 
       const response = await axios.put(endpoint, educationData);
-
-      console.log('Save response:', response.data);
 
       if (response.data.success) {
         toast.success('Education data saved successfully');
@@ -1334,12 +1415,6 @@ const ManageVillages = () => {
         throw new Error(response.data.message || 'Failed to save education data');
       }
     } catch (error) {
-      console.error('Error saving education data:', error);
-      console.error('Error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status
-      });
       toast.error('Failed to save education data: ' + (error.response?.data?.message || error.message));
     }
   };
@@ -1378,17 +1453,12 @@ const ManageVillages = () => {
     }
 
     try {
-      console.log('Saving health data for village:', selectedVillage.id);
-      console.log('Health data to save:', healthData);
-
       // Determine if it's a state or territory village
       const endpoint = selectedState 
         ? `${API_URL}/api/village-health/state/village/${selectedVillage.id}`
         : `${API_URL}/api/village-health/territory/village/${selectedVillage.id}`;
 
       const response = await axios.put(endpoint, healthData);
-
-      console.log('Save response:', response.data);
 
       if (response.data.success) {
         toast.success('Health data saved successfully');
@@ -1397,12 +1467,6 @@ const ManageVillages = () => {
         throw new Error(response.data.message || 'Failed to save health data');
       }
     } catch (error) {
-      console.error('Error saving health data:', error);
-      console.error('Error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status
-      });
       toast.error('Failed to save health data: ' + (error.response?.data?.message || error.message));
     }
   };
@@ -1415,7 +1479,6 @@ const ManageVillages = () => {
         ? `${API_URL}/api/village-health/state/village/${villageId}`
         : `${API_URL}/api/village-health/territory/village/${villageId}`;
 
-      console.log('Fetching health data from:', endpoint);
       const response = await axios.get(endpoint);
 
       if (response.data.success) {
@@ -1432,7 +1495,6 @@ const ManageVillages = () => {
         throw new Error(response.data.message || 'Failed to fetch health data');
       }
     } catch (error) {
-      console.error('Error fetching health data:', error);
       toast.error('Failed to fetch health data: ' + (error.response?.data?.message || error.message));
       // Set default empty values on error
       setHealthData({
@@ -1715,7 +1777,6 @@ const ManageVillages = () => {
                   <div className="image-previews">
                     {Array.isArray(imagePreviews) && imagePreviews.map((preview, index) => {
                       if (!preview || typeof preview !== 'object') {
-                        console.error('Invalid preview data at index', index, ':', preview);
                         return null;
                       }
                       
@@ -1725,7 +1786,6 @@ const ManageVillages = () => {
                             src={preview.preview || ''} 
                             alt="Featured preview"
                             onError={(e) => {
-                              console.error('Preview image load error at index', index);
                               e.target.onerror = null;
                               e.target.src = `${API_URL}/uploads/default-image.jpg`;
                             }}
@@ -1863,16 +1923,11 @@ const ManageVillages = () => {
                     {villages.map((village, idx) => {
                       // Validate village object
                       if (!village || typeof village !== 'object') {
-                        console.error('Invalid village data at index', idx, ':', village);
                         return null;
                       }
                       
-                      // Log each village being rendered
-                      console.log('Rendering village at index', idx, ':', village);
-                      
                       // Format the image URL
                       const imageUrl = village.featured_image ? formatImageUrl(village.featured_image) : null;
-                      console.log('Formatted image URL for village', village.id, ':', imageUrl);
                       
                       return (
                         <tr key={village.id || `village-${idx}`}>
@@ -1890,27 +1945,32 @@ const ManageVillages = () => {
                           </td>
                       <td>
                         {village.featured_image ? (
-                              <div className="village-image-cell">
+                              <div className="village-image-cell" style={{ position: 'relative' }}>
                                 <img
                                   src={formatImageUrl(village.featured_image)}
                                   alt={`${village.name || 'Village'} featured image`}
                                   className="village-featured-image"
-                                  onError={(e) => {
-                                    console.error('Image load error for village:', {
-                                      id: village.id,
-                                      name: village.name,
-                                      originalPath: village.featured_image,
-                                      formattedUrl: formatImageUrl(village.featured_image),
-                                      villageData: village
-                                    });
+                                  style={{ maxWidth: 80, maxHeight: 80, marginBottom: 4 }}
+                                  onError={e => {
                                     e.target.onerror = null;
-                                    e.target.src = `${API_URL}/uploads/default-image.jpg`;
+                                    e.target.style.display = 'none';
                                   }}
                                 />
+                                <div style={{
+                                  fontSize: 10,
+                                  color: '#c00',
+                                  wordBreak: 'break-all',
+                                  background: '#fffbe6',
+                                  border: '1px solid #ffe58f',
+                                  padding: 2,
+                                  borderRadius: 2,
+                                  marginTop: 2
+                                }}>
+                                  <div><b>URL:</b> {formatImageUrl(village.featured_image)}</div>
+                                  <div><b>Raw:</b> {village.featured_image}</div>
+                                </div>
                               </div>
-                            ) : (
-                              <span className="no-image">No featured image</span>
-                        )}
+                            ) : null}
                       </td>
                       <td>
                         <div className="action-buttons">
@@ -2026,8 +2086,8 @@ const ManageVillages = () => {
 
           {/* Image Upload Modal */}
           {showForm && selectedVillage && (
-            <div className="modal-overlay">
-              <div className="modal-content">
+            <div className="village-modal-overlay">
+              <div className="village-modal-content">
                 <form onSubmit={handleMultipleImageSubmit} className="image-upload-form">
                   <div className="form-header">
                     <h2>Upload Images for {selectedVillage.name}</h2>

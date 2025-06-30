@@ -54,7 +54,6 @@ class PackageSeasonImage {
             );
             return images;
         } catch (error) {
-            console.error('Error getting package season images:', error);
             throw error;
         }
     }

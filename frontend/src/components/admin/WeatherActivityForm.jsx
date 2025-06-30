@@ -57,8 +57,7 @@ const WeatherActivityForm = ({ formData, onSubmit, onCancel }) => {
         activity_images: [...prev.activity_images, ...response.data.imagePaths]
       }));
     } catch (error) {
-      console.error('Error uploading images:', error);
-    }
+      }
   };
 
   const handleSubmit = (e) => {

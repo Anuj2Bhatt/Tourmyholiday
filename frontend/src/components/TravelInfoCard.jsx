@@ -26,7 +26,6 @@ const TravelInfoCard = ({ travel }) => {
             src={formatImageUrl(travel.featured_image)}
             alt={travel.title}
             onError={(e) => {
-              console.error('Image failed to load:', travel.featured_image);
               e.target.src = '/placeholder-image.jpg';
             }}
           />

@@ -50,8 +50,7 @@ const WeatherStatsForm = ({ formData, onSubmit, onCancel }) => {
         weather_charts: [...prev.weather_charts, ...response.data.imagePaths]
       }));
     } catch (error) {
-      console.error('Error uploading images:', error);
-    }
+      }
   };
 
   const handleSubmit = (e) => {

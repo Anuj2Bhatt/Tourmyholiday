@@ -64,7 +64,6 @@ const OurTeam = () => {
 
   return (
     <div className="our-team-section">
-      <h2>Meet Our Team</h2>
       <div className="our-team-container">
         <div 
           className="team-cards-wrapper"

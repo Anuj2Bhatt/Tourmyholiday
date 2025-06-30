@@ -6,9 +6,7 @@ import 'react-quill/dist/quill.snow.css';
 import '../../styles/ManageSubdistricts.css';
 import WeatherActivityForm from './WeatherActivityForm';
 import SeasonalGuideForm from './SeasonalGuideForm';
-import TouristFeatureForm 
-
-from './TouristFeatureForm';
+import TouristFeatureForm from './TouristFeatureForm';
 import '../../styles/SeasonalGuides.css';
 
 const TABS = [
@@ -18,7 +16,6 @@ const TABS = [
   { key: 'travel', label: 'Travel' },
   { key: 'images', label: 'Gallery' },
   { key: 'weather', label: 'Weather' },
-  { key: 'virtual_tour', label: 'Virtual Tour' },
   { key: 'adventure', label: 'Adventure' }
 ];
 
@@ -199,25 +196,6 @@ const ManageSubdistricts = () => {
     price_range: ''
   });
 
-  // Add virtual tour state variables
-  const [showVirtualTourDashboard, setShowVirtualTourDashboard] = useState(false);
-  const [virtualTourFormData, setVirtualTourFormData] = useState({
-    id: null,
-    title: '',
-    slug: '',
-    description: '',
-    featured_image: null,
-    featured_image_preview: null,
-    scenes: [],
-    meta_title: '',
-    meta_description: '',
-    meta_keywords: ''
-  });
-  const [virtualTourError, setVirtualTourError] = useState(null);
-  const [virtualTours, setVirtualTours] = useState([]);
-  const [virtualToursLoading, setVirtualToursLoading] = useState(false);
-  const [selectedScene, setSelectedScene] = useState(null);
-
   // Weather related state variables - keep only this set
   const [weatherData, setWeatherData] = useState(null);
   const [weatherLoading, setWeatherLoading] = useState(false);
@@ -284,7 +262,6 @@ const ManageSubdistricts = () => {
 
   const fetchWeatherData = async () => {
     if (!selectedSubdistrict?.id) {
-      console.log('No subdistrict ID provided for weather data fetch');
       return;
     }
     try {
@@ -293,7 +270,6 @@ const ManageSubdistricts = () => {
       const weatherResponse = await axios.get(`${API_URL}/api/weather/${selectedSubdistrict.id}`);
       setWeatherData(weatherResponse.data);
     } catch (error) {
-      console.error('Error fetching weather data:', error);
       setWeatherData(null);
     } finally {
       setWeatherLoading(false);
@@ -517,7 +493,6 @@ const ManageSubdistricts = () => {
       fetchAdventureActivities();
       handleCancelAdventureDashboard();
     } catch (error) {
-      console.error('Error saving adventure activity:', error);
       alert('Failed to save adventure activity. Please try again.');
     }
   };
@@ -543,7 +518,6 @@ const ManageSubdistricts = () => {
       // Refresh the activities list
       fetchAdventureActivities();
     } catch (error) {
-      console.error('Error deleting adventure activity:', error);
       alert('Failed to delete adventure activity. Please try again.');
     }
   };
@@ -564,7 +538,6 @@ const ManageSubdistricts = () => {
       const data = await response.json();
       setAdventureActivities(data);
     } catch (error) {
-      console.error('Error fetching adventure activities:', error);
       setAdventureActivities([]);
     }
   };
@@ -852,7 +825,6 @@ const ManageSubdistricts = () => {
       setImages(response.data);
       setShowImagesList(true);
     } catch (error) {
-      console.error('Error fetching images:', error);
       setError('Failed to fetch images');
       setImages([]);
       setShowImagesList(false);
@@ -932,19 +904,8 @@ const ManageSubdistricts = () => {
     }
 
     try {
-      console.log('Starting image save process...');
-      console.log('Selected subdistrict:', selectedSubdistrict);
-      console.log('Is territory:', selectedTerritory);
-      console.log('Image data:', {
-        hasImage: !!imageFormData.image,
-        hasPreview: !!imageFormData.image_preview,
-        altText: imageFormData.alt_text,
-        description: imageFormData.description
-      });
-
       const formData = new FormData();
       if (imageFormData.image) {
-        console.log('Appending image file to form data');
         formData.append('image', imageFormData.image);
       }
       formData.append('alt_text', imageFormData.alt_text);
@@ -954,9 +915,7 @@ const ManageSubdistricts = () => {
         `${API_URL}/api/territory-subdistrict-images` : 
         `${API_URL}/api/subdistrict-images`;
 
-      console.log('Making request to:', baseUrl);
-      console.log('Method:', isEditingImage ? 'PUT' : 'POST');
-      console.log('Form data entries:', Array.from(formData.entries()));
+
 
       let response;
       if (isEditingImage && imageFormData.id) {
@@ -968,8 +927,6 @@ const ManageSubdistricts = () => {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
       }
-
-      console.log('Server response:', response.data);
 
       await fetchImages();
       setShowImageDashboard(false);
@@ -983,13 +940,6 @@ const ManageSubdistricts = () => {
         subdistrict_id: null
       });
     } catch (err) {
-      console.error('Error saving image:', err);
-      console.error('Error details:', {
-        message: err.message,
-        response: err.response?.data,
-        status: err.response?.status
-      });
-      
       if (err.response) {
         setImageError(err.response.data?.message || `Server error: ${err.response.status}`);
       } else if (err.request) {
@@ -1009,7 +959,6 @@ const ManageSubdistricts = () => {
       await axios.delete(`${baseUrl}/${imageId}`);
       await fetchImages();
     } catch (err) {
-      console.error('Error deleting image:', err);
       setError('Failed to delete image');
     }
   };
@@ -1027,7 +976,6 @@ const ManageSubdistricts = () => {
             setShowImagesList(true);
           })
           .catch(error => {
-            console.error('Error fetching images:', error);
             setError('Failed to fetch images');
           })
           .finally(() => {
@@ -1046,15 +994,21 @@ const ManageSubdistricts = () => {
     try {
       setAttractionsLoading(true);
       const baseUrl = selectedTerritory ? 
-        `${API_URL}/api/territory-attractions` : 
-        `${API_URL}/api/attractions`;
-      const endpoint = selectedTerritory ? 
-        `${baseUrl}/territory-subdistrict/${selectedSubdistrict.id}` :
-        `${baseUrl}/subdistrict/${selectedSubdistrict.id}`;
-      const response = await axios.get(endpoint);
-      setAttractions(response.data);
+        `${API_URL}/api/territory-attractions/territory-subdistrict/${selectedSubdistrict.id}` : 
+        `${API_URL}/api/attractions/subdistrict/${selectedSubdistrict.id}`;
+
+      const response = await axios.get(baseUrl);
+
+      // Log the response for debugging
+
+
+      // Ensure we always set an array in the state
+      const attractionsArray = Array.isArray(response.data) ? response.data : [response.data].filter(Boolean);
+      
+      
+      setAttractions(attractionsArray);
+      setShowAttractionsList(true);
     } catch (error) {
-      console.error('Error fetching attractions:', error);
       setError('Failed to fetch attractions');
       setAttractions([]);
     } finally {
@@ -1070,18 +1024,24 @@ const ManageSubdistricts = () => {
     }
     try {
       setCulturesLoading(true);
+      
       const baseUrl = selectedTerritory ? 
         `${API_URL}/api/territory-cultures` : 
         `${API_URL}/api/cultures`;
-      const endpoint = selectedTerritory ? 
-        `${baseUrl}/territory-subdistrict/${selectedSubdistrict.id}` :
-        `${baseUrl}/subdistrict/${selectedSubdistrict.id}`;
-      const response = await axios.get(endpoint);
-      setCultures(response.data);
+      
+      // Use the subdistrict endpoint instead of id endpoint
+      const response = await axios.get(`${baseUrl}/subdistrict/${selectedSubdistrict.id}`);
+      
+      
+      // Ensure we always set an array in the state
+      const culturesArray = Array.isArray(response.data) ? response.data : [response.data].filter(Boolean);
+      
+      setCultures(culturesArray);
+      setShowCulturesList(true);
     } catch (error) {
-      console.error('Error fetching cultures:', error);
       setError('Failed to fetch cultures');
       setCultures([]);
+      setShowCulturesList(false);
     } finally {
       setCulturesLoading(false);
     }
@@ -1115,7 +1075,6 @@ const ManageSubdistricts = () => {
         throw new Error('Invalid district type');
       }
       
-      console.log('Fetching travels from:', endpoint);
       const response = await axios.get(endpoint);
       let travelsData = Array.isArray(response.data) ? response.data : [response.data];
       
@@ -1140,11 +1099,9 @@ const ManageSubdistricts = () => {
           updated_at: travel.updated_at
         }));
 
-      console.log('Fetched travels data:', travelsData);
       setTravels(travelsData);
       setShowTravelsList(true);
     } catch (error) {
-      console.error('Error fetching travel information:', error);
       setError('Failed to fetch travel information');
       setTravels([]);
       setShowTravelsList(false);
@@ -1250,19 +1207,20 @@ const ManageSubdistricts = () => {
         `${API_URL}/api/territory-cultures` : 
         `${API_URL}/api/cultures`;
 
+      let response;
       if (isEditingCulture && cultureFormData.id) {
-        // Update
-        await axios.put(`${baseUrl}/${cultureFormData.id}`, formDataToSend, {
+        // Update existing culture
+        response = await axios.put(`${baseUrl}/${cultureFormData.id}`, formDataToSend, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
       } else {
-        // Create
+        // Create new culture
         if (selectedTerritory) {
           formDataToSend.append('territory_subdistrict_id', selectedSubdistrict.id);
         } else {
           formDataToSend.append('subdistrict_id', selectedSubdistrict.id);
         }
-        await axios.post(baseUrl, formDataToSend, {
+        response = await axios.post(baseUrl, formDataToSend, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
       }
@@ -1284,8 +1242,7 @@ const ManageSubdistricts = () => {
         meta_keywords: ''
       });
     } catch (err) {
-      console.error('Error saving culture:', err);
-      setCultureError('Failed to save culture. Please try again.');
+      setCultureError(err.response?.data?.message || 'Failed to save culture. Please try again.');
     }
   };
 
@@ -1455,7 +1412,6 @@ const ManageSubdistricts = () => {
       setShowForm(false);
       fetchSubdistricts();
     } catch (error) {
-      console.error('Error submitting form:', error);
       setError(`Failed to ${isEditing ? 'update' : 'create'} subdistrict: ${error.response?.data?.message || error.message}`);
     }
   };
@@ -1468,7 +1424,6 @@ const ManageSubdistricts = () => {
       const response = await axios.get(`${API_URL}/api/states`);
       setStates(response.data);
     } catch (err) {
-      console.error('Error fetching states:', err);
       setError('Failed to fetch states. Please try again.');
     } finally {
       setLoading(false);
@@ -1483,7 +1438,6 @@ const ManageSubdistricts = () => {
       const response = await axios.get(`${API_URL}/api/territories`);
       setTerritories(Array.isArray(response.data?.data) ? response.data.data : []);
     } catch (err) {
-      console.error('Error fetching territories:', err);
       setError('Failed to fetch territories. Please try again.');
     } finally {
       setLoading(false);
@@ -1511,8 +1465,6 @@ const ManageSubdistricts = () => {
     setShowTravelsList(false);
     setImages([]);
     setShowImagesList(false);
-    setVirtualTours([]);
-    setSelectedSubdistrict(null);
   };
 
   // Update handleTerritoryChange to reset state and clear entries
@@ -1530,8 +1482,6 @@ const ManageSubdistricts = () => {
     setShowTravelsList(false);
     setImages([]);
     setShowImagesList(false);
-    setVirtualTours([]);
-    setSelectedSubdistrict(null);
   };
 
   // Add handler for district change
@@ -1547,8 +1497,6 @@ const ManageSubdistricts = () => {
     setShowTravelsList(false);
     setImages([]);
     setShowImagesList(false);
-    setVirtualTours([]);
-    setSelectedSubdistrict(null);
   };
 
   // Update fetchDistricts to handle both state and territory
@@ -1595,7 +1543,6 @@ const ManageSubdistricts = () => {
       setDistricts(districtsWithState);
       setSelectedDistrict('');
     } catch (err) {
-      console.error('Error fetching districts:', err);
       setError('Failed to fetch districts. Please try again.');
       setDistricts([]);
     } finally {
@@ -1636,7 +1583,6 @@ const ManageSubdistricts = () => {
         setSubdistricts(response.data);
       }
     } catch (error) {
-      console.error('Error fetching subdistricts:', error);
       setError('Failed to fetch subdistricts');
     } finally {
       setSubdistrictsLoading(false);
@@ -1661,7 +1607,6 @@ const ManageSubdistricts = () => {
         await axios.delete(`${baseUrl}/${subdistrictId}`);
         setSubdistricts(subdistricts.filter(sub => sub.id !== subdistrictId));
       } catch (err) {
-        console.error('Error deleting subdistrict:', err);
         setError('Failed to delete subdistrict. Please try again.');
       }
     }
@@ -1678,8 +1623,11 @@ const ManageSubdistricts = () => {
       return imagePath;
     }
     
-    // For gallery images, they are stored directly in uploads folder
-    return `${API_URL}/uploads/${imagePath}`;
+    // Remove any leading 'uploads/' from the path
+    const cleanPath = imagePath.replace(/^uploads\//, '');
+    
+    // Return the full URL
+    return `${API_URL}/uploads/${cleanPath}`;
   };
 
   // Add this function after the other state declarations
@@ -1711,7 +1659,6 @@ const ManageSubdistricts = () => {
       
       return true;
     } catch (err) {
-      console.error('Failed to update image path:', err);
       setError('Failed to update image path. Please try again.');
       return false;
     }
@@ -1893,7 +1840,6 @@ const ManageSubdistricts = () => {
         fetchAttractions().then(() => {
           setShowAttractionsList(true);
         }).catch(error => {
-          console.error('Error fetching attractions:', error);
           setError('Failed to fetch attractions');
         }).finally(() => {
           setAttractionsLoading(false);
@@ -1912,14 +1858,16 @@ const ManageSubdistricts = () => {
       // Only fetch cultures if a subdistrict is selected
       if (selectedSubdistrict) {
         setCulturesLoading(true);
-        fetchCultures().then(() => {
-          setShowCulturesList(true);
-        }).catch(error => {
-          console.error('Error fetching cultures:', error);
-          setError('Failed to fetch cultures');
-        }).finally(() => {
-          setCulturesLoading(false);
-        });
+        fetchCultures()
+          .then(() => {
+            setShowCulturesList(true);
+          })
+          .catch(error => {
+            setError('Failed to fetch cultures');
+          })
+          .finally(() => {
+            setCulturesLoading(false);
+          });
       }
     }
   }, [selectedSubdistrict, activeTab, fetchCultures]);
@@ -2007,7 +1955,7 @@ const ManageSubdistricts = () => {
           )}
           {/* Subdistrict Form Modal */}
           {showForm && (
-            <div className="modal">
+            <div className="modal-subdistrict">
               <div className="modal-content">
                 <h2>{isEditing ? 'Edit Subdistrict' : 'Add New Subdistrict'}</h2>
                 <form onSubmit={handleSubmit}>
@@ -2348,7 +2296,6 @@ const ManageSubdistricts = () => {
                                     await axios.delete(`${baseUrl}/${attraction.id}`);
                                     await fetchAttractions();
                                   } catch (err) {
-                                    console.error('Error deleting attraction:', err);
                                     setError('Failed to delete attraction');
                                   }
                                 }
@@ -2437,7 +2384,6 @@ const ManageSubdistricts = () => {
                             border: '1px solid #ddd'
                           }}
                           onError={(e) => {
-                            console.error('Preview image failed to load:', cultureFormData.featured_image_preview);
                             e.target.src = '/placeholder-image.jpg';
                           }}
                         />
@@ -2588,79 +2534,79 @@ const ManageSubdistricts = () => {
                   Loading culture & heritage for {selectedSubdistrict.title || 'selected subdistrict'}...
                 </div>
               ) : cultures.length > 0 ? (
-                <table className="cultures-table">
-                  <thead>
-                    <tr>
-                      <th>Sr. No.</th>
-                      <th>Featured Image</th>
-                      <th>Title</th>
-                      <th style={{ maxWidth: '300px' }}>Description</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {cultures.map((culture, idx) => (
-                      <tr key={culture.id}>
-                        <td>{idx + 1}</td>
-                        <td>
-                          {culture.featured_image ? (
-                            <img
-                              src={formatImageUrl(culture.featured_image)}
-                              alt={culture.title}
-                              style={{ 
-                                width: '120px', 
-                                height: '80px', 
-                                objectFit: 'cover', 
-                                borderRadius: '4px',
-                                border: '1px solid #ddd'
-                              }}
-                              onError={(e) => {
-                                console.error('Image failed to load:', culture.featured_image);
-                                e.target.src = '/placeholder-image.jpg';
-                              }}
-                            />
-                          ) : (
-                            <span style={{ color: '#aaa' }}>No Image</span>
-                          )}
-                        </td>
-                        <td>{culture.title}</td>
-                        <td style={{ 
-                          maxWidth: '300px', 
-                          whiteSpace: 'nowrap', 
-                          overflow: 'hidden', 
-                          textOverflow: 'ellipsis',
-                          color: '#666'
-                        }}>
-                          {formatDescription(culture.description)}
-                        </td>
-                        <td>
-                          <div className="action-btn-row" style={{ display: 'flex', gap: '8px' }}>
-                            <button className="edit-btn" onClick={() => handleEditCulture(culture)}>Edit</button>
-                            <button 
-                              className="delete-btn" 
-                              onClick={async () => {
-                                if (window.confirm('Are you sure you want to delete this culture & heritage entry?')) {
-                                  try {
-                                    const baseUrl = selectedTerritory ? 
-                                      `${API_URL}/api/territory-cultures` : 
-                                      `${API_URL}/api/cultures`;
-                                    await axios.delete(`${baseUrl}/${culture.id}`);
-                                    await fetchCultures();
-                                  } catch (err) {
-                                    console.error('Error deleting culture:', err);
-                                    setError('Failed to delete culture & heritage entry');
-                                  }
-                                }
-                              }}
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </td>
+                <div className="cultures-list-container">
+                  <table className="cultures-table">
+                    <thead>
+                      <tr>
+                        <th>Sr. No.</th>
+                        <th>Featured Image</th>
+                        <th>Title</th>
+                        <th style={{ maxWidth: '300px' }}>Description</th>
+                        <th>Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {cultures.map((culture, idx) => (
+                        <tr key={culture.id}>
+                          <td>{idx + 1}</td>
+                          <td>
+                            {culture.featured_image ? (
+                              <img
+                                src={formatImageUrl(culture.featured_image)}
+                                alt={culture.title}
+                                style={{ 
+                                  width: '120px', 
+                                  height: '80px', 
+                                  objectFit: 'cover', 
+                                  borderRadius: '4px',
+                                  border: '1px solid #ddd'
+                                }}
+                                onError={(e) => {
+                                  e.target.src = '/placeholder-image.jpg';
+                                }}
+                              />
+                            ) : (
+                              <span style={{ color: '#aaa' }}>No Image</span>
+                            )}
+                          </td>
+                          <td>{culture.title}</td>
+                          <td style={{ 
+                            maxWidth: '300px', 
+                            whiteSpace: 'nowrap', 
+                            overflow: 'hidden', 
+                            textOverflow: 'ellipsis',
+                            color: '#666'
+                          }}>
+                            {formatDescription(culture.description)}
+                          </td>
+                          <td>
+                            <div className="action-btn-row" style={{ display: 'flex', gap: '8px' }}>
+                              <button className="edit-btn" onClick={() => handleEditCulture(culture)}>Edit</button>
+                              <button 
+                                className="delete-btn" 
+                                onClick={async () => {
+                                  if (window.confirm('Are you sure you want to delete this culture & heritage entry?')) {
+                                    try {
+                                      const baseUrl = selectedTerritory ? 
+                                        `${API_URL}/api/territory-cultures` : 
+                                        `${API_URL}/api/cultures`;
+                                      await axios.delete(`${baseUrl}/${culture.id}`);
+                                      await fetchCultures(); // Refresh the list after deletion
+                                    } catch (err) {
+                                      setError('Failed to delete culture & heritage entry');
+                                    }
+                                  }
+                                }}
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               ) : (
                 <div style={{ color: '#888', marginTop: '20px', textAlign: 'center' }}>
                   No culture & heritage entries found for this subdistrict
@@ -2944,7 +2890,6 @@ const ManageSubdistricts = () => {
                                       objectFit: 'cover'
                                     }}
                                     onError={(e) => {
-                                      console.error('Image failed to load:', travel.featured_image);
                                       e.target.src = '/placeholder-image.jpg';
                                     }}
                                   />
@@ -3193,7 +3138,6 @@ const ManageSubdistricts = () => {
                               display: 'block'
                             }}
                             onError={(e) => {
-                              console.error('Image failed to load:', image.image_url);
                               e.target.src = '/placeholder-image.jpg';
                             }}
                           />
@@ -3289,153 +3233,6 @@ const ManageSubdistricts = () => {
                 </div>
               )}
             </>
-          )}
-        </div>
-      );
-    }
-    if (activeTab === 'virtual_tour') {
-      return (
-        <div className="tab-content-virtual-tour">
-          <div className="tab-header-row">
-            {!showVirtualTourDashboard && selectedSubdistrict && (
-              <button className="add-new-btn" onClick={handleAddNewVirtualTour}>
-                Add New Virtual Tour
-              </button>
-            )}
-          </div>
-
-          {showVirtualTourDashboard ? (
-            <div className="virtual-tour-dashboard-panel">
-              {/* Basic Information Section */}
-              <div className="dashboard-section">
-                <h3>Basic Information</h3>
-                <div className="dashboard-row">
-                  <div className="dashboard-col">
-                    <label>Institution Type</label>
-                    <select
-                      name="institution_type"
-                      value={virtualTourFormData.institution_type}
-                      onChange={handleVirtualTourFieldChange}
-                      className="form-select"
-                    >
-                      <option value="">Select Type</option>
-                      <option value="education">Education</option>
-                      <option value="healthcare">Healthcare</option>
-                    </select>
-                  </div>
-                  <div className="dashboard-col">
-                    <label>Institution Name</label>
-                    <select
-                      name="institution_id"
-                      value={virtualTourFormData.institution_id}
-                      onChange={handleVirtualTourFieldChange}
-                      className="form-select"
-                      disabled={!virtualTourFormData.institution_type}
-                    >
-                      <option value="">Select Institution</option>
-                      {/* Institutions list will be loaded dynamically */}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="dashboard-row">
-                  <div className="dashboard-col">
-                    <label>Tour Title</label>
-                    <input
-                      type="text"
-                      name="title"
-                      value={virtualTourFormData.title}
-                      onChange={handleVirtualTourFieldChange}
-                      placeholder="Enter tour title"
-                      className="form-input"
-                    />
-                  </div>
-                  <div className="dashboard-col">
-                    <label>Tour Type</label>
-                    <select
-                      name="tour_type"
-                      value={virtualTourFormData.tour_type}
-                      onChange={handleVirtualTourFieldChange}
-                      className="form-select"
-                    >
-                      <option value="interactive">Interactive Tour</option>
-                      <option value="360">360° Panorama</option>
-                      <option value="video">Video Tour</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="dashboard-actions-row">
-                <button 
-                  className="save-btn"
-                  onClick={() => {/* TODO: Implement next step */}}
-                  disabled={!virtualTourFormData.institution_type || !virtualTourFormData.institution_id || !virtualTourFormData.title}
-                >
-                  Next Step
-                </button>
-                <button 
-                  className="cancel-btn"
-                  onClick={handleCancelVirtualTour}
-                >
-                  Cancel
-                </button>
-              </div>
-
-              {virtualTourError && (
-                <div className="error-message">
-                  {virtualTourError}
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="virtual-tours-list">
-              {!selectedSubdistrict ? (
-                <div className="no-selection-message">
-                  Please select a subdistrict to view or manage virtual tours
-                </div>
-              ) : virtualToursLoading ? (
-                <div className="loading-message">
-                  Loading virtual tours...
-                </div>
-              ) : virtualTours.length > 0 ? (
-                <table className="virtual-tours-table">
-                  <thead>
-                    <tr>
-                      <th>Sr. No.</th>
-                      <th>Institution</th>
-                      <th>Tour Title</th>
-                      <th>Type</th>
-                      <th>Status</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {virtualTours.map((tour, index) => (
-                      <tr key={tour.id}>
-                        <td>{index + 1}</td>
-                        <td>{tour.institution_name}</td>
-                        <td>{tour.title}</td>
-                        <td>{tour.tour_type}</td>
-                        <td>{tour.status}</td>
-                        <td>
-                          <div className="action-btn-row">
-                            <button className="edit-btn">Edit</button>
-                            <button className="preview-btn">Preview</button>
-                            <button className="delete-btn">Delete</button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              ) : (
-                <div className="no-tours-message">
-                  No virtual tours found. Click "Add New Virtual Tour" to create one.
-                </div>
-              )}
-            </div>
           )}
         </div>
       );
@@ -3821,38 +3618,52 @@ const ManageSubdistricts = () => {
       setAttractionError('Title and slug are required.');
       return;
     }
+
+    // Clean the form data to remove any hot reload artifacts
+    const cleanDescription = attractionFormData.description.replace(/main\.[a-zA-Z0-9]+\.hot-update\.js.*$/gm, '').trim();
+    const cleanMetaTitle = attractionFormData.meta_title.replace(/main\.[a-zA-Z0-9]+\.hot-update\.js.*$/gm, '').trim();
+    const cleanMetaDescription = attractionFormData.meta_description.replace(/main\.[a-zA-Z0-9]+\.hot-update\.js.*$/gm, '').trim();
+
     try {
       const formDataToSend = new FormData();
-      formDataToSend.append('title', attractionFormData.title);
-      formDataToSend.append('slug', attractionFormData.slug);
-      formDataToSend.append('description', attractionFormData.description);
-      formDataToSend.append('meta_title', attractionFormData.meta_title);
-      formDataToSend.append('meta_description', attractionFormData.meta_description);
-      formDataToSend.append('meta_keywords', attractionFormData.meta_keywords);
-      if (attractionFormData.featured_image) {
-        formDataToSend.append('featured_image', attractionFormData.featured_image);
+      
+      // Add required fields
+      formDataToSend.append('title', attractionFormData.title.trim());
+      formDataToSend.append('slug', attractionFormData.slug.trim());
+      formDataToSend.append('description', cleanDescription);
+      formDataToSend.append('meta_title', cleanMetaTitle);
+      formDataToSend.append('meta_description', cleanMetaDescription);
+      formDataToSend.append('meta_keywords', attractionFormData.meta_keywords?.trim() || '');
+
+      // Add subdistrict ID
+      if (selectedTerritory) {
+        formDataToSend.append('territory_subdistrict_id', selectedSubdistrict.id);
+      } else {
+        formDataToSend.append('subdistrict_id', selectedSubdistrict.id);
       }
 
+      // Add featured image if present
+      if (attractionFormData.featured_image instanceof File) {
+        formDataToSend.append('featured_image', attractionFormData.featured_image);
+      }
       const baseUrl = selectedTerritory ? 
         `${API_URL}/api/territory-attractions` : 
         `${API_URL}/api/attractions`;
 
+      // Remove manual Content-Type header to let axios handle it
+      const config = {
+        headers: {
+          'Accept': 'application/json'
+        }
+      };
+
       if (isEditingAttraction && attractionFormData.id) {
         // Update
-        await axios.put(`${baseUrl}/${attractionFormData.id}`, formDataToSend, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
+        await axios.put(`${baseUrl}/${attractionFormData.id}`, formDataToSend, config);
       } else {
         // Create
-        if (selectedTerritory) {
-          formDataToSend.append('territory_subdistrict_id', selectedSubdistrict.id);
-        } else {
-          formDataToSend.append('subdistrict_id', selectedSubdistrict.id);
+        const response = await axios.post(baseUrl, formDataToSend, config);
         }
-        await axios.post(baseUrl, formDataToSend, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
-      }
 
       // Refresh attractions list
       await fetchAttractions();
@@ -3871,8 +3682,7 @@ const ManageSubdistricts = () => {
         meta_keywords: ''
       });
     } catch (err) {
-      console.error('Error saving attraction:', err);
-      setAttractionError('Failed to save attraction. Please try again.');
+      setAttractionError(err.response?.data?.message || 'Failed to save attraction. Please try again.');
     }
   };
 
@@ -3961,7 +3771,6 @@ const ManageSubdistricts = () => {
   };
 
   const handleEditTravel = (travel) => {
-    console.log('Editing travel:', travel);
     setIsEditingTravel(true);
     setTravelFormData({
       id: travel.id,
@@ -4100,10 +3909,6 @@ const ManageSubdistricts = () => {
       formData.append('subdistrict_id', selectedSubdistrict.id);
       }
 
-      console.log('Sending request to:', endpoint);
-      console.log('Method:', isEditingTravel ? 'PUT' : 'POST');
-      console.log('Form data:', Object.fromEntries(formData.entries()));
-
       const method = isEditingTravel ? 'PUT' : 'POST';
       const response = await axios({
         method,
@@ -4167,14 +3972,11 @@ const ManageSubdistricts = () => {
       
       // Only fetch travels if a subdistrict is selected
       if (selectedSubdistrict) {
-        console.log('Fetching travels for subdistrict:', selectedSubdistrict);
         setTravelsLoading(true);
         fetchTravels()
           .then(() => {
-            console.log('Travels fetched successfully for subdistrict:', selectedSubdistrict);
-          })
+            })
           .catch(error => {
-            console.error('Error fetching travels:', error);
             setError('Failed to fetch travel information');
             setTravels([]); // Clear travels on error
           })
@@ -4184,46 +3986,6 @@ const ManageSubdistricts = () => {
       }
     }
   }, [selectedSubdistrict, activeTab, fetchTravels]);
-
-  // Add virtual tour handlers
-  const handleAddNewVirtualTour = () => {
-    setShowVirtualTourDashboard(true);
-    setVirtualTourFormData({
-      id: null,
-      institution_type: '',
-      institution_id: '',
-      title: '',
-      tour_type: 'interactive',
-      scenes: [],
-      status: 'draft',
-      created_at: null,
-      updated_at: null
-    });
-  };
-
-  const handleCancelVirtualTour = () => {
-    setShowVirtualTourDashboard(false);
-    setSelectedScene(null);
-    setVirtualTourFormData({
-      id: null,
-      institution_type: '',
-      institution_id: '',
-      title: '',
-      tour_type: 'interactive',
-      scenes: [],
-      status: 'draft',
-      created_at: null,
-      updated_at: null
-    });
-  };
-
-  const handleVirtualTourFieldChange = (e) => {
-    const { name, value } = e.target;
-    setVirtualTourFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
 
   // Add these handler functions after other handler functions
   const handleWeatherAlertChange = (e) => {
@@ -4275,7 +4037,6 @@ const ManageSubdistricts = () => {
       setWeatherAlerts(prev => [...prev, response.data]);
       setShowWeatherAlertForm(false);
     } catch (error) {
-      console.error('Error creating weather alert:', error);
       // Handle error appropriately
     }
   };
@@ -4310,7 +4071,6 @@ const ManageSubdistricts = () => {
       await axios.delete(`${API_URL}/api/weather/alerts/${id}`);
       setWeatherAlerts(prev => prev.filter(alert => alert.id !== id));
     } catch (error) {
-      console.error('Error deleting weather alert:', error);
       // Handle error appropriately
     }
   };
@@ -4321,8 +4081,7 @@ const ManageSubdistricts = () => {
       await axios.delete(`${API_URL}/api/weather/seasonal-guides/${id}`);
       setSeasonalGuides(prev => prev.filter(guide => guide.id !== id));
     } catch (error) {
-      console.error('Error deleting seasonal guide:', error);
-        alert('Failed to delete seasonal guide: ' + (error.response?.data?.error || error.message));
+      alert('Failed to delete seasonal guide: ' + (error.response?.data?.error || error.message));
       }
     }
   };
@@ -4332,7 +4091,6 @@ const ManageSubdistricts = () => {
       await axios.delete(`${API_URL}/api/weather/statistics/${id}`);
       setWeatherStats(prev => prev.filter(stat => stat.id !== id));
     } catch (error) {
-      console.error('Error deleting weather statistics:', error);
       // Handle error appropriately
     }
   };
@@ -4342,7 +4100,6 @@ const ManageSubdistricts = () => {
       await axios.delete(`${API_URL}/api/weather/tourist-features/${id}`);
       setTouristFeatures(prev => prev.filter(feature => feature.id !== id));
     } catch (error) {
-      console.error('Error deleting tourist feature:', error);
       // Handle error appropriately
     }
   };
@@ -4352,7 +4109,6 @@ const ManageSubdistricts = () => {
       await axios.delete(`${API_URL}/api/weather/activities/${id}`);
       setWeatherActivities(prev => prev.filter(activity => activity.id !== id));
     } catch (error) {
-      console.error('Error deleting weather activity:', error);
       // Handle error appropriately
     }
   };
@@ -4404,7 +4160,6 @@ const ManageSubdistricts = () => {
         images: formData.images || []
       };
 
-      console.log('Submitting guide data:', guideData);
       const response = await axios.post(`${API_URL}/api/weather/seasonal-guides`, guideData);
       
       if (response.data) {
@@ -4413,7 +4168,6 @@ const ManageSubdistricts = () => {
         fetchSeasonalGuides();
       }
     } catch (error) {
-      console.error('Error saving seasonal guide:', error);
       alert(error.response?.data?.message || 'Error saving seasonal guide');
     }
   };
@@ -4439,7 +4193,6 @@ const ManageSubdistricts = () => {
       await fetchWeatherData();
       setShowWeatherStatsForm(false);
     } catch (error) {
-      console.error('Error adding weather statistics:', error);
       alert('Failed to add weather statistics. Please try again.');
     }
   };
@@ -4465,7 +4218,6 @@ const ManageSubdistricts = () => {
       await fetchWeatherData();
       setShowTouristFeatureForm(false);
     } catch (error) {
-      console.error('Error adding tourist feature:', error);
       alert('Failed to add tourist feature. Please try again.');
     }
   };
@@ -4491,7 +4243,6 @@ const ManageSubdistricts = () => {
       await fetchWeatherData();
       setShowActivityForm(false);
     } catch (error) {
-      console.error('Error adding weather activity:', error);
       alert('Failed to add weather activity. Please try again.');
     }
   };
@@ -4499,18 +4250,14 @@ const ManageSubdistricts = () => {
   // Add this function to fetch seasonal guides
   const fetchSeasonalGuides = async () => {
     if (!selectedSubdistrict?.id) {
-      console.log('No subdistrict selected for seasonal guides');
       setSeasonalGuides([]);
       return;
     }
 
     try {
-      console.log('Fetching seasonal guides for subdistrict:', selectedSubdistrict.id);
       const response = await axios.get(`${API_URL}/api/weather/seasonal-guides/${selectedSubdistrict.id}`);
-      console.log('Received seasonal guides:', response.data);
       setSeasonalGuides(response.data);
     } catch (error) {
-      console.error('Error fetching seasonal guides:', error);
       setSeasonalGuides([]);
     }
   };
@@ -4518,7 +4265,6 @@ const ManageSubdistricts = () => {
   // Update useEffect to fetch seasonal guides when subdistrict changes
   useEffect(() => {
     if (selectedSubdistrict?.id) {
-      console.log('Selected subdistrict changed, fetching data...');
       fetchWeatherData();
       fetchSeasonalGuides();
     } else {

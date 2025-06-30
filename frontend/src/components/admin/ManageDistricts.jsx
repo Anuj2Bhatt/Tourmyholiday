@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import './ManageDistricts.css';
 
+
 const TABS = {
   DISTRICTS: 'Manage Districts',
   GALLERY: 'Image Gallery',
@@ -112,7 +113,6 @@ const ManageDistricts = () => {
       const response = await axios.get('http://localhost:5000/api/states');
       setStates(response.data);
     } catch (err) {
-      console.error('Error fetching states:', err);
       setError('Failed to fetch states. Please check your connection and try again.');
     }
   };
@@ -126,11 +126,9 @@ const ManageDistricts = () => {
         );
         setTerritories(sortedTerritories);
       } else {
-        console.error('Invalid territories data format:', response.data);
         setTerritories([]);
       }
     } catch (err) {
-      console.error('Error fetching territories:', err);
       setTerritories([]);
     }
   };
@@ -145,11 +143,9 @@ const ManageDistricts = () => {
           );
           setTerritories(sortedTerritories);
         } else {
-          console.error('Invalid territories data format:', response.data);
           setTerritories([]);
         }
       } catch (err) {
-        console.error('Error fetching territories:', err);
         setTerritories([]);
       }
     };
@@ -183,7 +179,6 @@ const ManageDistricts = () => {
         setDistricts([]); // Clear state districts
       }
     } catch (err) {
-      console.error("Error fetching districts:", err);
       if (err.response) {
         setError(`Server error: ${err.response.status} – ${err.response.data?.error || "Unknown error"}`);
       } else if (err.request) {
@@ -237,7 +232,6 @@ const ManageDistricts = () => {
           setTerritoryDistricts(territoryDistricts.filter(district => district.id !== districtId));
         }
       } catch (error) {
-        console.error('Error deleting district:', error);
         alert('Failed to delete district. Please try again.');
       }
     }
@@ -269,8 +263,7 @@ const ManageDistricts = () => {
         }
     } catch (err) {
         setGalleryError('Failed to load images.');
-        console.error('Error fetching images:', err);
-    }
+        }
     setGalleryLoading(false);
   };
 
@@ -307,8 +300,7 @@ const ManageDistricts = () => {
         }
     } catch (err) {
       alert('Failed to delete image.');
-        console.error('Error deleting image:', err);
-    }
+        }
   };
 
   const handleUploadImage = async (e) => {
@@ -352,8 +344,7 @@ const ManageDistricts = () => {
       }
     } catch (err) {
       setGalleryError('Failed to upload image.');
-      console.error('Error uploading image:', err);
-    }
+      }
     setGalleryUploading(false);
   };
 
@@ -378,7 +369,6 @@ const ManageDistricts = () => {
           // Transform territory web stories to match the state web stories format
           const transformedStories = response.data.map(story => {
             // Debug log for featured_image
-            console.log('Territory story mapping:', story);
             return {
               id: story.id,
               title: story.title,
@@ -394,7 +384,6 @@ const ManageDistricts = () => {
         }
       }
     } catch (err) {
-      console.error('Error fetching web stories:', err);
       if (err.response) {
         setError(`Failed to fetch web stories: ${err.response.data?.error || 'Server error'}`);
       } else if (err.request) {
@@ -459,21 +448,14 @@ const ManageDistricts = () => {
 
   const handleWebStorySubmit = async (e) => {
     e.preventDefault();
-    console.log('=== Starting handleWebStorySubmit ===');
-    console.log('Selected District:', selectedDistrict);
-    console.log('Selected Territory:', selectedTerritory);
-    console.log('Selected State:', selectedState);
-    
     // Validate required fields
     if (!selectedDistrict) {
-      console.error('No district selected');
       setError('Please select a district first');
       return;
     }
 
     // Additional validation for territory stories
     if (selectedTerritory && !territories.find(t => t.id === parseInt(selectedTerritory))) {
-      console.error('Invalid territory selected');
       setError('Please select a valid territory');
       return;
     }
@@ -482,17 +464,8 @@ const ManageDistricts = () => {
       const formData = new FormData();
       
       // Debug logs for initial state
-      console.log('Initial State:', {
-        selectedDistrict,
-        selectedTerritory,
-        editingWebStory,
-        webStoryForm
-      });
-
       // For territory web stories, we only need to check if we're in territory mode
       const isTerritoryStory = Boolean(selectedTerritory);
-      console.log('Story Type:', { isTerritoryStory, selectedTerritory });
-
       // Set endpoint based on story type - only use territory endpoint for territory stories
       const endpoint = isTerritoryStory
         ? (editingWebStory?.id 
@@ -502,22 +475,12 @@ const ManageDistricts = () => {
             ? `http://localhost:5000/api/web-stories/${editingWebStory.id}`
             : 'http://localhost:5000/api/web-stories');
 
-      console.log('Using endpoint:', endpoint);
-
       // Add district/territory information - ensure territory data is only added for territory stories
       if (isTerritoryStory) {
-        console.log('Adding territory data:', { 
-          territory_district_id: selectedDistrict,
-          territory_id: selectedTerritory
-        });
         formData.append('territory_district_id', selectedDistrict);
         // Remove territory_id as it's not needed by the backend
         // formData.append('territory_id', selectedTerritory);
       } else {
-        console.log('Adding state data:', { 
-          district_id: selectedDistrict,
-          district_type: 'state'
-        });
         formData.append('district_id', selectedDistrict);
         formData.append('district_type', 'state');
       }
@@ -530,10 +493,8 @@ const ManageDistricts = () => {
       formData.append('meta_keywords', webStoryForm.meta_keywords.join(','));
 
       // Log the final form data
-      console.log('Final Form Data:');
       for (let [key, value] of formData.entries()) {
-        console.log(`${key}:`, value);
-      }
+        }
 
       // Handle featured image
       if (webStoryForm.featured_image instanceof File) {
@@ -611,7 +572,6 @@ const ManageDistricts = () => {
         fetchWebStories();
       }
     } catch (err) {
-      console.error('Error saving web story:', err);
       setError(err.response?.data?.error || 'Error saving web story');
     }
   };
@@ -665,6 +625,7 @@ const ManageDistricts = () => {
   };
 
   const handleAddDistrictClick = () => {
+    console.log('Add District button clicked!');
     setIsEditingDistrict(false);
     setDistrictFormData({
       name: '',
@@ -678,6 +639,7 @@ const ManageDistricts = () => {
       meta_keywords: ''
     });
     setShowDistrictForm(true);
+    console.log('showDistrictForm set to true');
   };
 
   const handleEditDistrictClick = (district) => {
@@ -736,8 +698,7 @@ const ManageDistricts = () => {
                 season_name: season.name
               });
             } catch (error) {
-              console.error(`Error creating season ${season.name}:`, error);
-            }
+              }
           }
           }
         }
@@ -764,7 +725,6 @@ const ManageDistricts = () => {
       setShowDistrictForm(false);
       fetchDistricts();
     } catch (error) {
-      console.error('Error saving district:', error);
       setError(`Failed to ${isEditingDistrict ? 'update' : 'create'} district: ${error.message}`);
     }
   };
@@ -795,13 +755,9 @@ const ManageDistricts = () => {
             const statsResponse = await axios.get(`http://localhost:5000/api/territory-district-stats/district/${districtId}`);
             statsData = statsResponse.data;
           } catch (error) {
-            console.log('No stats found for territory district, will create new stats');
             statsData = null;
           }
         }
-        
-        console.log('District data:', districtData);
-        console.log('Stats data:', statsData);
         
         // Update form data with both district details and stats (if available)
         setDistrictFormData(prev => ({
@@ -830,7 +786,6 @@ const ManageDistricts = () => {
           })
         }));
       } catch (error) {
-        console.error('Error fetching district data:', error);
         setError('Failed to fetch district data');
       }
     } else {
@@ -886,8 +841,7 @@ const ManageDistricts = () => {
           `http://localhost:5000/api/territory-district-stats/district/${selectedDistrict}`, 
           statsData
         );
-        console.log('Territory district stats update response:', statsResponse.data);
-      } else if (selectedTerritory) {
+        } else if (selectedTerritory) {
         // Update territory district details
         await axios.put(`http://localhost:5000/api/territory-districts/${selectedDistrict}`, formData);
 
@@ -908,14 +862,11 @@ const ManageDistricts = () => {
           `http://localhost:5000/api/territory-district-stats/district/${selectedDistrict}`, 
           statsData
         );
-        console.log('Territory district stats update response:', statsResponse.data);
-      }
+        }
       
       alert('District information and statistics updated successfully!');
     } catch (error) {
-      console.error('Error updating district:', error);
       if (error.response) {
-        console.error('Error response:', error.response.data);
         setError(`Failed to update district information: ${error.response.data.error || error.message}`);
       } else {
         setError('Failed to update district information');
@@ -955,8 +906,7 @@ const ManageDistricts = () => {
             };
             await axios.post(createEndpoint, seasonData);
           } catch (error) {
-            console.error(`Error creating season ${season.name}:`, error);
-          }
+            }
         }
         const newResponse = await axios.get(endpoint);
         seasons = newResponse.data;
@@ -974,7 +924,6 @@ const ManageDistricts = () => {
       const images = {};
       for (const season of seasons) {
         try {
-          console.log('Fetching images for season:', season.id);
           const imagesEndpoint = selectedTerritory
             ? `http://localhost:5000/api/territory-season-images/season/${season.id}`
             : `http://localhost:5000/api/season-images/season/${season.id}`;
@@ -987,13 +936,11 @@ const ManageDistricts = () => {
               `http://localhost:5000/${img.image_url}`
           }));
         } catch (error) {
-          console.error(`Error fetching images for season ${season.id}:`, error);
           images[season.id] = [];
         }
       }
       setSeasonImages(images);
     } catch (error) {
-      console.error('Error in handleSeasonDistrictChange:', error);
       alert('Failed to fetch seasons data. Please try again.');
     }
 };
@@ -1011,12 +958,6 @@ const ManageDistricts = () => {
       formData.append('location', newImageData.location);
       formData.append('alt_text', newImageData.alt_text);
 
-      console.log('Uploading image with data:', {
-        season_id: selectedSeason.id,
-        location: newImageData.location,
-        alt_text: newImageData.alt_text
-      });
-
       const endpoint = selectedTerritory
         ? `http://localhost:5000/api/territory-season-images/season/${selectedSeason.id}`
         : `http://localhost:5000/api/season-images/season/${selectedSeason.id}`;
@@ -1030,8 +971,6 @@ const ManageDistricts = () => {
           }
         }
       );
-
-      console.log('Upload response:', response.data);
 
       if (response.data) {
         // Update the season images state
@@ -1053,15 +992,11 @@ const ManageDistricts = () => {
         alert('Image uploaded successfully!');
       }
     } catch (error) {
-      console.error('Error uploading season image:', error);
       if (error.response) {
-        console.error('Server response:', error.response.data);
         alert(`Failed to upload image: ${error.response.data.error || 'Server error'}`);
       } else if (error.request) {
-        console.error('No response received:', error.request);
         alert('Failed to upload image: No response from server');
       } else {
-        console.error('Error details:', error.message);
         alert(`Failed to upload image: ${error.message}`);
       }
     }
@@ -1126,7 +1061,6 @@ const ManageDistricts = () => {
         [seasonId]: prev[seasonId].filter(img => img.id !== imageId)
       }));
     } catch (error) {
-      console.error('Error deleting season image:', error);
       alert('Failed to delete image. Please try again.');
     }
   };
@@ -1184,7 +1118,6 @@ const ManageDistricts = () => {
         alt_text: ''
       });
     } catch (error) {
-      console.error('Error updating season image:', error);
       alert('Failed to update image. Please try again.');
     }
   };
@@ -1249,7 +1182,6 @@ const ManageDistricts = () => {
         }
       }
     } catch (error) {
-      console.error('Error saving territory:', error);
       setError(`Failed to ${isEditingTerritory ? 'update' : 'create'} territory: ${error.message}`);
     }
   };
@@ -1260,7 +1192,6 @@ const ManageDistricts = () => {
         await axios.delete(`http://localhost:5000/api/territories/${territoryId}`);
         setTerritories(territories.filter(territory => territory.id !== territoryId));
       } catch (error) {
-        console.error('Error deleting territory:', error);
         alert('Failed to delete territory. Please try again.');
       }
     }
@@ -1269,11 +1200,12 @@ const ManageDistricts = () => {
   // Handle state selection
   const handleStateSelect = (e) => {
     const stateId = e.target.value;
-    console.log('State selected:', {
-      stateId,
-      stateName: states.find(s => s.id === parseInt(stateId))?.name,
+    const stateName = states.find((s) => s.id === stateId)?.name;
+  
+    console.log({
+      selectedStateName: stateName,
       previousState: selectedState,
-      previousTerritory: selectedTerritory
+      previousTerritory: selectedTerritory,
     });
     setSelectedState(stateId);
     setSelectedTerritory(''); // Clear territory selection
@@ -1283,27 +1215,28 @@ const ManageDistricts = () => {
   // Handle territory selection
   const handleTerritorySelect = (e) => {
     const territoryId = e.target.value;
-    console.log('Territory selected:', {
-      territoryId,
-      territoryName: territories.find(t => t.id === parseInt(territoryId))?.title,
+    const territoryTitle = territories.find((t) => t.id === territoryId)?.title;
+  
+    console.log({
+      selectedTerritoryTitle: territoryTitle,
       previousState: selectedState,
       previousTerritory: selectedTerritory
     });
-    setSelectedTerritory(territoryId);
-    setSelectedState(''); // Clear state selection
-    setSelectedDistrict(''); // Reset district selection
-  };
-
+  
+    setSelectedTerritory(territoryId); 
+  }
   // Handle district selection
   const handleDistrictSelect = (e) => {
     const districtId = e.target.value;
-    console.log('District selected:', {
-      districtId,
-      districtName: (selectedState ? districts : territoryDistricts).find(d => d.id === parseInt(districtId))?.name,
+    const districtName = districts.find(d => d.id === parseInt(districtId))?.name;
+  
+    console.log({
+      selectedDistrictName: districtName,
       selectedState,
       selectedTerritory,
       isTerritoryDistrict: Boolean(selectedTerritory)
     });
+  
     setSelectedDistrict(districtId);
   };
 
@@ -1512,7 +1445,6 @@ const ManageDistricts = () => {
         fetchWebStories();
       }
     } catch (err) {
-      console.error('Error updating web story:', err);
       setError(err.response?.data?.error || 'Error updating web story');
     }
   };
@@ -1674,6 +1606,13 @@ const ManageDistricts = () => {
             {showDistrictForm && (
               <div className="modal">
                 <div className="modal-content">
+                  <button 
+                    type="button" 
+                    className="modal-close"
+                    onClick={() => setShowDistrictForm(false)}
+                  >
+                    ×
+                  </button>
                   <h2>{isEditingDistrict ? 'Edit District' : 'Add New District'}</h2>
                   <form onSubmit={handleDistrictFormSubmit}>
                     <div className="form-section">
@@ -2511,13 +2450,6 @@ const ManageDistricts = () => {
                                     borderRadius: '8px 8px 0 0'
                                   }}
                                   onError={(e) => {
-                                    console.error('Image failed to load:', {
-                                      src: e.target.src,
-                                      originalUrl: image.image_url,
-                                      processedUrl: imageUrl,
-                                      season: selectedSeason.season_name,
-                                      imageId: image.id
-                                    });
                                     e.target.src = 'https://via.placeholder.com/400x200?text=Image+Not+Found';
                                   }}
                                 />
@@ -3298,5 +3230,4 @@ const ManageDistricts = () => {
     </div>
   );
 };
-
 export default ManageDistricts;

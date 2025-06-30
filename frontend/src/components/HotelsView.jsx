@@ -135,7 +135,6 @@ const HotelsView = () => {
       setHotelTypes(categoriesWithImages);
       setLoading(false);
     } catch (error) {
-      console.error('Error fetching hotel types:', error);
       setError('Failed to load hotel types');
       setLoading(false);
     }
@@ -148,7 +147,6 @@ const HotelsView = () => {
       setStates(response.data);
       setLoadingStates(false);
     } catch (error) {
-      console.error('Error fetching states:', error);
       setError('Failed to load states');
       setLoadingStates(false);
     }
@@ -180,10 +178,8 @@ const HotelsView = () => {
       try {
         // Use the new endpoint to get hotels by amenity
         const response = await axios.get(`${API_URL}/api/hotels/amenity/${selectedAmenity}`);
-        console.log('Hotels with amenity:', selectedAmenity, response.data);
         setAmenityHotels(response.data);
       } catch (err) {
-        console.error('Error fetching amenity hotels:', err);
         setAmenityHotels([]);
       }
       setLoadingAmenityHotels(false);

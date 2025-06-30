@@ -3,7 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const pool = require('../db');
+const pool = require('../../db');
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -57,7 +57,6 @@ router.get('/', async (req, res) => {
     
     res.json(images);
   } catch (error) {
-    console.error('Error fetching gallery images:', error);
     res.status(500).json({ error: 'Failed to fetch gallery images' });
   }
 });
@@ -82,7 +81,6 @@ router.get('/:id', async (req, res) => {
     
     res.json(image);
   } catch (error) {
-    console.error('Error fetching gallery image:', error);
     res.status(500).json({ error: 'Failed to fetch gallery image' });
   }
 });
@@ -113,7 +111,6 @@ router.post('/', upload.single('image'), async (req, res) => {
     
     res.status(201).json(newImage);
   } catch (error) {
-    console.error('Error adding image:', error);
     res.status(500).json({ error: 'Failed to add image' });
   }
 });
@@ -153,7 +150,6 @@ router.put('/:id', upload.single('image'), async (req, res) => {
     
     res.json({ message: 'Image updated successfully' });
   } catch (error) {
-    console.error('Error updating image:', error);
     res.status(500).json({ error: 'Failed to update image' });
   }
 });
@@ -183,7 +179,6 @@ router.delete('/:id', async (req, res) => {
     
     res.json({ message: 'Image deleted successfully' });
   } catch (error) {
-    console.error('Error deleting image:', error);
     res.status(500).json({ error: 'Failed to delete image' });
   }
 });
@@ -213,7 +208,6 @@ router.get('/debug/:id', async (req, res) => {
       files_in_uploads: fs.readdirSync(path.join(__dirname, '..', 'uploads'))
     });
   } catch (error) {
-    console.error('Error in debug route:', error);
     res.status(500).json({ error: 'Debug route error', details: error.message });
   }
 });
@@ -235,10 +229,8 @@ router.get('/debug-file/:filename', (req, res) => {
       currentWorkingDir: process.cwd()
     };
     
-    console.log('Debug file check:', response);
     res.json(response);
   } catch (error) {
-    console.error('Error in debug-file route:', error);
     res.status(500).json({ error: error.message });
   }
 });

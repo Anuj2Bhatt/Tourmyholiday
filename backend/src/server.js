@@ -1,23 +1,85 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const path = require('path');
 const fs = require('fs');
+const mysql = require('mysql2/promise');
+const multer = require('multer');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpecs = require('../swagger');
 const app = express();
 
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = path.join(__dirname, '..', 'uploads', 'tourism');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  fileFilter: function (req, file, cb) {
+    // Accept images only
+    if (!file.originalname.match(/\.(jpg|jpeg|png|gif|webp)$/)) {
+      return cb(new Error('Only image files are allowed!'), false);
+    }
+    cb(null, true);
+  },
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  }
+});
+
 // Import shared database connection
-const pool = require('./db');
+  const pool = require('../db');
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:3001', 'http://localhost:3000', 'http://127.0.0.1:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Security middleware with image serving exceptions
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "blob:", "http:", "https:"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+    },
+  },
+}));
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: {
+    error: 'Too many requests from this IP, please try again later.'
+  }
+});
+app.use('/api/', limiter);
 
 // Create uploads directory if it doesn't exist
 const uploadsDir = path.join(__dirname, '..', 'uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
-  console.log('Created uploads directory at:', uploadsDir);
 }
 
 // Copy default image if it doesn't exist
@@ -29,32 +91,44 @@ if (!fs.existsSync(defaultImagePath)) {
   );
 }
 
-// Serve static files from uploads directory
-app.use('/uploads', express.static(uploadsDir));
+// Serve static files from uploads directory with CORS headers
+app.use('/uploads', express.static(path.join(__dirname, '../uploads'), {
+  setHeaders: (res, path) => {
+    res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Methods', 'GET');
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+  }
+}));
+
+// Add another static file serving for the root uploads directory with CORS headers
+app.use('/uploads', express.static(path.join(__dirname, '../../../uploads'), {
+  setHeaders: (res, path) => {
+    res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Methods', 'GET');
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+  }
+}));
 
 // Add debug logging for routes
 app.use((req, res, next) => {
   if (req.url.startsWith('/uploads/')) {
     const requestedFile = req.url.replace('/uploads/', '');
     const filePath = path.join(uploadsDir, requestedFile);
-    console.log('Static file request:', {
-      url: req.url,
-      method: req.method,
-      requestedFile,
-      uploadsDir,
-      filePath,
-      exists: fs.existsSync(filePath),
-      currentDir: __dirname,
-      absolutePath: path.resolve(filePath)
-    });
+    // Debug logging removed for production
   }
   next();
 });
+
+// Swagger documentation setup
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
 // Import routes
 const territoryRoutes = require('./routes/territoryRoutes');
 const territoryImageRoutes = require('./routes/territoryImageRoutes');
 const territoryHistoryRoutes = require('./routes/territoryHistoryRoutes');
+const stateHistoryRoutes = require('./routes/stateHistory');
 const territoryDistrictRoutes = require('./routes/territoryDistrictRoutes');
 const territoryDistrictImagesRoutes = require('./routes/territoryDistrictImages');
 const territorySubdistrictsRouter = require('./routes/territorySubdistricts');
@@ -78,14 +152,12 @@ const packagesRouter = require('./routes/packages');
 const articlesRouter = require('../routes/articles');
 const statesRouter = require('./routes/states');
 const districtsRouter = require('./routes/districts');
-const webStoriesRouter = require('./routes/web-stories');
 const seasonsRouter = require('./routes/seasons');
 const seasonImagesRouter = require('./routes/season-images');
 const stateImagesRouter = require('./routes/stateImages');
 const stateSeasonImagesRouter = require('./routes/stateSeasonImages');
-const stateHistoryRoutes = require('./routes/stateHistory');
 const teamRouter = require('./routes/team');
-const placesRouter = require('../routes/places');
+const placesRouter = require('./routes/places');
 const videoRouter = require('../routes/videos');
 const subdistrictsRouter = require('./routes/subdistricts');
 const territoryAttractionsRouter = require('../routes/territoryAttractions');
@@ -100,6 +172,7 @@ const territoryVillagesRouter = require('./routes/territoryVillages');
 const uploadRouter = require('./routes/upload');
 const villageImageRoutes = require('../routes/villageImageRoutes');
 const stateVillageImagesRouter = require('./routes/stateVillageImages');
+const territoryVillageImagesRouter = require('../routes/territoryVillageImages');
 const villagePopulationRoutes = require('../routes/villagePopulationRoutes');
 const villageEmploymentRoutes = require('../routes/villageEmploymentRoutes');
 const villageEducationRoutes = require('../routes/villageEducationRoutes');
@@ -107,11 +180,27 @@ const villageHealthRoutes = require('../routes/villageHealthRoutes');
 const hotelsRouter = require('../routes/hotels');
 const packageSeasonRoutes = require('../routes/packageSeasonRoutes');
 const categoriesRouter = require('../routes/categories');
+const territoryWebStoryRoutes = require('../routes/territoryWebStoryRoutes');
+const searchRouter = require('./routes/search');
+const webStoriesRouter = require('../routes/webStories');
+const packageItineraryRouter = require('./routes/packageItinerary');
+const seoRouter = require('./routes/seo');
+const tourPackageRoutes = require('../routes/tourPackageRoutes');
+const masterDataRoutes = require('../routes/masterData');
+const tourismRoutes = require('./routes/tourismRoutes');
+const wildlifeRoutes = require('../routes/wildlife');
+const wildlifeMediaRoutes = require('../routes/wildlifeMedia');
+const wildlifeBasicInfoRoutes = require('./routes/wildlifeBasicInfoRoutes');
+const wildlifeFloraRoutes = require('../routes/wildlifeFlora');
+const indiaCultureRoutes = require('../routes/indiaCultureRoutes');
+const indiaCultureInfoRoutes = require('../routes/indiaCultureInfoRoutes');
+
 
 // Register routes
 app.use('/api/territories', territoryRoutes);
-app.use('/api/territory-images', territoryImageRoutes);
 app.use('/api/territory-history', territoryHistoryRoutes);
+app.use('/api/state-history', stateHistoryRoutes);
+app.use('/api/territory-images', territoryImageRoutes);
 app.use('/api/territory-districts', territoryDistrictRoutes);
 app.use('/api/territory-district-images', territoryDistrictImagesRoutes);
 app.use('/api/territory-subdistricts', territorySubdistrictsRouter);
@@ -136,17 +225,13 @@ app.use('/api/package-seasons', packageSeasonRoutes);
 app.use('/api/articles', articlesRouter);
 app.use('/api/states', statesRouter);
 app.use('/api/districts', districtsRouter);
-app.use('/api/web-stories', webStoriesRouter);
 app.use('/api/seasons', seasonsRouter);
 app.use('/api/season-images', seasonImagesRouter);
 app.use('/api/states/images', stateImagesRouter);
-app.use('/api/state-season-images', stateSeasonImagesRouter);
-app.use('/api/state-history', stateHistoryRoutes);
 app.use('/api/team', teamRouter);
 app.use('/api/places', placesRouter);
 app.use('/api/videos', videoRouter);
 app.use('/api/subdistricts', subdistrictsRouter);
-app.use('/api/state-season-images', stateSeasonImagesRouter);
 app.use('/api/territory-attractions', territoryAttractionsRouter);
 app.use('/api/season-images', seasonImagesRouter);
 app.use('/api/attractions', attractionsRouter);
@@ -160,21 +245,45 @@ app.use('/api/territory-villages', territoryVillagesRouter);
 app.use('/api/upload', uploadRouter);
 app.use('/api/village-images', villageImageRoutes);
 app.use('/api/state-village-images', stateVillageImagesRouter);
+app.use('/api/territory-village-images', territoryVillageImagesRouter);
 app.use('/api/village-population', villagePopulationRoutes);
 app.use('/api/village-employment', villageEmploymentRoutes);
 app.use('/api/village-education', villageEducationRoutes);
 app.use('/api/village-health', villageHealthRoutes);
 app.use('/api/hotels', hotelsRouter);
-app.use('/api/categories', categoriesRouter); 
+app.use('/api/categories', categoriesRouter);
+app.use('/api/territory-web-stories', territoryWebStoryRoutes);
+app.use('/api/search', searchRouter);
+app.use('/api/web-stories', webStoriesRouter);
+app.use('/api/package-itinerary', packageItineraryRouter);
+app.use('/api/seo', seoRouter);
+app.use('/api/tour-packages', tourPackageRoutes);
+app.use('/api/master-data', masterDataRoutes);
+app.use('/api/tourism', tourismRoutes);
+app.use('/api/wildlife', wildlifeRoutes);
+app.use('/api/wildlife-media', wildlifeMediaRoutes);
+app.use('/api/state-season-images', stateSeasonImagesRouter);
+app.use('/api/wildlife-basic-info', wildlifeBasicInfoRoutes);
+app.use('/api/wildlife-flora', wildlifeFloraRoutes);
+app.use('/api/india-culture', indiaCultureRoutes);
+app.use('/api/india-culture-info', indiaCultureInfoRoutes);
+
 
 // Configure upload paths for weather images
-const weatherUploadPath = path.join(__dirname, '../uploads/weather');
+const weatherUploadPath = path.join(__dirname, '..', 'uploads', 'weather');
 if (!fs.existsSync(weatherUploadPath)) {
   fs.mkdirSync(weatherUploadPath, { recursive: true });
 }
 
-// Serve weather images statically
-app.use('/uploads/weather', express.static(weatherUploadPath));
+// Serve weather images statically with CORS headers
+app.use('/uploads/weather', express.static(weatherUploadPath, {
+  setHeaders: (res, path) => {
+    res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Methods', 'GET');
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+  }
+}));
 
 // Health check endpoint for frontend
 app.get('/test', (req, res) => {
@@ -183,7 +292,6 @@ app.get('/test', (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
   res.status(500).json({
     success: false,
     message: 'Something went wrong!',
@@ -195,8 +303,6 @@ app.use((err, req, res, next) => {
 async function createTables() {
   try {
     const connection = await pool.getConnection();
-    console.log('Database connected successfully');
-
     // Create territories table if not exists
     await connection.query(`
       CREATE TABLE IF NOT EXISTS territories (
@@ -216,8 +322,6 @@ async function createTables() {
         INDEX idx_slug (slug)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
-    console.log('Territories table checked/created successfully');
-
     // Create districts table if not exists
     await connection.query(`
       CREATE TABLE IF NOT EXISTS districts (
@@ -235,8 +339,6 @@ async function createTables() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
-    console.log('Districts table checked/created successfully');
-
     // Create districts_images table
     await connection.query(`
       CREATE TABLE IF NOT EXISTS district_images (
@@ -251,8 +353,6 @@ async function createTables() {
         INDEX idx_district (district_id)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
-    console.log('Districts images table checked/created successfully');
-
     // Create district_web_stories table
     await connection.query(`
       CREATE TABLE IF NOT EXISTS district_web_stories (
@@ -271,8 +371,6 @@ async function createTables() {
         INDEX idx_district (district_id)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
-    console.log('District web stories table checked/created successfully');
-
     // Create subdistrict_images table
     await connection.query(`
       CREATE TABLE IF NOT EXISTS subdistrict_gallery (
@@ -298,49 +396,67 @@ async function createTables() {
         FOREIGN KEY (territory_subdistrict_id) REFERENCES territory_subdistricts(id)
       )
     `);
-
-    // Create subdistrict_demographics table
+    // Create cultures table with exact structure
     await connection.query(`
-      CREATE TABLE IF NOT EXISTS subdistrict_demographics (
-        id INT PRIMARY KEY AUTO_INCREMENT,
-        subdistrict_id INT NOT NULL,
-        slug VARCHAR(255) NOT NULL UNIQUE,
+      CREATE TABLE IF NOT EXISTS cultures (
+        id INT(11) NOT NULL AUTO_INCREMENT,
+        subdistrict_id INT(11) NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        slug VARCHAR(255) NOT NULL,
         description TEXT,
-        meta_title VARCHAR(255),
-        meta_description TEXT,
-        meta_keywords VARCHAR(255),
-        total_population INT,
-        male_population INT,
-        female_population INT,
-        literacy_rate DECIMAL(5,2),
-        languages JSON,
-        religions JSON,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (subdistrict_id) REFERENCES subdistricts(id)
-      )
+        featured_image VARCHAR(255),
+        meta_title VARCHAR(60),
+        meta_description VARCHAR(160),
+        meta_keywords TEXT,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        UNIQUE KEY slug (slug),
+        KEY idx_subdistrict (subdistrict_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
-
-    // Create territory_subdistrict_demographics table
+    // Create india_cultures table
     await connection.query(`
-      CREATE TABLE IF NOT EXISTS territory_subdistrict_demographics (
-        id INT PRIMARY KEY AUTO_INCREMENT,
-        territory_subdistrict_id INT NOT NULL,
-        slug VARCHAR(255) NOT NULL UNIQUE,
+      CREATE TABLE IF NOT EXISTS india_cultures (
+        id INT(11) NOT NULL AUTO_INCREMENT,
+        title VARCHAR(255) NOT NULL,
+        slug VARCHAR(255) NOT NULL,
         description TEXT,
-        meta_title VARCHAR(255),
-        meta_description TEXT,
-        meta_keywords VARCHAR(255),
-        total_population INT,
-        male_population INT,
-        female_population INT,
-        literacy_rate DECIMAL(5,2),
-        languages JSON,
-        religions JSON,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (territory_subdistrict_id) REFERENCES territory_subdistricts(id)
-      )
+        content LONGTEXT,
+        state_name VARCHAR(255),
+        region VARCHAR(255),
+        category VARCHAR(100),
+        population VARCHAR(255),
+        language VARCHAR(255),
+        featured_image VARCHAR(255),
+        meta_title VARCHAR(60),
+        meta_description VARCHAR(160),
+        meta_keywords TEXT,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
-
+    
+    // Create territory_cultures table with same structure
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS territory_cultures (
+        id INT(11) NOT NULL AUTO_INCREMENT,
+        territory_subdistrict_id INT(11) NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        slug VARCHAR(255) NOT NULL,
+        description TEXT,
+        featured_image VARCHAR(255),
+        meta_title VARCHAR(60),
+        meta_description VARCHAR(160),
+        meta_keywords TEXT,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        UNIQUE KEY slug (slug),
+        KEY idx_territory_subdistrict (territory_subdistrict_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
     // Create subdistrict_travel_info table with exact structure
     await connection.query(`
       CREATE TABLE IF NOT EXISTS subdistrict_travel_info (
@@ -364,8 +480,6 @@ async function createTables() {
         UNIQUE KEY unique_slug (slug)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
     `);
-    console.log('Subdistrict travel info table checked/created successfully');
-
     // Create territory_subdistrict_travel_info table with same structure
     await connection.query(`
       CREATE TABLE IF NOT EXISTS territory_subdistrict_travel_info (
@@ -389,8 +503,6 @@ async function createTables() {
         UNIQUE KEY unique_slug (slug)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
     `);
-    console.log('Territory subdistrict travel info table checked/created successfully');
-
     // Create subdistrict_economy table
     await connection.query(`
       CREATE TABLE IF NOT EXISTS subdistrict_economy (
@@ -408,6 +520,28 @@ async function createTables() {
         FOREIGN KEY (subdistrict_id) REFERENCES subdistricts(id)
       )
     `);
+    // Create table with proper structure
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS wildlife_sanctuaries (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        title VARCHAR(255) NOT NULL,
+        slug VARCHAR(255) NOT NULL UNIQUE,
+        description TEXT,
+        location VARCHAR(255),
+        featured_image VARCHAR(255) COMMENT 'Image path relative to /uploads/tourism/',
+        meta_title VARCHAR(255),
+        meta_description TEXT,
+        meta_keywords TEXT,
+        name VARCHAR(255),
+        best_time VARCHAR(255),
+        area VARCHAR(255),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_title (title),
+        INDEX idx_slug (slug)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
 
     // Create territory_subdistrict_economy table
     await connection.query(`
@@ -582,8 +716,6 @@ async function createTables() {
         INDEX idx_youtube_id (youtube_id)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
-    console.log('Videos table checked/created successfully');
-
     // Create team_members table
     await connection.query(`
       CREATE TABLE IF NOT EXISTS team (
@@ -597,8 +729,6 @@ async function createTables() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
-    console.log('Team members table checked/created successfully');
-
     // Create subdistricts table with exact structure
     await connection.query(`
       CREATE TABLE IF NOT EXISTS subdistricts (
@@ -622,8 +752,6 @@ async function createTables() {
         FOREIGN KEY (district_id) REFERENCES districts(id) ON DELETE CASCADE
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
     `);
-    console.log('Subdistricts table checked/created successfully');
-
     // Create state_season_images table with exact structure
     await connection.query(`
       CREATE TABLE IF NOT EXISTS state_season_images (
@@ -641,8 +769,6 @@ async function createTables() {
         FOREIGN KEY (state_id) REFERENCES states(id) ON DELETE CASCADE
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
     `);
-    console.log('State season images table checked/created successfully');
-
     // Create territory_attractions table with exact structure
     await connection.query(`
       CREATE TABLE IF NOT EXISTS territory_attractions (
@@ -662,8 +788,6 @@ async function createTables() {
         FOREIGN KEY (territory_subdistrict_id) REFERENCES territory_subdistricts(id) ON DELETE CASCADE
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
     `);
-    console.log('Territory attractions table checked/created successfully');
-
     // Create season_images table with exact structure
     await connection.query(`
       CREATE TABLE IF NOT EXISTS season_images (
@@ -679,8 +803,6 @@ async function createTables() {
         FOREIGN KEY (season_id) REFERENCES seasons(id) ON DELETE CASCADE
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
     `);
-    console.log('Season images table checked/created successfully');
-
     // Create attractions table with exact structure
     await connection.query(`
       CREATE TABLE IF NOT EXISTS attractions (
@@ -700,50 +822,6 @@ async function createTables() {
         FOREIGN KEY (subdistrict_id) REFERENCES subdistricts(id) ON DELETE CASCADE
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
     `);
-    console.log('Attractions table checked/created successfully');
-
-    // Create cultures table with exact structure
-    await connection.query(`
-      CREATE TABLE IF NOT EXISTS cultures (
-        id INT(11) NOT NULL AUTO_INCREMENT,
-        subdistrict_id INT(11) NOT NULL,
-        title VARCHAR(255) NOT NULL,
-        slug VARCHAR(255) NOT NULL,
-        description TEXT,
-        featured_image VARCHAR(255),
-        meta_title VARCHAR(60),
-        meta_description VARCHAR(160),
-        meta_keywords TEXT,
-        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        PRIMARY KEY (id),
-        UNIQUE KEY slug (slug),
-        KEY idx_subdistrict (subdistrict_id)
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-    `);
-    console.log('Cultures table checked/created successfully');
-
-    // Create territory_cultures table with same structure
-    await connection.query(`
-      CREATE TABLE IF NOT EXISTS territory_cultures (
-        id INT(11) NOT NULL AUTO_INCREMENT,
-        territory_subdistrict_id INT(11) NOT NULL,
-        title VARCHAR(255) NOT NULL,
-        slug VARCHAR(255) NOT NULL,
-        description TEXT,
-        featured_image VARCHAR(255),
-        meta_title VARCHAR(60),
-        meta_description VARCHAR(160),
-        meta_keywords TEXT,
-        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        PRIMARY KEY (id),
-        UNIQUE KEY slug (slug),
-        KEY idx_territory_subdistrict (territory_subdistrict_id)
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-    `);
-    console.log('Territory cultures table checked/created successfully');
-
     // Create adventure activities tables
     await connection.query(`
       CREATE TABLE IF NOT EXISTS state_adventure_activities (
@@ -771,8 +849,6 @@ async function createTables() {
         INDEX idx_category (category)
       )
     `);
-    console.log('State adventure activities table checked/created successfully');
-
     await connection.query(`
       CREATE TABLE IF NOT EXISTS territory_adventure_activities (
         id INT PRIMARY KEY AUTO_INCREMENT,
@@ -799,8 +875,6 @@ async function createTables() {
         INDEX idx_category (category)
       )
     `);
-    console.log('Territory adventure activities table checked/created successfully');
-
     // Create territory_subdistricts table
     await connection.query(`
       CREATE TABLE IF NOT EXISTS territory_subdistricts (
@@ -824,8 +898,6 @@ async function createTables() {
         FOREIGN KEY (territory_district_id) REFERENCES territory_districts(id) ON DELETE CASCADE
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
     `);
-    console.log('Territory subdistricts table checked/created successfully');
-
     // Create villages table if not exists
     await connection.query(`
       CREATE TABLE IF NOT EXISTS villages (
@@ -863,8 +935,6 @@ async function createTables() {
         INDEX idx_subdistrict (subdistrict_id)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
-    console.log('Villages table checked/created successfully');
-
     // Create village_images table
     await connection.query(`
       CREATE TABLE IF NOT EXISTS village_images (
@@ -879,8 +949,6 @@ async function createTables() {
         FOREIGN KEY (village_id) REFERENCES villages(id) ON DELETE CASCADE
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
-    console.log('Village images table checked/created successfully');
-
     // Create state_village_images table
     await connection.query(`
       CREATE TABLE IF NOT EXISTS state_village_images (
@@ -896,8 +964,6 @@ async function createTables() {
         INDEX idx_village (village_id)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
-    console.log('State village images table checked/created successfully');
-
     // Create territory_village_images table
     await connection.query(`
       CREATE TABLE IF NOT EXISTS territory_village_images (
@@ -912,8 +978,6 @@ async function createTables() {
         FOREIGN KEY (village_id) REFERENCES territory_villages(id) ON DELETE CASCADE
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
-    console.log('Territory village images table checked/created successfully');
-
     // Create village_population table
     await connection.query(`
       CREATE TABLE IF NOT EXISTS village_population (
@@ -943,8 +1007,6 @@ async function createTables() {
         INDEX idx_village (village_id)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
-    console.log('Village population table checked/created successfully');
-
     // Create territory_village_population table
     await connection.query(`
       CREATE TABLE IF NOT EXISTS territory_village_population (
@@ -974,8 +1036,6 @@ async function createTables() {
         INDEX idx_territory_village (territory_village_id)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
-    console.log('Territory village population table checked/created successfully');
-
     // Create state_village_employment table
     await connection.query(`
       CREATE TABLE IF NOT EXISTS state_village_employment (
@@ -1000,8 +1060,6 @@ async function createTables() {
         UNIQUE KEY unique_village_year (village_id, year)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
-    console.log('State village employment table checked/created successfully');
-
     // Create territory_village_employment table
     await connection.query(`
       CREATE TABLE IF NOT EXISTS territory_village_employment (
@@ -1026,8 +1084,6 @@ async function createTables() {
         UNIQUE KEY unique_village_year (village_id, year)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
-    console.log('Territory village employment table checked/created successfully');
-
     // Create state_village_education table
     await connection.query(`
       CREATE TABLE IF NOT EXISTS state_village_education (
@@ -1048,8 +1104,6 @@ async function createTables() {
         INDEX idx_village (village_id)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
-    console.log('State village education table checked/created successfully');
-
     // Create territory_village_education table
     await connection.query(`
       CREATE TABLE IF NOT EXISTS territory_village_education (
@@ -1070,8 +1124,6 @@ async function createTables() {
         INDEX idx_village (village_id)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
-    console.log('Territory village education table checked/created successfully');
-
     // Create hotels table
     await connection.query(`
       CREATE TABLE IF NOT EXISTS hotels (
@@ -1117,8 +1169,6 @@ async function createTables() {
         INDEX idx_accommodation_type (accommodation_type)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
-    console.log('Hotels table checked/created successfully');
-
     // Create hotel_images table
     await connection.query(`
       CREATE TABLE IF NOT EXISTS hotel_images (
@@ -1134,8 +1184,6 @@ async function createTables() {
         INDEX idx_hotel (hotel_id)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
-    console.log('Hotel images table checked/created successfully');
-
     // Create hotel_rooms table
     await connection.query(`
       CREATE TABLE IF NOT EXISTS hotel_rooms (
@@ -1154,8 +1202,6 @@ async function createTables() {
         INDEX idx_hotel (hotel_id)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
-    console.log('Hotel rooms table checked/created successfully');
-
     // Create hotel_categories table if not exists
     await connection.query(`
       CREATE TABLE IF NOT EXISTS hotel_categories (
@@ -1168,8 +1214,6 @@ async function createTables() {
         INDEX idx_slug (slug)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
-    console.log('Hotel categories table checked/created successfully');
-
     // Create hotel_amenities table
     await connection.query(`
       CREATE TABLE IF NOT EXISTS hotel_amenities (
@@ -1181,8 +1225,6 @@ async function createTables() {
         INDEX idx_accommodation_type (accommodation_type)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
-    console.log('Hotel amenities table checked/created successfully');
-
     // Create hotel_amenity_mappings table
     await connection.query(`
       CREATE TABLE IF NOT EXISTS hotel_amenity_mappings (
@@ -1197,8 +1239,6 @@ async function createTables() {
         INDEX idx_amenity (amenity_id)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
-    console.log('Hotel amenity mappings table checked/created successfully');
-
     // Create package_seasons table
     await connection.query(`
       CREATE TABLE IF NOT EXISTS package_seasons (
@@ -1217,8 +1257,6 @@ async function createTables() {
         INDEX idx_package_season_active (package_id, season, is_active)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
-    console.log('Package seasons table checked/created successfully');
-
     // Create package_season_images table
     await connection.query(`
       CREATE TABLE IF NOT EXISTS package_season_images (
@@ -1234,8 +1272,6 @@ async function createTables() {
         INDEX idx_package_season (package_id, season)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
-    console.log('Package season images table checked/created successfully');
-
     // Create articles table if not exists
     await connection.query(`
       CREATE TABLE IF NOT EXISTS articles (
@@ -1258,12 +1294,54 @@ async function createTables() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
-    console.log('Articles table checked/created successfully');
-
-    console.log('All tables created successfully');
+    // Create package_types table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS package_types (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_name (name)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+    // Create trip_styles table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS trip_styles (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_name (name)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+    // Create seasons_tour table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS seasons_tour (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_name (name)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+    // Create budget_categories table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS budget_categories (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        min_budget DECIMAL(10,2),
+        max_budget DECIMAL(10,2),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_name (name)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
     connection.release();
   } catch (error) {
-    console.error('Error creating tables:', error);
     process.exit(1);
   }
 }
@@ -1381,9 +1459,7 @@ const createWeatherTables = async () => {
       MODIFY COLUMN activity_images JSON COMMENT 'Array of image paths relative to /uploads/weather/'
     `);
 
-    console.log('Weather tables and image directory created successfully');
-  } catch (error) {
-    console.error('Error creating weather tables:', error);
+    } catch (error) {
     throw error;
   }
 };
@@ -1391,8 +1467,304 @@ const createWeatherTables = async () => {
 // Call createWeatherTables after other table creation functions
 createWeatherTables().catch(console.error);
 
+// Run migrations on server start
+async function runMigrations() {
+  try {
+    const connection = await pool.getConnection();
+    
+    // Remove state_id foreign key from tourism_packages if it exists
+    try {
+      await connection.query(`
+        ALTER TABLE tourism_packages 
+        DROP FOREIGN KEY IF EXISTS tourism_packages_ibfk_5,
+        DROP COLUMN IF EXISTS state_id
+      `);
+      } catch (error) {
+      }
+
+    // Remove unique constraint from slug column if it exists
+    try {
+      await connection.query(`
+        ALTER TABLE tourism_packages 
+        DROP INDEX IF EXISTS slug
+      `);
+      } catch (error) {
+      }
+
+    // Create tourism_types table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS tourism_types (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        name VARCHAR(100) NOT NULL,
+        description TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Create trip_styles table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS trip_styles (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        name VARCHAR(100) NOT NULL,
+        description TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Create tourism_seasons table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS tourism_seasons (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        name VARCHAR(100) NOT NULL,
+        description TEXT,
+        start_month INT NOT NULL,
+        end_month INT NOT NULL,
+        weather_conditions TEXT,
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Insert initial data if tables are empty
+    const [tourismTypes] = await connection.query('SELECT COUNT(*) as count FROM tourism_types');
+    if (tourismTypes[0].count === 0) {
+      await connection.query(`
+        INSERT INTO tourism_types (name, description) VALUES
+        ('Hill Station', 'Mountain and hill destinations'),
+        ('Beach', 'Coastal and beach destinations'),
+        ('Desert', 'Desert and arid destinations'),
+        ('Forest / Wildlife', 'Forest and wildlife sanctuaries'),
+        ('Spiritual / Religious', 'Religious and spiritual destinations'),
+        ('Adventure', 'Adventure and sports destinations')
+      `);
+    }
+
+    const [tripStyles] = await connection.query('SELECT COUNT(*) as count FROM trip_styles');
+    if (tripStyles[0].count === 0) {
+      await connection.query(`
+        INSERT INTO trip_styles (name, description) VALUES
+        ('Honeymoon', 'Perfect for couples and romantic getaways'),
+        ('Family', 'Family-friendly destinations and activities'),
+        ('Solo', 'Great for solo travelers'),
+        ('Group', 'Ideal for group tours and excursions'),
+        ('Weekend Getaway', 'Short trips for weekends'),
+        ('Road Trip', 'Self-drive and road trip destinations'),
+        ('Trekking', 'Trekking and hiking destinations'),
+        ('Luxury', 'Premium and luxury travel experiences')
+      `);
+    }
+
+    const [seasons] = await connection.query('SELECT COUNT(*) as count FROM tourism_seasons');
+    if (seasons[0].count === 0) {
+      await connection.query(`
+        INSERT INTO tourism_seasons (name, description, start_month, end_month, weather_conditions, is_active) VALUES
+        ('Summer', 'Hot and dry weather, perfect for hill stations', 3, 6, 'Hot and dry, temperatures 25-45°C', true),
+        ('Monsoon', 'Rainy season with lush greenery', 7, 9, 'Heavy rainfall, humid, temperatures 20-35°C', true),
+        ('Autumn', 'Pleasant weather with clear skies', 10, 11, 'Mild temperatures, clear skies, 15-30°C', true),
+        ('Winter', 'Cold weather, ideal for snow activities', 12, 2, 'Cold, temperatures 5-25°C', true),
+        ('Spring', 'Mild weather with blooming flowers', 2, 3, 'Pleasant, temperatures 15-30°C', true)
+      `);
+    }
+
+    const [budgetCategories] = await connection.query('SELECT COUNT(*) as count FROM budget_categories');
+    if (budgetCategories[0].count === 0) {
+      await connection.query(`
+        INSERT INTO budget_categories (name, description, min_amount, max_amount) VALUES
+        ('Budget', 'Economy travel options', 0, 10000),
+        ('Mid-Range', 'Moderate budget travel', 10001, 25000),
+        ('Premium', 'High-end travel experiences', 25001, 50000),
+        ('Luxury', 'Luxury and exclusive travel', 50001, NULL)
+      `);
+    }
+
+    // Create wildlife_flora_items table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS wildlife_flora_items (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        sanctuary_id INT NOT NULL,
+        sanctuary_name VARCHAR(255) NOT NULL,
+        category ENUM('mammals', 'birds', 'reptiles', 'amphibians', 'fish', 'insects', 'butterflies', 'flowers', 'trees', 'herbs', 'grasses', 'flora', 'endangered_species', 'rare_species', 'migratory_birds', 'aquatic_life') NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        image_path VARCHAR(500),
+        image_name VARCHAR(255),
+        sort_order INT DEFAULT 0,
+        is_active BOOLEAN DEFAULT TRUE,
+        best_time_for_wildlife TEXT,
+        wildlife_behavior TEXT,
+        conservation_status TEXT,
+        research_programs TEXT,
+        visitor_guidelines TEXT,
+        photography_tips TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_sanctuary_id (sanctuary_id),
+        INDEX idx_category (category),
+        INDEX idx_sort_order (sort_order),
+        INDEX idx_is_active (is_active),
+        INDEX idx_created_at (created_at)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+    // Add additional columns if they don't exist
+    try {
+      await connection.query('ALTER TABLE wildlife_flora_items ADD COLUMN best_time_for_wildlife TEXT');
+      } catch (error) {
+      // Column already exists
+    }
+
+    try {
+      await connection.query('ALTER TABLE wildlife_flora_items ADD COLUMN wildlife_behavior TEXT');
+      } catch (error) {
+      // Column already exists
+    }
+
+    try {
+      await connection.query('ALTER TABLE wildlife_flora_items ADD COLUMN conservation_status TEXT');
+      } catch (error) {
+      // Column already exists
+    }
+
+    try {
+      await connection.query('ALTER TABLE wildlife_flora_items ADD COLUMN research_programs TEXT');
+      } catch (error) {
+      // Column already exists
+    }
+
+    try {
+      await connection.query('ALTER TABLE wildlife_flora_items ADD COLUMN visitor_guidelines TEXT');
+      } catch (error) {
+      // Column already exists
+    }
+
+    try {
+      await connection.query('ALTER TABLE wildlife_flora_items ADD COLUMN photography_tips TEXT');
+      } catch (error) {
+      // Column already exists
+    }
+
+    // Create wildlife_flora_images table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS wildlife_flora_images (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        wildlife_flora_item_id INT NOT NULL,
+        image_path VARCHAR(500) NOT NULL,
+        image_name VARCHAR(255),
+        alt_text VARCHAR(255),
+        sort_order INT DEFAULT 0,
+        is_active BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (wildlife_flora_item_id) REFERENCES wildlife_flora_items(id) ON DELETE CASCADE,
+        INDEX idx_wildlife_flora_item_id (wildlife_flora_item_id),
+        INDEX idx_sort_order (sort_order),
+        INDEX idx_is_active (is_active)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+    connection.release();
+    } catch (error) {
+    }
+}
+
+// Master data routes
+app.get('/api/tourism-types', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM tourism_types ORDER BY id');
+    res.json({ success: true, data: rows });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error fetching tourism types' });
+  }
+});
+
+app.get('/api/trip-styles', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM trip_styles ORDER BY id');
+    res.json({ success: true, data: rows });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error fetching trip styles' });
+  }
+});
+
+app.get('/api/seasons', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM tourism_seasons ORDER BY start_month');
+    res.json({ success: true, data: rows });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error fetching seasons' });
+  }
+});
+
+app.get('/api/budget-categories', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM budget_categories ORDER BY id');
+    res.json({ success: true, data: rows });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error fetching budget categories' });
+  }
+});
+
+app.post('/api/tourism', upload.array('images', 5), async (req, res) => {
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    const {
+      name,
+      description,
+      duration,
+      price,
+      max_group_size,
+      difficulty_level,
+      package_type_id,
+      season_id,
+      is_active = true
+    } = req.body;
+
+    // Generate slug from name without checking for duplicates
+    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+    // Insert package directly without checking for duplicate slug
+    const [result] = await connection.query(
+      `INSERT INTO tourism_packages (
+        name, slug, description, duration, price, max_group_size,
+        difficulty_level, package_type_id, season_id, is_active
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [name, slug, description, duration, price, max_group_size,
+       difficulty_level, package_type_id, season_id, is_active]
+    );
+
+    // Handle images if any
+    if (req.files && req.files.length > 0) {
+      const imageValues = req.files.map(file => [result.insertId, file.filename]);
+      await connection.query(
+        'INSERT INTO tourism_package_images (package_id, image_url) VALUES ?',
+        [imageValues]
+      );
+    }
+
+    await connection.commit();
+    res.json({ 
+      success: true, 
+      message: 'Tourism package created successfully',
+      data: { id: result.insertId, slug }
+    });
+
+  } catch (error) {
+    await connection.rollback();
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error creating tourism package',
+      error: error.message 
+    });
+  } finally {
+    connection.release();
+  }
+});
+
 // Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+app.listen(PORT, async () => {
+  await runMigrations(); // Run migrations when server starts
 }); 

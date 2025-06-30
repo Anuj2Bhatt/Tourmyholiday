@@ -3,7 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const pool = require('../db');
+const pool = require('../../db');
 
 // Configure multer for file upload
 const storage = multer.diskStorage({
@@ -49,8 +49,6 @@ const upload = multer({
 // Get all packages
 router.get('/', async (req, res) => {
     try {
-        console.log('Fetching packages...');
-        
         const query = `
             SELECT p.*, s.name as state_name
             FROM packages p
@@ -67,18 +65,17 @@ router.get('/', async (req, res) => {
         // Format the response
         const formattedPackages = packages.map(pkg => ({
             ...pkg,
-            image1: pkg.image1 ? `http://localhost:5000/uploads/${path.basename(pkg.image1)}` : null,
-            image2: pkg.image2 ? `http://localhost:5000/uploads/${path.basename(pkg.image2)}` : null,
-            image3: pkg.image3 ? `http://localhost:5000/uploads/${path.basename(pkg.image3)}` : null,
-            image4: pkg.image4 ? `http://localhost:5000/uploads/${path.basename(pkg.image4)}` : null,
-            image5: pkg.image5 ? `http://localhost:5000/uploads/${path.basename(pkg.image5)}` : null,
-            featured_image: pkg.featured_image ? `http://localhost:5000/uploads/${path.basename(pkg.featured_image)}` : null,
-            itinerary_pdf: pkg.itinerary_pdf ? `http://localhost:5000/uploads/${path.basename(pkg.itinerary_pdf)}` : null
+            image1: pkg.image1 ? `${process.env.API_BASE_URL || 'http://localhost:5000'}/uploads/${path.basename(pkg.image1)}` : null,
+            image2: pkg.image2 ? `${process.env.API_BASE_URL || 'http://localhost:5000'}/uploads/${path.basename(pkg.image2)}` : null,
+            image3: pkg.image3 ? `${process.env.API_BASE_URL || 'http://localhost:5000'}/uploads/${path.basename(pkg.image3)}` : null,
+            image4: pkg.image4 ? `${process.env.API_BASE_URL || 'http://localhost:5000'}/uploads/${path.basename(pkg.image4)}` : null,
+            image5: pkg.image5 ? `${process.env.API_BASE_URL || 'http://localhost:5000'}/uploads/${path.basename(pkg.image5)}` : null,
+            featured_image: pkg.featured_image ? `${process.env.API_BASE_URL || 'http://localhost:5000'}/uploads/${path.basename(pkg.featured_image)}` : null,
+            itinerary_pdf: pkg.itinerary_pdf ? `${process.env.API_BASE_URL || 'http://localhost:5000'}/uploads/${path.basename(pkg.itinerary_pdf)}` : null
         }));
         
         res.json(formattedPackages);
     } catch (error) {
-        console.error('Error fetching packages:', error);
         res.status(500).json({ 
             message: 'Error fetching packages',
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
@@ -114,18 +111,17 @@ router.get('/states/:stateName/packages', async (req, res) => {
         // Format the response
         const formattedPackages = packages.map(pkg => ({
             ...pkg,
-            image1: pkg.image1 ? `http://localhost:5000/uploads/${path.basename(pkg.image1)}` : null,
-            image2: pkg.image2 ? `http://localhost:5000/uploads/${path.basename(pkg.image2)}` : null,
-            image3: pkg.image3 ? `http://localhost:5000/uploads/${path.basename(pkg.image3)}` : null,
-            image4: pkg.image4 ? `http://localhost:5000/uploads/${path.basename(pkg.image4)}` : null,
-            image5: pkg.image5 ? `http://localhost:5000/uploads/${path.basename(pkg.image5)}` : null,
-            featured_image: pkg.featured_image ? `http://localhost:5000/uploads/${path.basename(pkg.featured_image)}` : null,
-            itinerary_pdf: pkg.itinerary_pdf ? `http://localhost:5000/uploads/${path.basename(pkg.itinerary_pdf)}` : null
+            image1: pkg.image1 ? `${process.env.API_BASE_URL || 'http://localhost:5000'}/uploads/${path.basename(pkg.image1)}` : null,
+            image2: pkg.image2 ? `${process.env.API_BASE_URL || 'http://localhost:5000'}/uploads/${path.basename(pkg.image2)}` : null,
+            image3: pkg.image3 ? `${process.env.API_BASE_URL || 'http://localhost:5000'}/uploads/${path.basename(pkg.image3)}` : null,
+            image4: pkg.image4 ? `${process.env.API_BASE_URL || 'http://localhost:5000'}/uploads/${path.basename(pkg.image4)}` : null,
+            image5: pkg.image5 ? `${process.env.API_BASE_URL || 'http://localhost:5000'}/uploads/${path.basename(pkg.image5)}` : null,
+            featured_image: pkg.featured_image ? `${process.env.API_BASE_URL || 'http://localhost:5000'}/uploads/${path.basename(pkg.featured_image)}` : null,
+            itinerary_pdf: pkg.itinerary_pdf ? `${process.env.API_BASE_URL || 'http://localhost:5000'}/uploads/${path.basename(pkg.itinerary_pdf)}` : null
         }));
         
         res.json(formattedPackages);
     } catch (error) {
-        console.error('Error fetching state packages:', error);
         res.status(500).json({ message: 'Error fetching packages' });
     }
 });
@@ -134,8 +130,6 @@ router.get('/states/:stateName/packages', async (req, res) => {
 router.get('/packages/:slug', async (req, res) => {
     try {
         const { slug } = req.params;
-        console.log('Fetching package with slug:', slug);
-        
         const query = `
             SELECT p.*, s.name as state_name
             FROM packages p
@@ -151,13 +145,10 @@ router.get('/packages/:slug', async (req, res) => {
         
         // Format the response
         const package = packages[0];
-        console.log('Raw package data:', package);
-        
         // Helper function to format image URL
         const formatImageUrl = (imagePath) => {
             if (!imagePath) return null;
-            const url = `http://localhost:5000/uploads/${path.basename(imagePath)}`;
-            console.log('Formatted image URL:', url);
+            const url = `${process.env.API_BASE_URL || 'http://localhost:5000'}/uploads/${path.basename(imagePath)}`;
             return url;
         };
 
@@ -171,17 +162,12 @@ router.get('/packages/:slug', async (req, res) => {
             featured_image: formatImageUrl(package.featured_image)
         };
         
-        console.log('Formatted images:', formattedImages);
-        
         // Update package with formatted URLs
         Object.assign(package, formattedImages);
         
         // Log final package data
-        console.log('Final package data:', package);
-        
         res.json(package);
     } catch (error) {
-        console.error('Error fetching package:', error);
         res.status(500).json({ message: 'Error fetching package' });
     }
 });
@@ -205,20 +191,12 @@ function saveBase64Image(base64String, fileNamePrefix = 'image') {
 // Add a new package (POST /api/packages)
 router.post('/', upload.fields([{ name: 'image1', maxCount: 1 }, { name: 'image2', maxCount: 1 }, { name: 'image3', maxCount: 1 }, { name: 'image4', maxCount: 1 }, { name: 'image5', maxCount: 1 }, { name: 'featured_image', maxCount: 1 }, { name: 'itinerary_pdf', maxCount: 1 }]), async (req, res) => {
     try {
-        console.log('=== Creating New Package ===');
-        console.log('Received files:', req.files);
-        console.log('Received body:', req.body);
-        console.log('Itinerary data from request:', req.body.itinerary);
-        console.log('Itinerary data type:', typeof req.body.itinerary);
-
         const { package_name, slug, description, meta_title, meta_description, meta_keywords, state_id, itinerary, status, price, quad_price, double_price, triple_price, duration, location, category, hotels, sightseeing, meals, transfer, note, inclusion, exclusion, visa_requirement, faq } = req.body;
         
         // Parse itinerary if it's a string
         let parsedItinerary = [];
         if (typeof itinerary === 'string') {
             try {
-                console.log('Attempting to parse itinerary string:');
-                console.log('- Input:', itinerary);
                 // Only parse if it's not empty and looks like JSON
                 if (itinerary.trim() && (itinerary.trim().startsWith('[') || itinerary.trim().startsWith('{'))) {
                     const parsed = JSON.parse(itinerary);
@@ -226,21 +204,14 @@ router.post('/', upload.fields([{ name: 'image1', maxCount: 1 }, { name: 'image2
                     if (Array.isArray(parsed)) {
                         parsedItinerary = parsed;
                     } else {
-                        console.error('Itinerary is not an array, using empty array');
-                    }
+                        }
                 } else {
-                    console.log('Itinerary string is empty or not JSON format, using empty array');
+                    }
+                } catch (e) {
                 }
-                console.log('- Parsed result:', parsedItinerary);
-            } catch (e) {
-                console.error('Error parsing itinerary:', e);
-                console.log('- Using empty array as fallback');
-            }
         } else if (Array.isArray(itinerary)) {
             parsedItinerary = itinerary;
         }
-        console.log('Final parsed itinerary:', parsedItinerary);
-
         // Handle images
         let image1 = null, image2 = null, image3 = null, image4 = null, image5 = null, featured_image = null, itinerary_pdf = null;
 
@@ -263,30 +234,26 @@ router.post('/', upload.fields([{ name: 'image1', maxCount: 1 }, { name: 'image2
         if (!image5 && req.body.base64Image5) image5 = saveBase64Image(req.body.base64Image5, 'image5');
         if (!featured_image && req.body.base64FeaturedImage) featured_image = saveBase64Image(req.body.base64FeaturedImage, 'featured');
 
-        console.log('Processed images:', { image1, image2, image3, image4, image5, featured_image });
-
         const query = `
             INSERT INTO packages (
                 package_name, slug, description, meta_title, meta_description, meta_keywords, 
-                state_id, itinerary, status, price, quad_price, double_price, triple_price, 
+                state_id, status, price, quad_price, double_price, triple_price, 
                 duration, location, category, hotels, sightseeing, meals, transfer, note, 
                 inclusion, exclusion, visa_requirement, faq, image1, image2, image3, image4, 
                 image5, featured_image, itinerary_pdf, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
         `;
 
         const [result] = await pool.query(query, [
             package_name, slug, description, meta_title, meta_description, meta_keywords,
-            state_id, JSON.stringify(parsedItinerary), status, price, quad_price, double_price,
+            state_id, status, price, quad_price, double_price,
             triple_price, duration, location, category, hotels, sightseeing, meals, transfer,
             note, inclusion, exclusion, visa_requirement, faq, image1, image2, image3, image4,
             image5, featured_image, itinerary_pdf
         ]);
 
-        console.log('Package created successfully with ID:', result.insertId);
         res.status(201).json({ id: result.insertId, message: 'Package added successfully' });
     } catch (error) {
-        console.error('Error adding package:', error);
         res.status(500).json({ 
             message: 'Error adding package', 
             error: process.env.NODE_ENV === 'development' ? error.message : undefined 
@@ -298,13 +265,6 @@ router.post('/', upload.fields([{ name: 'image1', maxCount: 1 }, { name: 'image2
 router.put('/:id', upload.fields([{ name: 'image1', maxCount: 1 }, { name: 'image2', maxCount: 1 }, { name: 'image3', maxCount: 1 }, { name: 'image4', maxCount: 1 }, { name: 'image5', maxCount: 1 }, { name: 'featured_image', maxCount: 1 }, { name: 'itinerary_pdf', maxCount: 1 }]), async (req, res) => {
     try {
         const { id } = req.params;
-        console.log('=== Updating Package ===');
-        console.log('Package ID:', id);
-        console.log('Received files:', req.files);
-        console.log('Received body:', req.body);
-        console.log('Itinerary data from request:', req.body.itinerary);
-        console.log('Itinerary data type:', typeof req.body.itinerary);
-        
         // First get the existing package data
         const [existingPackage] = await pool.query('SELECT * FROM packages WHERE id = ?', [id]);
         if (existingPackage.length === 0) {
@@ -317,8 +277,6 @@ router.put('/:id', upload.fields([{ name: 'image1', maxCount: 1 }, { name: 'imag
         let parsedItinerary = [];
         if (typeof itinerary === 'string') {
             try {
-                console.log('Attempting to parse itinerary string:');
-                console.log('- Input:', itinerary);
                 // Only parse if it's not empty and looks like JSON
                 if (itinerary.trim() && (itinerary.trim().startsWith('[') || itinerary.trim().startsWith('{'))) {
                     const parsed = JSON.parse(itinerary);
@@ -326,24 +284,17 @@ router.put('/:id', upload.fields([{ name: 'image1', maxCount: 1 }, { name: 'imag
                     if (Array.isArray(parsed)) {
                         parsedItinerary = parsed;
                     } else {
-                        console.error('Itinerary is not an array, using existing itinerary');
                         parsedItinerary = existingPackage[0].itinerary ? JSON.parse(existingPackage[0].itinerary) : [];
                     }
         } else {
-                    console.log('Itinerary string is empty or not JSON format, using existing itinerary');
                     parsedItinerary = existingPackage[0].itinerary ? JSON.parse(existingPackage[0].itinerary) : [];
                 }
-                console.log('- Parsed result:', parsedItinerary);
-            } catch (e) {
-                console.error('Error parsing itinerary:', e);
-                console.log('- Using existing itinerary as fallback');
+                } catch (e) {
                 parsedItinerary = existingPackage[0].itinerary ? JSON.parse(existingPackage[0].itinerary) : [];
             }
         } else if (Array.isArray(itinerary)) {
             parsedItinerary = itinerary;
         }
-        console.log('Final parsed itinerary:', parsedItinerary);
-
         // Handle images
         let image1 = existingPackage[0].image1;
         let image2 = existingPackage[0].image2;
@@ -372,8 +323,6 @@ router.put('/:id', upload.fields([{ name: 'image1', maxCount: 1 }, { name: 'imag
         if (!image5 && req.body.base64Image5) image5 = saveBase64Image(req.body.base64Image5, 'image5');
         if (!featured_image && req.body.base64FeaturedImage) featured_image = saveBase64Image(req.body.base64FeaturedImage, 'featured');
 
-        console.log('Processed images:', { image1, image2, image3, image4, image5, featured_image });
-
         const query = `
 UPDATE packages SET 
 package_name = ?, 
@@ -383,7 +332,6 @@ meta_title = ?,
 meta_description = ?, 
 meta_keywords = ?, 
 state_id = ?, 
-itinerary = ?, 
 status = ?, 
 price = ?, 
 quad_price = ?, 
@@ -413,7 +361,7 @@ WHERE id = ?
 
         const [result] = await pool.query(query, [
             package_name, slug, description, meta_title, meta_description, meta_keywords,
-            state_id, JSON.stringify(parsedItinerary), status, price, quad_price, double_price,
+            state_id, status, price, quad_price, double_price,
             triple_price, duration, location, category, hotels, sightseeing, meals, transfer,
             note, inclusion, exclusion, visa_requirement, faq, image1, image2, image3, image4,
             image5, featured_image, itinerary_pdf, id
@@ -423,10 +371,8 @@ WHERE id = ?
             return res.status(404).json({ message: 'Package not found' });
         }
 
-        console.log('Package updated successfully');
         res.status(200).json({ message: 'Package updated successfully' });
     } catch (error) {
-        console.error('Error updating package:', error);
         res.status(500).json({ 
             message: 'Error updating package', 
             error: process.env.NODE_ENV === 'development' ? error.message : undefined 
@@ -445,7 +391,6 @@ router.delete('/:id', async (req, res) => {
         }
         res.status(200).json({ message: 'Package deleted successfully' });
     } catch (error) {
-        console.error('Error deleting package:', error);
         res.status(500).json({ message: 'Error deleting package', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
     }
 });

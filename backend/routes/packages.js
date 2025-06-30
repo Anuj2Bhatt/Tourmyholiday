@@ -48,8 +48,6 @@ const upload = multer({
 // Get all packages
 router.get('/', async (req, res) => {
     try {
-        console.log('Fetching packages...');
-        
         const query = `
             SELECT p.*, s.name as state_name
             FROM packages p
@@ -77,7 +75,6 @@ router.get('/', async (req, res) => {
         
         res.json(formattedPackages);
     } catch (error) {
-        console.error('Error fetching packages:', error);
         res.status(500).json({ 
             message: 'Error fetching packages',
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
@@ -124,7 +121,6 @@ router.get('/states/:stateName/packages', async (req, res) => {
         
         res.json(formattedPackages);
     } catch (error) {
-        console.error('Error fetching state packages:', error);
         res.status(500).json({ message: 'Error fetching packages' });
     }
 });
@@ -133,8 +129,6 @@ router.get('/states/:stateName/packages', async (req, res) => {
 router.get('/packages/:slug', async (req, res) => {
     try {
         const { slug } = req.params;
-        console.log('Fetching package with slug:', slug);
-        
         const query = `
             SELECT p.*, s.name as state_name
             FROM packages p
@@ -150,13 +144,10 @@ router.get('/packages/:slug', async (req, res) => {
         
         // Format the response
         const package = packages[0];
-        console.log('Raw package data:', package);
-        
         // Helper function to format image URL
         const formatImageUrl = (imagePath) => {
             if (!imagePath) return null;
             const url = `http://localhost:5000/uploads/${path.basename(imagePath)}`;
-            console.log('Formatted image URL:', url);
             return url;
         };
 
@@ -170,17 +161,12 @@ router.get('/packages/:slug', async (req, res) => {
             featured_image: formatImageUrl(package.featured_image)
         };
         
-        console.log('Formatted images:', formattedImages);
-        
         // Update package with formatted URLs
         Object.assign(package, formattedImages);
         
         // Log final package data
-        console.log('Final package data:', package);
-        
         res.json(package);
     } catch (error) {
-        console.error('Error fetching package:', error);
         res.status(500).json({ message: 'Error fetching package' });
     }
 });
@@ -212,23 +198,16 @@ router.post('/', upload.fields([
     { name: 'itinerary_pdf', maxCount: 1 }
 ]), async (req, res) => {
     try {
-        console.log('=== Starting Package Creation ===');
-        console.log('Request body:', req.body);
-        console.log('Request files:', req.files);
-
         // Handle file uploads
         const images = [];
         const imageFields = ['image1', 'image2', 'image3', 'image4', 'image5'];
         
         // Log each image field
         imageFields.forEach(field => {
-            console.log(`Processing ${field}:`, req.files?.[field]?.[0]);
             if (req.files && req.files[field] && req.files[field][0]) {
                 const filename = req.files[field][0].filename;
-                console.log(`Saving ${field} as:`, filename);
                 images.push(filename);
             } else {
-                console.log(`No file uploaded for ${field}`);
                 images.push(null);
             }
         });
@@ -238,9 +217,6 @@ router.post('/', upload.fields([
             ? req.files['featured_image'][0].filename
             : null;
         
-        console.log('Final images array:', images);
-        console.log('Featured image:', featuredImageFile);
-
         // Extract other fields
         const {
             package_name,
@@ -275,7 +251,6 @@ router.post('/', upload.fields([
             try {
                 parsedItinerary = JSON.parse(itinerary);
             } catch (e) {
-                console.error('Error parsing itinerary:', e);
                 parsedItinerary = null;
             }
         }
@@ -285,7 +260,6 @@ router.post('/', upload.fields([
             try {
                 parsedHotels = JSON.parse(hotels);
             } catch (e) {
-                console.error('Error parsing hotels:', e);
                 parsedHotels = null;
             }
         }
@@ -319,17 +293,12 @@ router.post('/', upload.fields([
             status || 'Public'
         ];
 
-        console.log('Executing query with values:', values);
         const [result] = await db.query(query, values);
-        console.log('Package created successfully with ID:', result.insertId);
-
         res.status(201).json({
             message: 'Package created successfully',
             packageId: result.insertId
         });
     } catch (error) {
-        console.error('Error creating package:', error);
-        console.error('Error stack:', error.stack);
         res.status(500).json({ 
             message: 'Error creating package',
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
@@ -396,7 +365,6 @@ router.put('/:id', upload.fields([
             try {
                 parsedItinerary = JSON.parse(itinerary);
             } catch (e) {
-                console.error('Error parsing itinerary:', e);
                 parsedItinerary = null;
             }
         }
@@ -406,7 +374,6 @@ router.put('/:id', upload.fields([
             try {
                 parsedHotels = JSON.parse(hotels);
             } catch (e) {
-                console.error('Error parsing hotels:', e);
                 parsedHotels = null;
             }
         }
@@ -460,7 +427,6 @@ router.put('/:id', upload.fields([
         await db.query(query, values);
         res.json({ message: 'Package updated successfully' });
     } catch (error) {
-        console.error('Error updating package:', error);
         res.status(500).json({ message: 'Error updating package' });
     }
 });
@@ -469,13 +435,10 @@ router.put('/:id', upload.fields([
 router.delete('/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        console.log('Attempting to delete package with ID:', id);
-        
         // First check if package exists
         const [packages] = await db.query('SELECT * FROM packages WHERE id = ?', [id]);
         
         if (packages.length === 0) {
-            console.log('Package not found with ID:', id);
             return res.status(404).json({ message: 'Package not found' });
         }
         
@@ -484,25 +447,20 @@ router.delete('/:id', async (req, res) => {
         const images = [package.image1, package.image2, package.image3, package.image4, package.image5];
         
         // Delete package from database
-        console.log('Deleting package from database...');
         await db.query('DELETE FROM packages WHERE id = ?', [id]);
         
         // Delete associated images
-        console.log('Deleting associated images...');
         images.forEach(image => {
             if (image) {
                 const imagePath = path.join(__dirname, '..', 'uploads', image);
                 if (fs.existsSync(imagePath)) {
                     fs.unlinkSync(imagePath);
-                    console.log('Deleted image:', image);
-                }
+                    }
             }
         });
         
-        console.log('Package deleted successfully');
         res.json({ message: 'Package deleted successfully' });
     } catch (error) {
-        console.error('Error deleting package:', error);
         res.status(500).json({ 
             message: 'Error deleting package',
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
@@ -513,8 +471,6 @@ router.delete('/:id', async (req, res) => {
 // Test route to create a sample package
 router.post('/test-create', async (req, res) => {
     try {
-        console.log('=== Creating Test Package ===');
-        
         const query = `
             INSERT INTO packages (
                 package_name, location, category, price, quad_price, double_price,
@@ -556,17 +512,12 @@ router.post('/test-create', async (req, res) => {
             'Public' // status
         ];
 
-        console.log('Executing query with values:', values);
         const [result] = await db.query(query, values);
-        console.log('Test package created successfully with ID:', result.insertId);
-
         res.status(201).json({
             message: 'Test package created successfully',
             packageId: result.insertId
         });
     } catch (error) {
-        console.error('Error creating test package:', error);
-        console.error('Error stack:', error.stack);
         res.status(500).json({ 
             message: 'Error creating test package',
             error: process.env.NODE_ENV === 'development' ? error.message : undefined

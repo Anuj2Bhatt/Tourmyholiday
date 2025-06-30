@@ -10,7 +10,6 @@ class TerritoryDistrictImage {
             );
             return rows;
         } catch (error) {
-            console.error('Error in getImagesByDistrictId:', error);
             throw error;
         }
     }
@@ -24,7 +23,6 @@ class TerritoryDistrictImage {
             );
             return result.insertId;
         } catch (error) {
-            console.error('Error in addImage:', error);
             throw error;
         }
     }
@@ -38,7 +36,6 @@ class TerritoryDistrictImage {
             );
             return result.affectedRows > 0;
         } catch (error) {
-            console.error('Error in deleteImage:', error);
             throw error;
         }
     }
@@ -52,7 +49,6 @@ class TerritoryDistrictImage {
             );
             return rows[0];
         } catch (error) {
-            console.error('Error in getImageById:', error);
             throw error;
         }
     }

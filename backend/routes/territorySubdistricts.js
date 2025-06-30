@@ -58,8 +58,6 @@ const generateSlug = (title) => {
 router.get('/district/:territoryDistrictId', async (req, res) => {
   try {
     const { territoryDistrictId } = req.params;
-    console.log('Fetching territory subdistricts for district:', territoryDistrictId);
-
     // Check if territory district exists
     const [district] = await pool.query('SELECT id FROM territory_districts WHERE id = ?', [territoryDistrictId]);
     if (district.length === 0) {
@@ -72,8 +70,6 @@ router.get('/district/:territoryDistrictId', async (req, res) => {
       [territoryDistrictId]
     );
     
-    console.log(`Found ${subdistricts.length} territory subdistricts`);
-    
     // Format image paths
     const formattedSubdistricts = subdistricts.map(subdistrict => ({
       ...subdistrict,
@@ -84,7 +80,6 @@ router.get('/district/:territoryDistrictId', async (req, res) => {
     
     res.json(formattedSubdistricts);
   } catch (error) {
-    console.error('Error fetching territory subdistricts:', error);
     res.status(500).json({ error: 'Failed to fetch territory subdistricts' });
   }
 });
@@ -107,7 +102,6 @@ router.get('/:id', async (req, res) => {
     
     res.json(subdistrict);
   } catch (error) {
-    console.error('Error fetching territory subdistrict:', error);
     res.status(500).json({ error: 'Failed to fetch territory subdistrict', details: error.message });
   }
 });
@@ -130,7 +124,6 @@ router.get('/slug/:slug', async (req, res) => {
     
     res.json(subdistrict);
   } catch (error) {
-    console.error('Error fetching territory subdistrict by slug:', error);
     res.status(500).json({ error: 'Failed to fetch territory subdistrict', details: error.message });
   }
 });
@@ -194,7 +187,6 @@ router.post('/', upload.single('featured_image'), async (req, res) => {
 
     res.status(201).json(newSubdistrict);
   } catch (error) {
-    console.error('Error creating territory subdistrict:', error);
     res.status(500).json({ error: 'Failed to create territory subdistrict' });
   }
 });
@@ -266,7 +258,6 @@ router.put('/:id', upload.single('featured_image'), async (req, res) => {
 
     res.json(updatedSubdistrict);
   } catch (error) {
-    console.error('Error updating territory subdistrict:', error);
     res.status(500).json({ error: 'Failed to update territory subdistrict' });
   }
 });
@@ -298,7 +289,6 @@ router.delete('/:id', async (req, res) => {
 
     res.json({ message: 'Territory subdistrict deleted successfully' });
   } catch (error) {
-    console.error('Error deleting territory subdistrict:', error);
     res.status(500).json({ error: 'Failed to delete territory subdistrict', details: error.message });
   }
 });
@@ -336,7 +326,6 @@ router.patch('/:id/update-image', async (req, res) => {
 
     res.json(updatedSubdistrict);
   } catch (error) {
-    console.error('Error updating territory subdistrict image path:', error);
     res.status(500).json({ error: 'Failed to update territory subdistrict image path', details: error.message });
   }
 });

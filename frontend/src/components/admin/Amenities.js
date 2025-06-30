@@ -20,11 +20,10 @@ const Amenities = () => {
     const fetchAmenities = async () => {
         try {
             setLoading(true);
-            const response = await axios.get('http://localhost:5000/api/amenities');
+            const response = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/amenities`);
             setAmenities(response.data);
             setError(null);
         } catch (error) {
-            console.error('Error fetching amenities:', error);
             setError('Failed to load amenities. Please try again later.');
         } finally {
             setLoading(false);
@@ -60,10 +59,9 @@ const Amenities = () => {
 
         if (window.confirm('Are you sure you want to delete this amenity?')) {
             try {
-                await axios.delete(`http://localhost:5000/api/amenities/${id}`);
+                await axios.delete(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/amenities/${id}`);
                 fetchAmenities();
             } catch (error) {
-                console.error('Error deleting amenity:', error);
                 setError('Failed to delete amenity. Please try again.');
             }
         }
@@ -73,14 +71,13 @@ const Amenities = () => {
         e.preventDefault();
         try {
             if (editingAmenity) {
-                await axios.put(`http://localhost:5000/api/amenities/${editingAmenity.id}`, formData);
+                await axios.put(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/amenities/${editingAmenity.id}`, formData);
             } else {
-                await axios.post('http://localhost:5000/api/amenities', formData);
+                await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/amenities`, formData);
             }
             setShowModal(false);
             fetchAmenities();
         } catch (error) {
-            console.error('Error saving amenity:', error);
             setError('Failed to save amenity. Please try again.');
         }
     };

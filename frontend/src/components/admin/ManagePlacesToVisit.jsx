@@ -33,66 +33,28 @@ const ManagePlacesToVisit = () => {
     
     try {
       setLoading(true);
-      console.log('Selected state value:', selectedState);
-      
       // Find the state object
       const state = states.find(s => {
         const stateRoute = s.route ? s.route.replace(/^\//, '') : '';
-        console.log('Checking state:', {
-          name: s.name,
-          route: s.route,
-          stateRoute,
-          selectedState,
-          matches: stateRoute === selectedState
-        });
         return stateRoute === selectedState;
       });
       
       if (!state) {
-        console.error('State not found. Available states:', states.map(s => ({
-          name: s.name,
-          route: s.route,
-          formattedRoute: s.route ? s.route.replace(/^\//, '') : null
-        })));
         throw new Error(`State not found for identifier: ${selectedState}`);
       }
       
-      // Use the correct API endpoint
-      const url = `http://localhost:5000/api/places/states/${state.route.replace(/^\//, '')}/places`;
-      console.log('Making API request to:', url);
-      
+      // Use state ID in the API endpoint
+      const url = `http://localhost:5000/api/places/states/${state.id}/places`;
       const response = await axios.get(url);
-      console.log('API Response:', response.data);
-      
-      if (Array.isArray(response.data)) {
-        setPlaces(response.data);
-        if (response.data.length === 0) {
-          console.log('No places found for state:', state.name);
-        }
+      if (response.data.success && Array.isArray(response.data.data)) {
+        setPlaces(response.data.data);
+        if (response.data.data.length === 0) {
       } else {
-        console.error('Unexpected response format:', response.data);
         setError('Received invalid data format from server');
       }
-    } catch (err) {
-      console.error('Error fetching places:', err);
-      console.error('Full error details:', {
-        message: err.message,
-        response: err.response?.data,
-        status: err.response?.status,
-        url: err.config?.url,
-        selectedState,
-        availableStates: states.map(s => ({
-          id: s.id,
-          name: s.name,
-          route: s.route
-        }))
-      });
+    }
       
-      if (err.response?.status === 404) {
-        setError(`No places found for ${selectedState}. Please verify the state name and try again.`);
-      } else {
-        setError(`Failed to fetch places: ${err.message}`);
-      }
+      
     } finally {
       setLoading(false);
     }
@@ -110,24 +72,15 @@ const ManagePlacesToVisit = () => {
 
   const fetchStates = async () => {
     try {
-      console.log('Fetching states...');
       const response = await axios.get('http://localhost:5000/api/states');
-      console.log('States response:', response.data);
-      
       // Log each state's details
       response.data.forEach(state => {
-        console.log('State from API:', {
-          id: state.id,
-          name: state.name,
-          route: state.route,
-          formattedName: state.name.toLowerCase().replace(/\s+/g, '-'),
-          formattedRoute: state.route ? state.route.replace(/^\//, '') : null
-        });
+        state.route = state.route.replace(/\s+/g, '-');
+        state.formattedRoute = state.route ? state.route.replace(/^\//, '') : null;
       });
       
       setStates(response.data);
     } catch (err) {
-      console.error('Error fetching states:', err);
       setError(`Failed to fetch states: ${err.message}`);
     }
   };
@@ -186,63 +139,56 @@ const ManagePlacesToVisit = () => {
     setLoading(true);
 
     try {
-      const state = states.find(s => s.route ? s.route.replace(/^\//, '') === selectedState : false);
-      if (!state) {
-        throw new Error('State not found');
-      }
+        // Find the selected state object
+        const state = states.find(s => {
+            const stateRoute = s.route ? s.route.replace(/^\//, '') : '';
+            return stateRoute === selectedState;
+        });
 
-      const formDataToSend = new FormData();
-      
-      // Add all form fields to FormData
-      Object.keys(formData).forEach(key => {
-        if (formData[key] !== null && formData[key] !== undefined) {
-          if (key === 'featured') {
-            formDataToSend.append(key, formData[key] ? '1' : '0');
-          } else {
-            formDataToSend.append(key, formData[key]);
-          }
+        if (!state) {
+            throw new Error(`State "${selectedState}" not found. Please select a valid state.`);
         }
-      });
 
-      const stateIdentifier = state.route ? state.route.replace(/^\//, '') : selectedState;
-      const url = isEditing
-        ? `http://localhost:5000/api/places/states/${stateIdentifier}/places/${editingId}`
-        : `http://localhost:5000/api/places/states/${stateIdentifier}/places`;
+        const formDataToSend = new FormData();
+        
+        // Add all form fields to FormData
+        Object.keys(formData).forEach(key => {
+            if (formData[key] !== null && formData[key] !== undefined) {
+                if (key === 'featured') {
+                    formDataToSend.append(key, formData[key] ? '1' : '0');
+                } else {
+                    formDataToSend.append(key, formData[key]);
+                }
+            }
+        });
 
-      console.log('Submitting form data:', {
-        url,
-        method: isEditing ? 'PUT' : 'POST',
-        formData: Object.fromEntries(formDataToSend)
-      });
+        // Use state ID in the URL
+        const url = isEditing
+            ? `http://localhost:5000/api/places/states/${state.id}/places/${editingId}`
+            : `http://localhost:5000/api/places/states/${state.id}/places`;
 
-      const response = await axios[isEditing ? 'put' : 'post'](url, formDataToSend, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
+        const response = await axios[isEditing ? 'put' : 'post'](url, formDataToSend, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+
+        if (response.data.success) {
+            setSuccess(isEditing ? 'Place updated successfully' : 'Place added successfully');
+            resetForm();
+            fetchPlaces();
+            setShowForm(false);
+        } else {
+            throw new Error(response.data.message || 'Failed to save place');
         }
-      });
-
-      console.log('Server response:', response.data);
-
-      setSuccess(isEditing ? 'Place updated successfully' : 'Place added successfully');
-      resetForm();
-      fetchPlaces();
-      setShowForm(false);
     } catch (err) {
-      console.error('Error saving place:', err);
-      console.error('Error details:', {
-        message: err.message,
-        response: err.response?.data,
-        status: err.response?.status,
-        url: err.config?.url
-      });
-      
-      // Show more specific error message
-      const errorMessage = err.response?.data?.message || err.message || 'Failed to save place';
-      setError(`Error: ${errorMessage}`);
+        
+        const errorMessage = err.response?.data?.message || err.message || 'Failed to save place';
+        setError(`Error: ${errorMessage}`);
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+};
 
   const handleEdit = (place) => {
     setIsEditing(true);
@@ -271,19 +217,16 @@ const ManagePlacesToVisit = () => {
     try {
       setLoading(true);
       // Find the selected state object
-      const state = states.find(s => s.name.toLowerCase().replace(/\s+/g, '-') === selectedState || (s.route && s.route.replace(/^\//, '') === selectedState));
+      const state = states.find(s => s.route ? s.route.replace(/^\//, '') === selectedState : false);
       if (!state) {
         throw new Error('State not found');
       }
-      // Use the route slug if available, otherwise fallback to selectedState
-      const stateIdentifier = state.route ? state.route.replace(/^\//, '') : selectedState;
-      const url = `http://localhost:5000/api/states/${stateIdentifier}/places/${placeId}`;
-      console.log('Deleting place from URL:', url);
+      
+      const url = `http://localhost:5000/api/places/states/${state.id}/places/${placeId}`;
       await axios.delete(url);
       setSuccess('Place deleted successfully');
       fetchPlaces();
     } catch (err) {
-      console.error('Error deleting place:', err);
       setError('Failed to delete place');
     } finally {
       setLoading(false);
@@ -325,14 +268,15 @@ const ManagePlacesToVisit = () => {
             value={selectedState} 
             onChange={(e) => {
               const value = e.target.value;
-              console.log('Selecting state:', {
-                value,
-                states: states.map(s => ({
-                  name: s.name,
-                  route: s.route,
-                  matches: s.route ? s.route.replace(/^\//, '') === value : false
-                }))
+              // Only log the selected state
+              const selectedStateObj = states.find(s => {
+                const stateRoute = s.route ? s.route.replace(/^\//, '') : '';
+                return stateRoute === value;
               });
+              
+              if (selectedStateObj) {
+                }
+              
               setSelectedState(value);
             }}
             className="state-select"
@@ -340,11 +284,7 @@ const ManagePlacesToVisit = () => {
             <option value="">Select a State</option>
             {states.map(state => {
               const value = state.route ? state.route.replace(/^\//, '') : '';
-              console.log('Creating option for state:', {
-                name: state.name,
-                value,
-                route: state.route
-              });
+              // Remove the logging from here
               return (
                 <option 
                   key={state.id} 

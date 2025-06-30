@@ -1,75 +1,68 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const morgan = require('morgan');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const tourPackageRoutes = require('./routes/tourPackageRoutes');
+
 const app = express();
 
-// Middleware
-app.use(cors());
+// CORS configuration for image serving
+app.use(cors({
+  origin: ['http://localhost:3000', 'http://localhost:3001', 'http://127.0.0.1:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
+
+// Security middleware with image serving exceptions
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "blob:", "http:", "https:"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+    },
+  },
+}));
+
+// Rate limiting
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100 // limit each IP to 100 requests per windowMs
+});
+app.use(limiter);
+
+// Logging
+app.use(morgan('dev'));
+
+// Body parsing
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Create uploads directory if it doesn't exist
-const fs = require('fs');
-const uploadsDir = path.join(__dirname, 'uploads');
-
-if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir);
-}
-
-// Serve static files from uploads directory
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// Serve static files from specific directories
-app.use('/uploads/places', express.static(path.join(__dirname, 'uploads', 'places')));
-app.use('/uploads/packages', express.static(path.join(__dirname, 'uploads', 'packages')));
-app.use('/uploads/districts', express.static(path.join(__dirname, 'uploads', 'districts')));
-app.use('/uploads/subdistricts', express.static(path.join(__dirname, 'uploads', 'subdistricts')));
-app.use('/uploads/seasons', express.static(path.join(__dirname, 'uploads', 'seasons')));
-
-// Add CORS and content type headers for all static files
-app.use('/uploads', (req, res, next) => {
+// Static files with proper headers
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+  setHeaders: (res, path) => {
     res.set('Cross-Origin-Resource-Policy', 'cross-origin');
     res.set('Access-Control-Allow-Origin', '*');
-    
-    const ext = path.extname(req.path).toLowerCase();
-    if (ext === '.webp') {
-        res.set('Content-Type', 'image/webp');
-    } else if (ext === '.jpg' || ext === '.jpeg') {
-        res.set('Content-Type', 'image/jpeg');
-    } else if (ext === '.png') {
-        res.set('Content-Type', 'image/png');
-    } else if (ext === '.gif') {
-        res.set('Content-Type', 'image/gif');
-    }
-    next();
-});
+    res.set('Access-Control-Allow-Methods', 'GET');
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+  }
+}));
 
-// Debug middleware to log requests
-app.use((req, res, next) => {
-    // Only log API requests, not static file requests
-    if (req.path.startsWith('/api')) {
-        console.log('API Request:', {
-            method: req.method,
-            path: req.path,
-            query: req.query
-        });
-    }
-    next();
-});
+// Routes
+app.use('/api/tour-packages', tourPackageRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-    console.error('Error:', err);
-    console.error('Error Stack:', err.stack);
-    res.status(500).json({ message: 'Something went wrong!' });
+    res.status(err.status || 500).json({
+        success: false,
+        message: err.message || 'Internal Server Error',
+        error: process.env.NODE_ENV === 'development' ? err : {}
+    });
 });
-
-// Import routes
-const stateVillageRoutes = require('./routes/stateVillageRoutes');
-const territoryVillageRoutes = require('./routes/territoryVillageRoutes');
-
-// Register routes
-app.use('/api/state-villages', stateVillageRoutes);
-app.use('/api/territory-villages', territoryVillageRoutes);
 
 module.exports = app; 

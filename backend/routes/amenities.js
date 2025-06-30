@@ -8,7 +8,6 @@ router.get('/', async (req, res) => {
         const [amenities] = await db.query('SELECT * FROM amenities ORDER BY name');
         res.json(amenities);
     } catch (error) {
-        console.error('Error fetching amenities:', error);
         res.status(500).json({ message: 'Error fetching amenities' });
     }
 });
@@ -22,7 +21,6 @@ router.get('/:id', async (req, res) => {
         }
         res.json(amenity[0]);
     } catch (error) {
-        console.error('Error fetching amenity:', error);
         res.status(500).json({ message: 'Error fetching amenity' });
     }
 });
@@ -42,7 +40,6 @@ router.post('/', async (req, res) => {
             description
         });
     } catch (error) {
-        console.error('Error creating amenity:', error);
         res.status(500).json({ message: 'Error creating amenity' });
     }
 });
@@ -62,7 +59,6 @@ router.put('/:id', async (req, res) => {
             description
         });
     } catch (error) {
-        console.error('Error updating amenity:', error);
         res.status(500).json({ message: 'Error updating amenity' });
     }
 });
@@ -73,7 +69,6 @@ router.delete('/:id', async (req, res) => {
         await db.query('DELETE FROM amenities WHERE id = ?', [req.params.id]);
         res.json({ message: 'Amenity deleted successfully' });
     } catch (error) {
-        console.error('Error deleting amenity:', error);
         res.status(500).json({ message: 'Error deleting amenity' });
     }
 });
@@ -90,7 +85,6 @@ router.get('/hotel/:hotelId', async (req, res) => {
         `, [req.params.hotelId]);
         res.json(amenities);
     } catch (error) {
-        console.error('Error fetching hotel amenities:', error);
         res.status(500).json({ message: 'Error fetching hotel amenities' });
     }
 });
@@ -105,7 +99,6 @@ router.post('/hotel/:hotelId', async (req, res) => {
         );
         res.status(201).json({ message: 'Amenity added to hotel successfully' });
     } catch (error) {
-        console.error('Error adding amenity to hotel:', error);
         res.status(500).json({ message: 'Error adding amenity to hotel' });
     }
 });
@@ -119,7 +112,6 @@ router.delete('/hotel/:hotelId/:amenityId', async (req, res) => {
         );
         res.json({ message: 'Amenity removed from hotel successfully' });
     } catch (error) {
-        console.error('Error removing amenity from hotel:', error);
         res.status(500).json({ message: 'Error removing amenity from hotel' });
     }
 });
@@ -143,7 +135,6 @@ router.post('/cottage', async (req, res) => {
 
         res.status(201).json({ message: 'Cottage amenities added successfully' });
     } catch (error) {
-        console.error('Error adding cottage amenities:', error);
         res.status(500).json({ message: 'Error adding cottage amenities' });
     }
 });

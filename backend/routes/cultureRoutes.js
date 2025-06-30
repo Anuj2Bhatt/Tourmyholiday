@@ -20,6 +20,8 @@ const upload = multer({
 });
 
 // State Cultures
+router.get('/id/:id', cultureController.getCultureById);
+router.get('/slug/:slug', cultureController.getCultureBySlug);
 router.get('/subdistrict/:subdistrictId', cultureController.getCulturesBySubdistrict);
 router.post('/', upload.single('featured_image'), cultureController.createCulture);
 router.put('/:id', upload.single('featured_image'), cultureController.updateCulture);

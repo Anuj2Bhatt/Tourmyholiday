@@ -33,7 +33,6 @@ const TerritoryHistoryDetail = () => {
         setHistoryData(historyResponse.data.data);
 
       } catch (err) {
-        console.error('Error fetching data:', err);
         setError(err.message || 'Failed to fetch data');
       } finally {
         setLoading(false);
@@ -45,8 +44,6 @@ const TerritoryHistoryDetail = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    // Implement search functionality
-    console.log('Searching for:', searchQuery);
   };
 
   if (loading) {

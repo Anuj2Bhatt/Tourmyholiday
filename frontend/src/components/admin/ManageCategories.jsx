@@ -34,22 +34,17 @@ const ManageCategories = () => {
   };
 
   useEffect(() => {
-    console.log('Component mounted, fetching categories...');
     fetchCategories();
   }, []);
 
   useEffect(() => {
-    console.log('Categories state updated:', categories);
-  }, [categories]);
+    }, [categories]);
 
   const fetchCategories = async () => {
     try {
-      console.log('Fetching categories...');
       const response = await axios.get(`${API_URL}/api/hotel-categories`);
-      console.log('Categories response:', response.data);
       setCategories(response.data);
     } catch (error) {
-      console.error('Error details:', error);
       setError('Error fetching categories');
     }
   };
@@ -83,14 +78,11 @@ const ManageCategories = () => {
     formData.append('image', file);
 
     try {
-      console.log('Uploading file:', file.name);
       const response = await axios.post(`${API_URL}/api/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
-      
-      console.log('Upload response:', response.data);
       
       if (response.data.url) {
         setFormData(prev => ({
@@ -102,7 +94,6 @@ const ManageCategories = () => {
         throw new Error('No URL received from server');
       }
     } catch (error) {
-      console.error('Image upload error:', error.response?.data || error.message);
       setError(error.response?.data?.message || 'Error uploading image. Please try again.');
     }
   };
@@ -140,7 +131,6 @@ const ManageCategories = () => {
       setShowForm(false);
       fetchCategories();
     } catch (error) {
-      console.error('Submit error:', error);
       setError(error.response?.data?.message || 'Error saving category');
     }
   };

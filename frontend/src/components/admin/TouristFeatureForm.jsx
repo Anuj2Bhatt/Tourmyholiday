@@ -50,7 +50,6 @@ const TouristFeatureForm = ({ formData, onSubmit, onCancel }) => {
         feature_images: [...prev.feature_images, ...data.imagePaths]
       }));
     } catch (error) {
-      console.error('Error uploading images:', error);
       alert('Failed to upload images. Please try again.');
     }
   };

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
-const db = require('../../src/db');
+const db = require('../../db');     
 const slugify = require('slugify');
 const fs = require('fs');
 
@@ -65,7 +65,6 @@ router.get('/subdistrict/:subdistrictId', async (req, res) => {
           try {
             return JSON.parse(field.toString());
           } catch (e) {
-            console.error('Error parsing buffer:', e);
             return {};
           }
         }
@@ -73,7 +72,6 @@ router.get('/subdistrict/:subdistrictId', async (req, res) => {
           try {
             return JSON.parse(field);
           } catch (e) {
-            console.error('Error parsing string:', e);
             return {};
           }
         }
@@ -87,7 +85,7 @@ router.get('/subdistrict/:subdistrictId', async (req, res) => {
         slug: travel.slug,
         description: travel.description,
         featured_image: travel.featured_image ? 
-          `http://localhost:5000/${travel.featured_image}` : 
+          `${process.env.API_BASE_URL || 'http://localhost:5000'}/${travel.featured_image}` : 
           null,
         meta_title: travel.meta_title,
         meta_description: travel.meta_description,
@@ -106,7 +104,6 @@ router.get('/subdistrict/:subdistrictId', async (req, res) => {
     res.setHeader('Content-Type', 'application/json');
     res.json(travels);
   } catch (error) {
-    console.error('Error fetching travel info:', error);
     res.status(500).json({ message: 'Error fetching travel information' });
   }
 });
@@ -128,7 +125,7 @@ router.get('/:travelInfoId', async (req, res) => {
     const parsedTravel = {
       ...travel,
       featured_image: travel.featured_image ? 
-        `http://localhost:5000/${travel.featured_image}` : 
+        `${process.env.API_BASE_URL || 'http://localhost:5000'}/${travel.featured_image}` : 
         null,
       transportation: JSON.parse(travel.transportation || '{}'),
       accommodation: JSON.parse(travel.accommodation || '{}'),
@@ -138,7 +135,6 @@ router.get('/:travelInfoId', async (req, res) => {
 
     res.json(parsedTravel);
   } catch (error) {
-    console.error('Error fetching travel info:', error);
     res.status(500).json({ message: 'Error fetching travel information' });
   }
 });
@@ -213,7 +209,7 @@ router.post('/subdistrict/:subdistrictId', upload.single('featured_image'), asyn
     const formattedTravel = {
       ...newTravel,
       featured_image: newTravel.featured_image ? 
-        `http://localhost:5000/${newTravel.featured_image}` : 
+        `${process.env.API_BASE_URL || 'http://localhost:5000'}/${newTravel.featured_image}` : 
         null,
       transportation: JSON.parse(newTravel.transportation || '{}'),
       accommodation: JSON.parse(newTravel.accommodation || '{}'),
@@ -223,7 +219,6 @@ router.post('/subdistrict/:subdistrictId', upload.single('featured_image'), asyn
 
     res.status(201).json(formattedTravel);
   } catch (error) {
-    console.error('Error adding travel info:', error);
     res.status(500).json({ message: 'Error adding travel information' });
   }
 });
@@ -307,8 +302,7 @@ router.put('/:travelInfoId', upload.single('featured_image'), async (req, res) =
       try {
         await fs.unlink(oldImagePath);
       } catch (err) {
-        console.error('Error deleting old image:', err);
-      }
+        }
     }
 
     // Get the updated travel info
@@ -321,7 +315,7 @@ router.put('/:travelInfoId', upload.single('featured_image'), async (req, res) =
     const formattedTravel = {
       ...updatedTravel,
       featured_image: updatedTravel.featured_image ? 
-        `http://localhost:5000/${updatedTravel.featured_image}` : 
+        `${process.env.API_BASE_URL || 'http://localhost:5000'}/${updatedTravel.featured_image}` : 
         null,
       transportation: JSON.parse(updatedTravel.transportation || '{}'),
       accommodation: JSON.parse(updatedTravel.accommodation || '{}'),
@@ -331,7 +325,6 @@ router.put('/:travelInfoId', upload.single('featured_image'), async (req, res) =
 
     res.json(formattedTravel);
   } catch (error) {
-    console.error('Error updating travel info:', error);
     res.status(500).json({ message: 'Error updating travel information' });
   }
 });
@@ -359,13 +352,11 @@ router.delete('/:travelInfoId', async (req, res) => {
       try {
         await fs.unlink(imagePath);
       } catch (err) {
-        console.error('Error deleting image:', err);
-      }
+        }
     }
 
     res.json({ message: 'Travel information deleted successfully' });
   } catch (error) {
-    console.error('Error deleting travel info:', error);
     res.status(500).json({ message: 'Error deleting travel information' });
   }
 });

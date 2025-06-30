@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../db');
+const pool = require('../../db');
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
@@ -61,19 +61,15 @@ const handleMulterError = (err, req, res, next) => {
 // Get all states
 router.get('/', async (req, res) => {
   try {
-    console.log('Fetching all states...');
     const [states] = await pool.query('SELECT * FROM states ORDER BY name ASC');
-    console.log(`Found ${states.length} states`);
-    
     // Format image URLs
     const formattedStates = states.map(state => ({
       ...state,
-      image: state.image ? `http://localhost:5000${state.image}` : null
+      image: state.image ? `${process.env.API_BASE_URL || 'http://localhost:5000'}${state.image}` : null
     }));
     
     res.json(formattedStates);
   } catch (error) {
-    console.error('Error fetching states:', error);
     res.status(500).json({ message: 'Failed to fetch states', error: error.message });
   }
 });
@@ -82,8 +78,6 @@ router.get('/', async (req, res) => {
 router.get('/:identifier', async (req, res) => {
   try {
     const { identifier } = req.params;
-    console.log('Fetching state with identifier:', identifier);
-    
     // Try to find by ID first
     let [states] = await pool.query('SELECT * FROM states WHERE id = ?', [identifier]);
     
@@ -97,17 +91,15 @@ router.get('/:identifier', async (req, res) => {
       // Lowercase for case-insensitive match
       route = route.toLowerCase();
 
-      console.log('Trying to find state by route:', route);
       [states] = await pool.query('SELECT * FROM states WHERE LOWER(route) = ?', [route]);
     }
     if (states.length === 0) {
-      console.log('State not found with identifier:', identifier);
       return res.status(404).json({ message: 'State not found' });
     }
     
     const state = states[0];
     // Format image URL
-    state.image = state.image ? `http://localhost:5000${state.image}` : null;
+    state.image = state.image ? `${process.env.API_BASE_URL || 'http://localhost:5000'}${state.image}` : null;
 
     // Fetch history for this state
     const [history] = await pool.query('SELECT * FROM state_history WHERE state_id = ?', [state.id]);
@@ -115,7 +107,7 @@ router.get('/:identifier', async (req, res) => {
     const formattedHistory = history.map(item => ({
       ...item,
       image: item.image
-        ? (item.image.startsWith('http') ? item.image : `http://localhost:5000${item.image}`)
+        ? (item.image.startsWith('http') ? item.image : `${process.env.API_BASE_URL || 'http://localhost:5000'}${item.image}`)
         : null
     }));
     // Add history to state object
@@ -123,26 +115,20 @@ router.get('/:identifier', async (req, res) => {
 
     res.json(state);
   } catch (error) {
-    console.error('Error fetching state:', error);
     res.status(500).json({ message: 'Failed to fetch state', error: error.message });
   }
 });
 
 // Delete a state
 router.delete('/:id', async (req, res) => {
-  console.log('Delete request received for state ID:', req.params.id);
   const connection = await pool.getConnection();
   
   try {
     await connection.beginTransaction();
 
     // First get the state details to get the image path
-    console.log('Querying database for state with ID:', req.params.id);
     const [states] = await connection.query('SELECT * FROM states WHERE id = ?', [req.params.id]);
-    console.log('Query result:', states);
-    
     if (states.length === 0) {
-      console.log('No state found with ID:', req.params.id);
       await connection.rollback();
       return res.status(404).json({ 
         error: 'State not found',
@@ -152,34 +138,23 @@ router.delete('/:id', async (req, res) => {
     }
 
     const state = states[0];
-    console.log('Found state to delete:', state);
-
     // Delete the image file if it exists
     if (state.image && state.image.startsWith('/uploads/')) {
       const imagePath = path.join(__dirname, '..', '..', state.image);
-      console.log('Checking image path:', imagePath);
       if (fs.existsSync(imagePath)) {
         fs.unlinkSync(imagePath);
-        console.log('Deleted image file:', imagePath);
-      } else {
-        console.log('Image file not found at path:', imagePath);
-      }
+        } else {
+        }
     }
 
     // Delete related records first (if any)
-    console.log('Deleting related state_images records...');
     await connection.query('DELETE FROM state_images WHERE state_id = ?', [req.params.id]);
     
-    console.log('Deleting related state_history records...');
     await connection.query('DELETE FROM state_history WHERE state_id = ?', [req.params.id]);
     
     // Delete the state
-    console.log('Deleting state record...');
     const [result] = await connection.query('DELETE FROM states WHERE id = ?', [req.params.id]);
-    console.log('Delete result:', result);
-    
     if (result.affectedRows === 0) {
-      console.log('No rows affected during delete operation');
       await connection.rollback();
       return res.status(404).json({ 
         error: 'State not found',
@@ -189,7 +164,6 @@ router.delete('/:id', async (req, res) => {
     }
 
     await connection.commit();
-    console.log('Transaction committed successfully');
     res.json({ 
       message: 'State deleted successfully',
       deletedState: {
@@ -199,7 +173,6 @@ router.delete('/:id', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error in delete operation:', error);
     await connection.rollback();
     res.status(500).json({ 
       error: 'Failed to delete state',
@@ -283,14 +256,12 @@ router.post('/', upload.single('image'), handleMulterError, async (req, res) => 
     // Format image URL in response
     const formattedState = {
       ...newState[0],
-      image: newState[0].image ? `http://localhost:5000${newState[0].image}` : null
+      image: newState[0].image ? `${process.env.API_BASE_URL || 'http://localhost:5000'}${newState[0].image}` : null
     };
 
     res.status(201).json(formattedState);
   } catch (error) {
     await connection.rollback();
-    console.error('Error creating state:', error);
-    
     // If there was a file upload and an error occurred, delete the file
     if (req.file) {
       const filePath = path.join(__dirname, '..', '..', req.file.path);
@@ -411,14 +382,12 @@ router.put('/:id', upload.single('image'), handleMulterError, async (req, res) =
     // Format image URL in response
     const formattedState = {
       ...updatedState[0],
-      image: updatedState[0].image ? `http://localhost:5000${updatedState[0].image}` : null
+      image: updatedState[0].image ? `${process.env.API_BASE_URL || 'http://localhost:5000'}${updatedState[0].image}` : null
     };
 
     res.json(formattedState);
   } catch (error) {
     await connection.rollback();
-    console.error('Error updating state:', error);
-    
     // If there was a file upload and an error occurred, delete the file
     if (req.file) {
       const filePath = path.join(__dirname, '..', '..', req.file.path);

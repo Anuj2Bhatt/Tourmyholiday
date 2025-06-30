@@ -26,8 +26,7 @@ CREATE TABLE IF NOT EXISTS attractions (
   try {
     await db.query(createAttractionsTable);
   } catch (err) {
-    console.error('Error creating attractions table:', err.message);
-  }
+    }
 })();
 
 // Multer config: all images in /uploads
@@ -54,7 +53,6 @@ router.post('/', upload.single('featured_image'), async (req, res) => {
     
     res.json({ success: true, id: result.insertId });
   } catch (err) {
-    console.error('Error creating attraction:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -77,7 +75,6 @@ router.put('/:id', upload.single('featured_image'), async (req, res) => {
     await db.query(sql, params);
     res.json({ success: true });
   } catch (err) {
-    console.error('Error updating attraction:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -91,7 +88,6 @@ router.get('/subdistrict/:subdistrict_id', async (req, res) => {
     );
     res.json(rows);
   } catch (err) {
-    console.error('Error fetching attractions:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -105,7 +101,6 @@ router.get('/:id', async (req, res) => {
     );
     res.json(rows[0]);
   } catch (err) {
-    console.error('Error fetching attraction:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -119,7 +114,85 @@ router.delete('/:id', async (req, res) => {
     );
     res.json({ success: true });
   } catch (err) {
-    console.error('Error deleting attraction:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET MULTIPLE ATTRACTIONS with pagination and filters
+router.get('/', async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      subdistrict_id,
+      search,
+      sort_by = 'created_at',
+      sort_order = 'DESC'
+    } = req.query;
+
+    // Calculate offset for pagination
+    const offset = (page - 1) * limit;
+
+    // Base query
+    let query = 'SELECT * FROM attractions';
+    let countQuery = 'SELECT COUNT(*) as total FROM attractions';
+    let whereConditions = [];
+    let queryParams = [];
+
+    // Add filters if provided
+    if (subdistrict_id) {
+      whereConditions.push('subdistrict_id = ?');
+      queryParams.push(subdistrict_id);
+    }
+
+    if (search) {
+      whereConditions.push('(title LIKE ? OR description LIKE ?)');
+      queryParams.push(`%${search}%`, `%${search}%`);
+    }
+
+    // Add WHERE clause if there are conditions
+    if (whereConditions.length > 0) {
+      const whereClause = ' WHERE ' + whereConditions.join(' AND ');
+      query += whereClause;
+      countQuery += whereClause;
+    }
+
+    // Add sorting
+    const allowedSortFields = ['created_at', 'title', 'id'];
+    const allowedSortOrders = ['ASC', 'DESC'];
+    
+    const finalSortBy = allowedSortFields.includes(sort_by) ? sort_by : 'created_at';
+    const finalSortOrder = allowedSortOrders.includes(sort_order.toUpperCase()) ? sort_order.toUpperCase() : 'DESC';
+    
+    query += ` ORDER BY ${finalSortBy} ${finalSortOrder}`;
+
+    // Add pagination
+    query += ' LIMIT ? OFFSET ?';
+    queryParams.push(parseInt(limit), offset);
+
+    // Execute both queries
+    const [attractions, totalCount] = await Promise.all([
+      db.query(query, queryParams),
+      db.query(countQuery, queryParams.slice(0, -2)) // Remove limit and offset for count
+    ]);
+
+    // Calculate pagination info
+    const total = totalCount[0][0].total;
+    const totalPages = Math.ceil(total / limit);
+
+    res.json({
+      attractions: attractions[0],
+      pagination: {
+        current_page: parseInt(page),
+        total_pages: totalPages,
+        total_items: total,
+        items_per_page: parseInt(limit),
+        has_next_page: page < totalPages,
+        has_prev_page: page > 1
+      }
+    });
+
+  } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../db');
+const pool = require('../../db');
 const path = require('path');
 const multer = require('multer');
 
@@ -30,8 +30,6 @@ const upload = multer({
 router.get('/state/:stateName', async (req, res) => {
   try {
     const { stateName } = req.params;
-    console.log('Fetching districts for state:', stateName);
-    
     const [districts] = await pool.query(`
       SELECT d.*, s.name as state_name 
       FROM districts d
@@ -39,8 +37,6 @@ router.get('/state/:stateName', async (req, res) => {
       WHERE s.name = ?
       ORDER BY d.name ASC
     `, [stateName]);
-    
-    console.log(`Found ${districts.length} districts for state ${stateName}`);
     
     // Format image URLs
     const formattedDistricts = districts.map(district => ({
@@ -51,7 +47,6 @@ router.get('/state/:stateName', async (req, res) => {
     
     res.json(formattedDistricts);
   } catch (error) {
-    console.error('Error fetching districts:', error);
     res.status(500).json({ message: 'Failed to fetch districts', error: error.message });
   }
 });
@@ -60,8 +55,6 @@ router.get('/state/:stateName', async (req, res) => {
 router.get('/:districtId/images', async (req, res) => {
   try {
     const { districtId } = req.params;
-    console.log('Fetching images for district ID:', districtId);
-
     // First check if district exists
     const [districts] = await pool.query('SELECT id FROM districts WHERE id = ?', [districtId]);
     if (districts.length === 0) {
@@ -84,10 +77,8 @@ router.get('/:districtId/images', async (req, res) => {
         `http://localhost:5000/${image.image_url.replace(/^\/+/, '')}`
     }));
 
-    console.log(`Found ${images.length} images for district ${districtId}`);
     res.json(formattedImages);
   } catch (error) {
-    console.error('Error fetching district images:', error);
     res.status(500).json({ message: 'Failed to fetch district images', error: error.message });
   }
 });
@@ -101,8 +92,6 @@ router.post('/:districtId/images', upload.single('image'), async (req, res) => {
     if (!req.file) {
       return res.status(400).json({ message: 'No image file uploaded' });
     }
-
-    console.log('Uploading image for district ID:', districtId);
 
     // Check if district exists
     const [districts] = await pool.query('SELECT id FROM districts WHERE id = ?', [districtId]);
@@ -129,7 +118,6 @@ router.post('/:districtId/images', upload.single('image'), async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error uploading district image:', error);
     res.status(500).json({ message: 'Failed to upload image', error: error.message });
   }
 });
@@ -138,8 +126,6 @@ router.post('/:districtId/images', upload.single('image'), async (req, res) => {
 router.delete('/:districtId/images/:imageId', async (req, res) => {
   try {
     const { districtId, imageId } = req.params;
-    console.log('Deleting image', imageId, 'for district', districtId);
-
     // Check if district exists
     const [districts] = await pool.query('SELECT id FROM districts WHERE id = ?', [districtId]);
     if (districts.length === 0) {
@@ -176,7 +162,6 @@ router.delete('/:districtId/images/:imageId', async (req, res) => {
 
     res.json({ message: 'Image deleted successfully' });
   } catch (error) {
-    console.error('Error deleting district image:', error);
     res.status(500).json({ message: 'Failed to delete image', error: error.message });
   }
 });
@@ -185,13 +170,10 @@ router.delete('/:districtId/images/:imageId', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('Attempting to delete district with ID:', id);
-
     // First check if district exists
     const [districts] = await pool.query('SELECT * FROM districts WHERE id = ?', [id]);
     
     if (districts.length === 0) {
-      console.log('District not found with ID:', id);
       return res.status(404).json({ message: 'District not found' });
     }
 
@@ -199,14 +181,11 @@ router.delete('/:id', async (req, res) => {
     const [result] = await pool.query('DELETE FROM districts WHERE id = ?', [id]);
     
     if (result.affectedRows === 0) {
-      console.log('No district was deleted for ID:', id);
       return res.status(404).json({ message: 'District not found or could not be deleted' });
     }
 
-    console.log('Successfully deleted district with ID:', id);
     res.json({ message: 'District deleted successfully' });
   } catch (error) {
-    console.error('Error deleting district:', error);
     res.status(500).json({ 
       message: 'Failed to delete district', 
       error: error.message,
@@ -219,8 +198,6 @@ router.delete('/:id', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('Fetching district with ID:', id);
-
     // Get district details
     const [districts] = await pool.query(`
       SELECT d.*, s.name as state_name 
@@ -249,7 +226,6 @@ router.get('/:id', async (req, res) => {
 
     res.json(district);
   } catch (error) {
-    console.error('Error fetching district:', error);
     res.status(500).json({ message: 'Failed to fetch district', error: error.message });
   }
 });
@@ -258,8 +234,6 @@ router.get('/:id', async (req, res) => {
 router.get('/:districtId/stats', async (req, res) => {
   try {
     const { districtId } = req.params;
-    console.log('Fetching stats for district ID:', districtId);
-
     // First check if district exists
     const [districts] = await pool.query('SELECT id FROM districts WHERE id = ?', [districtId]);
     if (districts.length === 0) {
@@ -278,7 +252,6 @@ router.get('/:districtId/stats', async (req, res) => {
 
     res.json(stats[0]);
   } catch (error) {
-    console.error('Error fetching district stats:', error);
     res.status(500).json({ message: 'Failed to fetch district statistics', error: error.message });
   }
 });
@@ -287,8 +260,6 @@ router.get('/:districtId/stats', async (req, res) => {
 router.get('/slug/:slug', async (req, res) => {
   try {
     const { slug } = req.params;
-    console.log('Fetching district with slug:', slug);
-
     // Get district details
     const [districts] = await pool.query(`
       SELECT d.*, s.name as state_name 
@@ -298,7 +269,6 @@ router.get('/slug/:slug', async (req, res) => {
     `, [slug]);
 
     if (districts.length === 0) {
-      console.log('No district found with slug:', slug);
       return res.status(404).json({ message: 'District not found' });
     }
 
@@ -316,10 +286,8 @@ router.get('/slug/:slug', async (req, res) => {
       stats: stats[0] || null
     };
 
-    console.log('Found district:', district.name);
     res.json(district);
   } catch (error) {
-    console.error('Error fetching district by slug:', error);
     res.status(500).json({ message: 'Failed to fetch district', error: error.message });
   }
 });
@@ -336,8 +304,6 @@ router.post('/', async (req, res) => {
       meta_description,
       meta_keywords
     } = req.body;
-
-    console.log('Creating new district:', { name, slug, state_name });
 
     // Check if state exists
     const [states] = await pool.query('SELECT id FROM states WHERE name = ?', [state_name]);
@@ -369,10 +335,8 @@ router.post('/', async (req, res) => {
       WHERE d.id = ?
     `, [result.insertId]);
 
-    console.log('Created district:', newDistrict[0].name);
     res.status(201).json(newDistrict[0]);
   } catch (error) {
-    console.error('Error creating district:', error);
     if (error.code === 'ER_DUP_ENTRY') {
       res.status(400).json({ message: 'A district with this slug already exists' });
     } else {

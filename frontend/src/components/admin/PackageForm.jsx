@@ -2,8 +2,44 @@ import React, { useState, useEffect, useRef } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import './PackageForm.css';
-import ManageItinerary from './ManageItinerary';
 import HotelSelector from './HotelSelector';
+
+const modules = {
+  toolbar: [
+    [{ 'header': [1, 2, 3, false] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+    ['link', 'image'],
+    ['clean']
+  ],
+  clipboard: {
+    matchVisual: false
+  }
+};
+
+const formats = [
+  'header',
+  'bold', 'italic', 'underline', 'strike',
+  'list', 'bullet',
+  'link', 'image'
+];
+
+const QuillEditor = React.forwardRef((props, ref) => {
+  const { value, onChange, placeholder } = props;
+  
+  return (
+    <ReactQuill
+      ref={ref}
+      value={value}
+      onChange={onChange}
+      modules={modules}
+      formats={formats}
+      placeholder={placeholder}
+      preserveWhitespace={true}
+      theme="snow"
+    />
+  );
+});
 
 const PackageForm = ({
   formData,
@@ -218,8 +254,6 @@ const PackageForm = ({
 
     try {
       setLoading(true);
-      console.log('Deleting image:', { packageId: editingPackage.id, season, imageId });
-      
       const response = await fetch(
         `http://localhost:5000/api/package-seasons/${editingPackage.id}/seasons/${season}/images/${imageId}`,
         {
@@ -227,10 +261,7 @@ const PackageForm = ({
         }
       );
 
-      console.log('Delete response status:', response.status);
       const responseData = await response.json();
-      console.log('Delete response data:', responseData);
-
       if (!response.ok) {
         throw new Error(responseData.message || 'Failed to delete season image');
       }
@@ -243,7 +274,6 @@ const PackageForm = ({
       
       setError(null); // Clear any previous errors
     } catch (err) {
-      console.error('Error deleting season image:', err);
       setError(err.message || 'Failed to delete season image');
     } finally {
       setLoading(false);
@@ -308,15 +338,6 @@ const PackageForm = ({
         formData.append('alt_text', newImageData.altText || '');
         formData.append('description', newImageData.description || '');
 
-        console.log('Sending request to upload image...');
-        console.log('Form data contents:', {
-          package_id: editingPackage.id,
-          season: season,
-          file: newImageData.file.name,
-          alt_text: newImageData.altText,
-          description: newImageData.description
-        });
-
         const response = await fetch(
           `http://localhost:5000/api/package-seasons/${editingPackage.id}/seasons/${season}/images`,
           {
@@ -326,10 +347,7 @@ const PackageForm = ({
           }
         );
 
-        console.log('Response status:', response.status);
         const responseData = await response.json();
-        console.log('Response data:', responseData);
-
         if (!response.ok) {
           throw new Error(responseData.message || 'Failed to save season image');
         }
@@ -358,7 +376,6 @@ const PackageForm = ({
       });
       setError(null); // Clear any previous errors
     } catch (err) {
-      console.error('Error saving season image:', err);
       setError(err.message || 'Failed to save season image');
     } finally {
       setLoading(false);
@@ -421,8 +438,7 @@ const PackageForm = ({
       }
     } catch (err) {
       setError(err.message);
-      console.error('Error fetching season data:', err);
-    } finally {
+      } finally {
       setLoading(false);
     }
   };
@@ -458,8 +474,7 @@ const PackageForm = ({
       // Show success message or handle response
     } catch (err) {
       setError(err.message);
-      console.error('Error saving season data:', err);
-    } finally {
+      } finally {
       setLoading(false);
     }
   };
@@ -470,6 +485,270 @@ const PackageForm = ({
       packageImagePreviews.forEach(url => url && URL.revokeObjectURL(url));
     };
   }, [packageImagePreviews]);
+
+  const [activeItineraryTab, setActiveItineraryTab] = useState('add');
+  const [newDay, setNewDay] = useState({ dayNumber: 0, title: '', description: '' });
+  const [isEditing, setIsEditing] = useState(false);
+
+  // Add this utility function at the top of the file
+  const getValidItineraryLength = (itinerary) => {
+    if (!itinerary) return 0;
+    if (typeof itinerary === 'string') {
+      try {
+        const parsed = JSON.parse(itinerary);
+        return Array.isArray(parsed) ? parsed.length : 0;
+      } catch (e) {
+        return 0;
+      }
+    }
+    return Array.isArray(itinerary) ? itinerary.length : 0;
+  };
+
+  // Also update the useEffect that handles itinerary data to ensure proper validation
+  useEffect(() => {
+    if (editingPackage && editingPackage.itinerary) {
+      try {
+        let parsedItinerary;
+        
+        if (typeof editingPackage.itinerary === 'string') {
+          // First, try to clean the string by replacing escaped quotes
+          let cleanString = editingPackage.itinerary
+            .replace(/^"|"$/g, '') // Remove outer quotes
+            .replace(/\\"/g, '"')  // Replace escaped quotes
+            .replace(/\\/g, '');   // Remove other escape characters
+
+          try {
+            // Try parsing the cleaned string
+            parsedItinerary = JSON.parse(cleanString);
+            } catch (e) {
+            // If first attempt fails, try to fix common JSON issues
+            try {
+              // Replace any unescaped quotes in HTML content
+              cleanString = cleanString.replace(/"([^"]*)"([^"]*)"([^"]*)"/g, '"$1\\"$2\\"$3"');
+              // Replace any remaining problematic quotes
+              cleanString = cleanString.replace(/(?<!\\)"/g, '\\"');
+              // Add back the outer quotes
+              cleanString = `"${cleanString}"`;
+              
+              parsedItinerary = JSON.parse(cleanString);
+              } catch (e2) {
+              parsedItinerary = [];
+            }
+          }
+        } else if (Array.isArray(editingPackage.itinerary)) {
+          parsedItinerary = editingPackage.itinerary;
+          } else {
+          parsedItinerary = [];
+        }
+
+        // Validate each day object and ensure proper structure
+        if (Array.isArray(parsedItinerary)) {
+          const validItinerary = parsedItinerary.filter(day => 
+            day && 
+            typeof day === 'object' && 
+            typeof day.dayNumber === 'number' && 
+            day.dayNumber >= 0 && // Allow 0 as valid day number
+            typeof day.title === 'string' && 
+            typeof day.description === 'string' &&
+            day.title.trim() !== '' // Ensure title is not empty
+          ).map(day => ({
+            dayNumber: parseInt(day.dayNumber),
+            title: day.title.trim(),
+            description: day.description.trim()
+          }));
+
+          // Sort itinerary by day number
+          const sortedItinerary = validItinerary.sort((a, b) => a.dayNumber - b.dayNumber);
+
+          // Update form data with the sorted itinerary
+          setFormData(prev => {
+            return {
+              ...prev,
+              itinerary: sortedItinerary
+            };
+          });
+
+          // Set the newDay dayNumber to the next available number
+          setNewDay(prev => ({
+            ...prev,
+            dayNumber: sortedItinerary.length
+          }));
+        }
+      } catch (error) {
+        // Reset to empty array on error
+        setFormData(prev => ({
+          ...prev,
+          itinerary: []
+        }));
+      }
+    }
+  }, [editingPackage]); // Only run when editingPackage changes
+
+  // Add these new state variables after other useState declarations
+  const [itineraryLoading, setItineraryLoading] = useState(false);
+  const [itineraryError, setItineraryError] = useState(null);
+
+  // Replace the existing useEffect for itinerary with this new one
+  useEffect(() => {
+    const fetchItineraryData = async (packageId) => {
+      try {
+        setItineraryLoading(true);
+        setItineraryError(null);
+        
+        const response = await fetch(`http://localhost:5000/api/package-itinerary/${packageId}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch itinerary data');
+        }
+        
+        const days = await response.json();
+        setFormData(prev => ({
+          ...prev,
+          itinerary: days.sort((a, b) => a.day_number - b.day_number)
+        }));
+        
+        setNewDay(prev => ({
+          ...prev,
+          dayNumber: days.length
+        }));
+      } catch (error) {
+        setItineraryError(error.message);
+      } finally {
+        setItineraryLoading(false);
+      }
+    };
+
+    if (editingPackage?.id) {
+      fetchItineraryData(editingPackage.id);
+    }
+  }, [editingPackage]);
+
+  // Replace handleAddDay with this new version
+  const handleAddDay = async () => {
+    if (!editingPackage?.id || !newDay.title) return;
+    
+    try {
+      setItineraryLoading(true);
+      setItineraryError(null);
+      
+      const url = isEditing 
+        ? `http://localhost:5000/api/package-itinerary/${editingPackage.id}/${newDay.dayNumber}`
+        : `http://localhost:5000/api/package-itinerary/${editingPackage.id}`;
+      
+      const method = isEditing ? 'PUT' : 'POST';
+      
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          day_number: newDay.dayNumber || 0,
+          title: newDay.title.trim(),
+          description: newDay.description.trim()
+        })
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || `Failed to ${isEditing ? 'update' : 'add'} day`);
+      }
+      
+      const updatedDay = await response.json();
+      // Reset form and states
+      setNewDay({
+        dayNumber: (formData.itinerary?.length || 0),
+        title: '',
+        description: ''
+      });
+      setIsEditing(false);
+      
+      // Refresh itinerary data
+      const daysResponse = await fetch(`http://localhost:5000/api/package-itinerary/${editingPackage.id}`);
+      if (!daysResponse.ok) throw new Error('Failed to refresh itinerary');
+      const days = await daysResponse.json();
+      
+      setFormData(prev => ({
+        ...prev,
+        itinerary: days.sort((a, b) => a.day_number - b.day_number)
+      }));
+    } catch (error) {
+      setItineraryError(error.message);
+    } finally {
+      setItineraryLoading(false);
+    }
+  };
+
+  // Replace handleDeleteDay with this new version
+  const handleDeleteDay = async (dayNumber) => {
+    if (!editingPackage?.id) return;
+    
+    try {
+      setItineraryLoading(true);
+      setItineraryError(null);
+      
+      const response = await fetch(
+        `http://localhost:5000/api/package-itinerary/${editingPackage.id}/${dayNumber}`,
+        { method: 'DELETE' }
+      );
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to delete day');
+      }
+      
+      // Refresh itinerary data after deletion
+      const daysResponse = await fetch(`http://localhost:5000/api/package-itinerary/${editingPackage.id}`);
+      if (!daysResponse.ok) throw new Error('Failed to refresh itinerary');
+      const days = await daysResponse.json();
+      
+      setFormData(prev => ({
+        ...prev,
+        itinerary: days.sort((a, b) => a.day_number - b.day_number)
+      }));
+    } catch (error) {
+      setItineraryError(error.message);
+    } finally {
+      setItineraryLoading(false);
+    }
+  };
+
+  // Add new function for updating days
+  const handleUpdateDay = async (dayNumber, updatedData) => {
+    if (!editingPackage?.id) return;
+    
+    try {
+      setItineraryLoading(true);
+      setItineraryError(null);
+      
+      const response = await fetch(
+        `http://localhost:5000/api/package-itinerary/${editingPackage.id}/${dayNumber}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(updatedData)
+        }
+      );
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to update day');
+      }
+      
+      const updatedDay = await response.json();
+      setFormData(prev => ({
+        ...prev,
+        itinerary: prev.itinerary.map(day => 
+          day.day_number === dayNumber ? updatedDay : day
+        )
+      }));
+    } catch (error) {
+      setItineraryError(error.message);
+    } finally {
+      setItineraryLoading(false);
+    }
+  };
 
   return (
     <div className="package-form-container">
@@ -859,8 +1138,7 @@ const PackageForm = ({
                         className="image-preview"
                       style={{ width: '100%', height: '180px', objectFit: 'cover', borderRadius: '6px', background: '#f0f0f0', border: '1px solid #e0e0e0' }}
                         onError={(e) => {
-                            console.error('Image preview failed to load:', formData[`image${index}`]);
-                          e.target.onerror = null;
+                            e.target.onerror = null;
                           e.target.src = '/images/placeholder.jpg';
                         }}
                       />
@@ -965,8 +1243,7 @@ const PackageForm = ({
                               background: '#f0f0f0',
                             }}
                           onError={(e) => {
-                              console.error('Image failed to load:', image.image_path);
-                            e.target.onerror = null;
+                              e.target.onerror = null;
                             e.target.src = '/images/placeholder.jpg';
                           }}
                         />
@@ -1113,31 +1390,334 @@ const PackageForm = ({
               </button>
             </div>
 
-            <div className="details-tab-content">
+            <div className="details-tab-content-package">
               {activeDetailsTab === 'description' && (
                 <div className="form-group">
                   <label>Description</label>
-                  <ReactQuill
+                  <QuillEditor
                     value={formData.description}
                     onChange={(content) => handleEditorChange('description', content)}
-                    modules={{
-                      toolbar: [
-                        [{ 'header': [1, 2, 3, false] }],
-                        ['bold', 'italic', 'underline', 'strike'],
-                        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                        ['link', 'image'],
-                        ['clean']
-                      ]
-                    }}
+                    placeholder="Enter package description..."
                   />
                 </div>
               )}
 
               {activeDetailsTab === 'itinerary' && (
-                <ManageItinerary 
-                  itinerary={formData.itinerary} 
-                  onSave={handleItinerarySave}
-                />
+                <div className="form-group">
+                  <label>Itinerary</label>
+                  
+                  {itineraryError && (
+                    <div className="error-message" style={{ 
+                      color: '#dc3545', 
+                      padding: '10px', 
+                      marginBottom: '15px', 
+                      background: '#f8d7da', 
+                      border: '1px solid #f5c6cb', 
+                      borderRadius: '4px' 
+                    }}>
+                      {itineraryError}
+                    </div>
+                  )}
+                  
+                  {itineraryLoading && (
+                    <div className="loading-message" style={{ 
+                      textAlign: 'center', 
+                      padding: '20px', 
+                      color: '#666' 
+                    }}>
+                      Loading itinerary data...
+                    </div>
+                  )}
+                  
+                  <div className="itinerary-tabs" style={{ 
+                    display: 'flex', 
+                    gap: '10px', 
+                    marginBottom: '20px',
+                    borderBottom: '1px solid #ddd',
+                    paddingBottom: '10px'
+                  }}>
+                    <button
+                      type="button"
+                      onClick={() => setActiveItineraryTab('add')}
+                      style={{
+                        padding: '8px 16px',
+                        background: activeItineraryTab === 'add' ? '#007bff' : '#f8f9fa',
+                        color: activeItineraryTab === 'add' ? 'white' : '#333',
+                        border: '1px solid #ddd',
+                        borderRadius: '4px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Add New Day
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveItineraryTab('manage')}
+                      style={{
+                        padding: '8px 16px',
+                        background: activeItineraryTab === 'manage' ? '#007bff' : '#f8f9fa',
+                        color: activeItineraryTab === 'manage' ? 'white' : '#333',
+                        border: '1px solid #ddd',
+                        borderRadius: '4px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Manage Days ({formData.itinerary?.length || 0})
+                    </button>
+                  </div>
+
+                  <div className="itinerary-content">
+                    {activeItineraryTab === 'add' && (
+                      <div className="add-itinerary-tab">
+                        <div style={{
+                          border: '1px solid #e0e0e0',
+                          borderRadius: '8px',
+                          padding: '16px',
+                          background: '#fafbfc',
+                          marginBottom: '16px'
+                        }}>
+                          <div style={{ 
+                            display: 'flex', 
+                            justifyContent: 'space-between', 
+                            alignItems: 'center', 
+                            marginBottom: '16px' 
+                          }}>
+                            <h3 style={{ color: '#333', margin: 0 }}>
+                              {isEditing ? 'Edit Day' : 'Add New Day'}
+                            </h3>
+                            {isEditing && (
+                              <button 
+                                type="button"
+                                onClick={() => {
+                                  setIsEditing(false);
+                                  setNewDay({
+                                    dayNumber: (formData.itinerary?.length || 0),
+                                    title: '',
+                                    description: ''
+                                  });
+                                }}
+                                style={{
+                                  background: '#6c757d',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '4px',
+                                  padding: '8px 16px',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '6px'
+                                }}
+                              >
+                                <i className="fas fa-times"></i>
+                                Cancel Edit
+                              </button>
+                            )}
+                          </div>
+                          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '12px' }}>
+                            <input
+                              type="number"
+                              value={newDay.dayNumber}
+                              onChange={(e) => setNewDay(prev => ({ ...prev, dayNumber: parseInt(e.target.value) || 0 }))}
+                              min="0"
+                              style={{
+                                width: '80px',
+                                padding: '8px',
+                                borderRadius: '4px',
+                                border: '1px solid #ddd'
+                              }}
+                              placeholder="Day"
+                              disabled={itineraryLoading || isEditing}
+                            />
+                            <input
+                              type="text"
+                              value={newDay.title}
+                              onChange={(e) => setNewDay(prev => ({ ...prev, title: e.target.value }))}
+                              style={{
+                                flex: 1,
+                                padding: '8px',
+                                borderRadius: '4px',
+                                border: '1px solid #ddd'
+                              }}
+                              placeholder="Day Title"
+                              disabled={itineraryLoading}
+                            />
+                          </div>
+                          <div className="day-description">
+                            <QuillEditor
+                              value={newDay.description}
+                              onChange={(content) => setNewDay(prev => ({ ...prev, description: content }))}
+                              placeholder="Enter day description..."
+                            />
+                          </div>
+                          <div style={{ marginTop: '16px' }}>
+                            <button 
+                              type="button"
+                              onClick={handleAddDay}
+                              disabled={itineraryLoading}
+                              style={{
+                                background: '#28a745',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px',
+                                padding: '10px 20px',
+                                cursor: itineraryLoading ? 'not-allowed' : 'pointer',
+                                opacity: itineraryLoading ? 0.7 : 1,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                width: '100%',
+                                justifyContent: 'center'
+                              }}
+                            >
+                              {itineraryLoading ? (
+                                <>
+                                  <i className="fas fa-spinner fa-spin"></i>
+                                  Saving...
+                                </>
+                              ) : isEditing ? (
+                                <>
+                                  <i className="fas fa-save"></i>
+                                  Save Changes
+                                </>
+                              ) : (
+                                <>
+                                  <i className="fas fa-plus"></i>
+                                  Add New Day
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                </div>
+              )}
+
+                    {activeItineraryTab === 'manage' && (
+                      <div className="manage-itinerary-tab">
+                        {formData.itinerary && Array.isArray(formData.itinerary) && formData.itinerary.length > 0 ? (
+                          <div className="itinerary-days" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            {formData.itinerary.map((day) => (
+                              <div key={day.day_number} className="itinerary-day" style={{
+                                border: '1px solid #e0e0e0',
+                                borderRadius: '8px',
+                                padding: '12px 16px',
+                                background: '#fafbfc',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '12px'
+                              }}>
+                                <div style={{ 
+                                  background: '#007bff',
+                                  color: 'white',
+                                  padding: '4px 8px',
+                                  borderRadius: '4px',
+                                  minWidth: '60px',
+                                  textAlign: 'center',
+                                  fontWeight: '500'
+                                }}>
+                                  Day {day.day_number}
+                                </div>
+                                
+                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                  <input
+                                    type="text"
+                                    value={day.title}
+                                    onChange={(e) => handleUpdateDay(day.day_number, { ...day, title: e.target.value })}
+                                    style={{
+                                      padding: '6px 8px',
+                                      borderRadius: '4px',
+                                      border: '1px solid #ddd',
+                                      fontSize: '1em',
+                                      fontWeight: '500'
+                                    }}
+                                    placeholder="Day Title"
+                                    disabled={itineraryLoading}
+                                  />
+                                  <div style={{ 
+                                    color: '#666',
+                                    fontSize: '0.85em',
+                                    padding: '4px 8px',
+                                    background: '#fff',
+                                    borderRadius: '4px',
+                                    border: '1px solid #eee',
+                                    maxWidth: '300px',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                    display: 'inline-block'
+                                  }} title={day.description.replace(/<[^>]*>/g, '')}>
+                                    {day.description.replace(/<[^>]*>/g, '')}
+                                  </div>
+                                </div>
+
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setActiveItineraryTab('add');
+                                      setIsEditing(true);  // Set editing mode first
+                                      setNewDay({
+                                        dayNumber: day.day_number,
+                                        title: day.title,
+                                        description: day.description
+                                      });
+                                    }}
+                                    disabled={itineraryLoading}
+                                    style={{
+                                      background: '#007bff',
+                                      color: 'white',
+                                      border: 'none',
+                                      borderRadius: '4px',
+                                      padding: '6px 12px',
+                                      cursor: itineraryLoading ? 'not-allowed' : 'pointer',
+                                      opacity: itineraryLoading ? 0.7 : 1,
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '6px'
+                                    }}
+                                  >
+                                    <i className="fas fa-edit"></i>
+                                    Edit
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteDay(day.day_number)}
+                                    disabled={itineraryLoading}
+                                    style={{
+                                      background: '#dc3545',
+                                      color: 'white',
+                                      border: 'none',
+                                      borderRadius: '4px',
+                                      padding: '6px 12px',
+                                      cursor: itineraryLoading ? 'not-allowed' : 'pointer',
+                                      opacity: itineraryLoading ? 0.7 : 1,
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '6px'
+                                    }}
+                                  >
+                                    <i className="fas fa-trash"></i>
+                                    Delete
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="no-itinerary" style={{ 
+                            textAlign: 'center', 
+                            padding: '20px',
+                            color: '#666',
+                            background: '#f8f9fa',
+                            borderRadius: '8px',
+                            border: '1px dashed #ddd'
+                          }}>
+                            {itineraryLoading ? 'Loading itinerary...' : 'No itinerary days added yet. Go to "Add New Day" tab to create days.'}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
 
               {activeDetailsTab === 'hotels' && (
@@ -1166,18 +1746,10 @@ const PackageForm = ({
               {activeDetailsTab === 'sightseeing' && (
                 <div className="form-group">
                   <label>Sightseeing</label>
-                  <ReactQuill
+                  <QuillEditor
                     value={formData.sightseeing}
                     onChange={(content) => handleEditorChange('sightseeing', content)}
-                    modules={{
-                      toolbar: [
-                        [{ 'header': [1, 2, 3, false] }],
-                        ['bold', 'italic', 'underline', 'strike'],
-                        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                        ['link', 'image'],
-                        ['clean']
-                      ]
-                    }}
+                    placeholder="Enter sightseeing description..."
                   />
                 </div>
               )}
@@ -1229,86 +1801,46 @@ const PackageForm = ({
 
             <div className="form-group">
               <label>Note</label>
-              <ReactQuill
+              <QuillEditor
                 value={formData.note}
                 onChange={(content) => handleEditorChange('note', content)}
-                modules={{
-                  toolbar: [
-                    [{ 'header': [1, 2, 3, false] }],
-                    ['bold', 'italic', 'underline', 'strike'],
-                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                    ['link', 'image'],
-                    ['clean']
-                  ]
-                }}
+                placeholder="Enter additional notes..."
               />
             </div>
 
             <div className="form-group">
               <label>Inclusion</label>
-              <ReactQuill
+              <QuillEditor
                 value={formData.inclusion}
                 onChange={(content) => handleEditorChange('inclusion', content)}
-                modules={{
-                  toolbar: [
-                    [{ 'header': [1, 2, 3, false] }],
-                    ['bold', 'italic', 'underline', 'strike'],
-                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                    ['link', 'image'],
-                    ['clean']
-                  ]
-                }}
+                placeholder="Enter inclusion details..."
               />
             </div>
 
             <div className="form-group">
               <label>Exclusion</label>
-              <ReactQuill
+              <QuillEditor
                 value={formData.exclusion}
                 onChange={(content) => handleEditorChange('exclusion', content)}
-                modules={{
-                  toolbar: [
-                    [{ 'header': [1, 2, 3, false] }],
-                    ['bold', 'italic', 'underline', 'strike'],
-                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                    ['link', 'image'],
-                    ['clean']
-                  ]
-                }}
+                placeholder="Enter exclusion details..."
               />
             </div>
 
             <div className="form-group">
               <label>Visa Requirement</label>
-              <ReactQuill
+              <QuillEditor
                 value={formData.visa_requirement}
                 onChange={(content) => handleEditorChange('visa_requirement', content)}
-                modules={{
-                  toolbar: [
-                    [{ 'header': [1, 2, 3, false] }],
-                    ['bold', 'italic', 'underline', 'strike'],
-                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                    ['link', 'image'],
-                    ['clean']
-                  ]
-                }}
+                placeholder="Enter visa requirement details..."
               />
             </div>
 
             <div className="form-group">
               <label>FAQ</label>
-              <ReactQuill
+              <QuillEditor
                 value={formData.faq}
                 onChange={(content) => handleEditorChange('faq', content)}
-                modules={{
-                  toolbar: [
-                    [{ 'header': [1, 2, 3, false] }],
-                    ['bold', 'italic', 'underline', 'strike'],
-                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                    ['link', 'image'],
-                    ['clean']
-                  ]
-                }}
+                placeholder="Enter FAQ details..."
               />
             </div>
           </div>

@@ -42,8 +42,7 @@ router.post('/fix-constraints', async (req, res) => {
         ALTER TABLE state_images 
         DROP FOREIGN KEY ${constraints[0].CONSTRAINT_NAME}
       `);
-      console.log('Dropped existing foreign key constraint');
-    }
+      }
     
     // Add new foreign key constraint with CASCADE
     await connection.query(`
@@ -53,8 +52,6 @@ router.post('/fix-constraints', async (req, res) => {
       REFERENCES states(id) 
       ON DELETE CASCADE
     `);
-    console.log('Added new foreign key constraint with CASCADE');
-    
     await connection.commit();
     res.json({ 
       message: 'Foreign key constraints updated successfully',
@@ -62,7 +59,6 @@ router.post('/fix-constraints', async (req, res) => {
     });
   } catch (error) {
     await connection.rollback();
-    console.error('Error updating constraints:', error);
     res.status(500).json({ 
       error: 'Failed to update constraints',
       details: error.message 
@@ -75,7 +71,6 @@ router.post('/fix-constraints', async (req, res) => {
 // GET all states
 router.get('/', async (req, res) => {
   try {
-    console.log('Fetching all states...');
     // First get Uttarakhand
     const [uttarakhand] = await db.query('SELECT * FROM states WHERE name = ?', ['Uttarakhand']);
     
@@ -91,10 +86,8 @@ router.get('/', async (req, res) => {
       image: state.image ? `http://localhost:5000/uploads/${path.basename(state.image)}` : null
     }));
     
-    console.log(`Found ${formattedStates.length} states`);
     res.json(formattedStates);
   } catch (error) {
-    console.error('Error fetching states:', error);
     res.status(500).json({ error: 'Failed to fetch states', details: error.message });
   }
 });
@@ -102,9 +95,6 @@ router.get('/', async (req, res) => {
 // POST create a new state
 router.post('/', upload.single('image'), async (req, res) => {
   try {
-    console.log('Received POST request body:', req.body);
-    console.log('Received file:', req.file);
-
     const { 
       name, 
       description, 
@@ -118,18 +108,6 @@ router.post('/', upload.single('image'), async (req, res) => {
 
     // Handle image path
     const imagePath = req.file ? `uploads/${req.file.filename}` : null;
-
-    console.log('Creating new state with data:', {
-      name,
-      description,
-      emoji,
-      capital,
-      activities,
-      metaTitle,
-      metaDescription,
-      metaKeywords,
-      image: imagePath
-    });
 
     const [result] = await db.query(
       `INSERT INTO states (
@@ -158,14 +136,12 @@ router.post('/', upload.single('image'), async (req, res) => {
       ]
     );
 
-    console.log('State created successfully:', result);
     res.status(201).json({ 
       id: result.insertId, 
       ...req.body,
       image: imagePath ? `http://localhost:5000/${imagePath}` : null
     });
   } catch (error) {
-    console.error('Error creating state:', error);
     res.status(500).json({ error: 'Failed to create state', details: error.message });
   }
 });
@@ -174,9 +150,6 @@ router.post('/', upload.single('image'), async (req, res) => {
 router.put('/:id', upload.single('image'), async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('Received PUT request body:', req.body);
-    console.log('Received file:', req.file);
-
     const { 
       name, 
       description, 
@@ -193,19 +166,6 @@ router.put('/:id', upload.single('image'), async (req, res) => {
     if (req.file) {
       imagePath = `uploads/${req.file.filename}`;
     }
-
-    console.log('Updating state with data:', {
-      id,
-      name,
-      description,
-      emoji,
-      capital,
-      activities,
-      metaTitle,
-      metaDescription,
-      metaKeywords,
-      image: imagePath
-    });
 
     const [result] = await db.query(
       `UPDATE states SET 
@@ -236,18 +196,15 @@ router.put('/:id', upload.single('image'), async (req, res) => {
     );
 
     if (result.affectedRows === 0) {
-      console.log('State not found with ID:', id);
       return res.status(404).json({ error: 'State not found' });
     }
 
-    console.log('State updated successfully');
     res.json({ 
       id, 
       ...req.body,
       image: imagePath ? `http://localhost:5000/${imagePath}` : null
     });
   } catch (error) {
-    console.error('Error updating state:', error);
     res.status(500).json({ error: 'Failed to update state', details: error.message });
   }
 });
@@ -256,8 +213,6 @@ router.put('/:id', upload.single('image'), async (req, res) => {
 router.get('/:stateName', async (req, res) => {
   try {
     const { stateName } = req.params;
-    console.log('Fetching data for state:', stateName);
-    
     // Skip if the stateName is 'manage-states' or any other admin route
     if (stateName === 'manage-states' || stateName.startsWith('admin')) {
       return res.status(404).json({ error: 'Invalid state name' });
@@ -270,7 +225,6 @@ router.get('/:stateName', async (req, res) => {
     );
 
     if (stateRows.length === 0) {
-      console.log('State not found:', stateName);
       return res.status(404).json({ error: 'State not found' });
     }
 
@@ -325,10 +279,8 @@ router.get('/:stateName', async (req, res) => {
       districts: formattedDistricts
     };
 
-    console.log('Successfully fetched data for state:', stateName);
     res.json(stateData);
   } catch (error) {
-    console.error('Error fetching state data:', error);
     res.status(500).json({ 
       error: 'Failed to fetch state data',
       details: error.message 
@@ -343,12 +295,8 @@ router.delete('/:id', async (req, res) => {
   try {
     await connection.beginTransaction();
     const { id } = req.params;
-    console.log('DELETE request received for state ID:', id);
-
     // First get the state details to get the image path and name
     const [states] = await connection.query('SELECT * FROM states WHERE id = ?', [id]);
-    console.log('State query result:', states);
-    
     if (states.length === 0) {
       await connection.rollback();
       return res.status(404).json({ 
@@ -359,68 +307,42 @@ router.delete('/:id', async (req, res) => {
     }
 
     const state = states[0];
-    console.log('Found state to delete:', state);
-
     // Delete related records first
-    console.log('Deleting related records...');
-    
     // Get and delete state images first
     const [stateImages] = await connection.query('SELECT * FROM state_images WHERE state_id = ?', [id]);
-    console.log('Found state images:', stateImages);
-    
     // Delete image files for state_images
     for (const image of stateImages) {
       if (image.url && image.url.startsWith('/uploads/')) {
         const imagePath = path.join(__dirname, '..', image.url);
-        console.log('Checking state image path:', imagePath);
         if (fs.existsSync(imagePath)) {
           fs.unlinkSync(imagePath);
-          console.log('Deleted state image file:', imagePath);
-        } else {
-          console.log('State image file not found at path:', imagePath);
-        }
+          } else {
+          }
       }
     }
     
     // Delete state_images records
     await connection.query('DELETE FROM state_images WHERE state_id = ?', [id]);
-    console.log('Deleted state images records');
-    
     // Delete places (has ON DELETE CASCADE)
     await connection.query('DELETE FROM places WHERE state_id = ?', [id]);
-    console.log('Deleted places');
-    
     // Delete state season images (has ON DELETE CASCADE)
     await connection.query('DELETE FROM state_season_images WHERE state_id = ?', [id]);
-    console.log('Deleted state season images');
-    
     // Delete state history
     await connection.query('DELETE FROM state_history WHERE state_id = ?', [id]);
-    console.log('Deleted state history records');
-    
     // Delete districts that reference this state by name
     await connection.query('DELETE FROM districts WHERE state_name = ?', [state.name]);
-    console.log('Deleted districts');
-
     // Delete the state's main image file if it exists
     if (state.image && state.image.startsWith('/uploads/')) {
       const imagePath = path.join(__dirname, '..', state.image);
-      console.log('Checking main image path:', imagePath);
       if (fs.existsSync(imagePath)) {
         fs.unlinkSync(imagePath);
-        console.log('Deleted main image file:', imagePath);
-      } else {
-        console.log('Main image file not found at path:', imagePath);
-      }
+        } else {
+        }
     }
 
     // Finally delete the state
-    console.log('Deleting state record...');
     const [result] = await connection.query('DELETE FROM states WHERE id = ?', [id]);
-    console.log('Delete result:', result);
-
     if (result.affectedRows === 0) {
-      console.log('No rows affected during delete');
       await connection.rollback();
       return res.status(404).json({ 
         error: 'State not found',
@@ -430,7 +352,6 @@ router.delete('/:id', async (req, res) => {
     }
 
     await connection.commit();
-    console.log('Transaction committed successfully');
     res.json({ 
       message: 'State and all related records deleted successfully',
       deletedState: {
@@ -440,7 +361,6 @@ router.delete('/:id', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error in delete operation:', error);
     await connection.rollback();
     res.status(500).json({ 
       error: 'Failed to delete state',

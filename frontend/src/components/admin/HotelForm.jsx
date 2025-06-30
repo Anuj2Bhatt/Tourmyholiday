@@ -87,12 +87,6 @@ const HotelForm = ({ editingHotel, onSuccess, onCancel }) => {
 
   useEffect(() => {
     if (editingHotel && editingHotel.id !== lastHotelId.current) {
-      console.log('Setting form data for editing hotel:', {
-        hotelId: editingHotel.id,
-        hotelName: editingHotel.name,
-        currentFormName: formData.name
-      });
-
       // Create a new form data object with all fields
       const newFormData = {
         name: editingHotel.name || '',
@@ -127,12 +121,6 @@ const HotelForm = ({ editingHotel, onSuccess, onCancel }) => {
         guesthouse_features: editingHotel.guesthouse_features || ''
       };
 
-      console.log('New form data being set:', {
-        name: newFormData.name,
-        nameType: typeof newFormData.name,
-        nameLength: newFormData.name ? newFormData.name.length : 0
-      });
-
       setFormData(newFormData);
       lastHotelId.current = editingHotel.id;
 
@@ -165,7 +153,6 @@ const HotelForm = ({ editingHotel, onSuccess, onCancel }) => {
             }
           })
           .catch(error => {
-            console.error('Error fetching hotel images:', error);
             setImages([]);
           });
       } else {
@@ -195,7 +182,6 @@ const HotelForm = ({ editingHotel, onSuccess, onCancel }) => {
           }
         }
       } catch (error) {
-        console.error('Error fetching categories:', error);
         setCategories([]);
       }
     };
@@ -208,7 +194,6 @@ const HotelForm = ({ editingHotel, onSuccess, onCancel }) => {
       const response = await axios.get('http://localhost:5000/api/states');
       setStates(response.data);
     } catch (error) {
-      console.error('Error fetching states:', error);
       setStates([]);
     }
   };
@@ -220,13 +205,7 @@ const HotelForm = ({ editingHotel, onSuccess, onCancel }) => {
   // Add a new useEffect to monitor formData changes
   useEffect(() => {
     if (editingHotel) {
-      console.log('Form data updated:', {
-        hotelId: editingHotel.id,
-        formName: formData.name,
-        formNameType: typeof formData.name,
-        formNameLength: formData.name ? formData.name.length : 0
-      });
-    }
+      }
   }, [formData.name, editingHotel]);
 
   const handleInputChange = (e) => {
@@ -378,14 +357,11 @@ const HotelForm = ({ editingHotel, onSuccess, onCancel }) => {
     setError('');
 
     // Debug logs for form data
-    console.log('Starting form submission...');
-    console.log('Current images state:', images);
-    console.log('Images to remove:', removeImages); // Debug log for removed images
+    // Debug log for removed images
 
     // Validate form before submitting
     const errors = validateForm();
     if (errors.length > 0) {
-      console.log('Validation errors:', errors);
       setError(errors[0]);
       setLoading(false);
       return;
@@ -411,15 +387,11 @@ const HotelForm = ({ editingHotel, onSuccess, onCancel }) => {
 
       // Add remove_images if any
       if (removeImages.length > 0) {
-        console.log('Adding remove_images to FormData:', removeImages);
         formDataToSend.append('remove_images', JSON.stringify(removeImages));
       }
 
       // Add images with proper metadata
-      console.log('Processing images for submission...');
       const newImages = images.filter(img => img.file); // Only get images with files
-      console.log('New images to upload:', newImages);
-
       newImages.forEach((image, index) => {
         // Append the image file
         formDataToSend.append('images', image.file);
@@ -428,36 +400,25 @@ const HotelForm = ({ editingHotel, onSuccess, onCancel }) => {
         const altText = image.alt_text || '';
         const description = image.description || '';
         
-        console.log(`Appending image ${index} metadata:`, {
-          filename: image.file.name,
-          altText,
-          description
-        });
-
         formDataToSend.append(`alt_text_${index}`, altText);
         formDataToSend.append(`description_${index}`, description);
       });
 
       // Log the final FormData contents
-      console.log('Final FormData contents:');
       for (let [key, value] of formDataToSend.entries()) {
         if (value instanceof File) {
-          console.log(key, 'File:', value.name, value.type, value.size);
-        } else {
-          console.log(key, value);
-        }
+          } else {
+          }
       }
 
       let response;
       if (editingHotel) {
-        console.log('Updating hotel with ID:', editingHotel.id);
         response = await axios.put(`http://localhost:5000/api/hotels/${editingHotel.id}`, formDataToSend, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
         });
       } else {
-        console.log('Creating new hotel');
         response = await axios.post('http://localhost:5000/api/hotels', formDataToSend, {
           headers: {
             'Content-Type': 'multipart/form-data'
@@ -507,13 +468,6 @@ const HotelForm = ({ editingHotel, onSuccess, onCancel }) => {
         throw new Error('Invalid response from server');
       }
     } catch (error) {
-      console.error('Error saving accommodation:', error);
-      console.error('Server response:', {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.response?.data?.message || error.message
-      });
-      
       setError(error.response?.data?.message || 'Error saving accommodation. Please try again.');
     } finally {
       setLoading(false);
@@ -539,8 +493,6 @@ const HotelForm = ({ editingHotel, onSuccess, onCancel }) => {
   };
 
   // Debug: log images array before rendering
-  console.log('Images in form:', images);
-
   return (
     <form className="hotel-form-main" onSubmit={handleSubmit}>
       <h2 className="hotel-form-title">

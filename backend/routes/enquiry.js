@@ -9,16 +9,8 @@ router.get('/test', (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  console.log('Received enquiry request:', req.body);
-  console.log('Environment variables:', {
-    EMAIL_USER: process.env.EMAIL_USER,
-    ADMIN_EMAIL: process.env.ADMIN_EMAIL,
-    EMAIL_PASSWORD: process.env.EMAIL_PASSWORD ? 'Password is set' : 'Password is not set'
-  });
-
   // Check if environment variables are set
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD || !process.env.ADMIN_EMAIL) {
-    console.error('Missing environment variables');
     return res.status(500).json({
       success: false,
       message: 'Server configuration error. Please contact administrator.'
@@ -38,7 +30,6 @@ router.post('/', async (req, res) => {
 
   // Validate required fields
   if (!email || !phone || !name) {
-    console.log('Missing required fields:', { email, phone, name });
     return res.status(400).json({ 
       success: false, 
       message: 'Please provide all required fields' 
@@ -72,12 +63,9 @@ router.post('/', async (req, res) => {
   };
 
   try {
-    console.log('Attempting to send email...');
     await transporter.sendMail(mailOptions);
-    console.log('Email sent successfully');
     res.json({ success: true, message: 'Enquiry sent successfully!' });
   } catch (err) {
-    console.error('Detailed error sending enquiry:', err);
     res.status(500).json({ 
       success: false, 
       message: 'Failed to send enquiry. Please try again later.',

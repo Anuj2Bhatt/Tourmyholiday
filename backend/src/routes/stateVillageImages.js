@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
-const db = require('../config/database');
+const db = require('../../db');
 const fs = require('fs');
 
 // Configure multer for image upload
@@ -52,7 +52,6 @@ router.get('/', async (req, res) => {
       data: formattedImages
     });
   } catch (error) {
-    console.error('Error fetching all village images:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch images: ' + error.message
@@ -64,8 +63,6 @@ router.get('/', async (req, res) => {
 router.get('/:villageId', async (req, res) => {
   try {
     const { villageId } = req.params;
-    console.log('Fetching images for village ID:', villageId);
-    
     // First check if village exists
     const villageResult = await db.query('SELECT id FROM villages WHERE id = ?', [villageId]);
     const village = villageResult[0] || [];
@@ -93,7 +90,6 @@ router.get('/:villageId', async (req, res) => {
       data: formattedImages
     });
   } catch (error) {
-    console.error('Error fetching village images:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch village images: ' + error.message
@@ -106,12 +102,6 @@ router.post('/', upload.array('images', 10), async (req, res) => {
   try {
     const { village_id } = req.body;
     const files = req.files;
-
-    console.log('Upload request received:', {
-      village_id,
-      filesCount: files?.length,
-      body: req.body
-    });
 
     if (!village_id) {
       return res.status(400).json({
@@ -169,7 +159,6 @@ router.post('/', upload.array('images', 10), async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error uploading images:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to upload images: ' + error.message
@@ -209,7 +198,6 @@ router.delete('/:imageId', async (req, res) => {
       message: 'Image deleted successfully'
     });
   } catch (error) {
-    console.error('Error deleting image:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to delete image: ' + error.message

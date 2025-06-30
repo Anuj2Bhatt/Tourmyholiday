@@ -15,13 +15,10 @@ export const territoryService = {
     // Get all territories
     async getAllTerritories() {
         try {
-            console.log('Fetching territories from:', `${API_URL}/api/territories`);
-            const response = await axios.get(`${API_URL}/api/territories`);
-            console.log('Territories API Response:', response);
+            const response = await axios.get(`${API_URL}/api/territories`);     
             
             // Check if response has data
             if (!response.data) {
-                console.error('No data in response');
                 return { success: false, data: [] };
             }
 
@@ -43,15 +40,8 @@ export const territoryService = {
             }
 
             // If we can't find an array, return empty array
-            console.error('No array found in response:', response.data);
             return { success: true, data: [] };
         } catch (error) {
-            console.error('Error fetching territories:', error);
-            console.error('Error details:', {
-                message: error.message,
-                response: error.response?.data,
-                status: error.response?.status
-            });
             throw error;
         }
     },
@@ -79,12 +69,6 @@ export const territoryService = {
     // Create new territory
     async createTerritory(formData) {
         try {
-            // Log FormData contents for debugging
-            console.log('FormData contents:');
-            for (let pair of formData.entries()) {
-                console.log(pair[0] + ': ' + (pair[1] instanceof File ? pair[1].name : pair[1]));
-            }
-
             const response = await axios.post(`${API_URL}/api/territories`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
@@ -102,7 +86,6 @@ export const territoryService = {
             }
             return response.data;
         } catch (error) {
-            console.error('Error creating territory:', error);
             if (error.response?.data?.errors) {
                 return { success: false, errors: error.response.data.errors };
             }
@@ -112,13 +95,7 @@ export const territoryService = {
 
     // Update territory
     async updateTerritory(id, formData) {
-        try {
-            // Log FormData contents for debugging
-            console.log('FormData contents:');
-            for (let pair of formData.entries()) {
-                console.log(pair[0] + ': ' + (pair[1] instanceof File ? pair[1].name : pair[1]));
-            }
-
+        try {   
             // Ensure all required fields are present
             const requiredFields = ['title', 'slug', 'capital'];
             const missingFields = requiredFields.filter(field => !formData.get(field));
@@ -150,7 +127,6 @@ export const territoryService = {
             }
             return response.data;
         } catch (error) {
-            console.error('Error in updateTerritory:', error.response?.data || error);
             if (error.response?.data?.errors) {
                 return { success: false, errors: error.response.data.errors };
             }
@@ -163,8 +139,7 @@ export const territoryService = {
         try {
             const response = await axios.delete(`${API_URL}/api/territories/${id}`);
             return response.data;
-        } catch (error) {
-            console.error('Error deleting territory:', error);
+        } catch (error) {       
             throw error;
         }
     },

@@ -8,7 +8,6 @@
 }
 
 .left-section {
-  flex: 3.3;
   position: relative;
   height: 80vh;
   max-height: 80vh;
@@ -34,20 +33,23 @@
   object-fit: cover;
 }
 
-.search-form {
+.search-form-home {
   position: absolute;
   bottom: 20px;
-  left: 65%;
+  left: 25%;
   display: flex;
   align-items: center;
   background: rgba(255, 255, 255, 0.525);
-  padding: .6vw;
+  padding: .7vw;
   border-radius: 5px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   width: 100%;
   max-width: 500px;
   z-index: 10;
   bottom: 10%;
+}
+.submit-home-btn {
+  padding: .6vw;
 }
 
 .search-form input {
@@ -56,7 +58,7 @@
   border: none;
   font-size: 14px;
   outline: none;
-  background: rgb(222, 216, 216);
+  background: rgb(192, 49, 49);
   border-radius: 2px;
 }
 
@@ -92,7 +94,7 @@
   font-size: 16px;
 }
 
-.image-grid {
+.image-grid-home {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-template-rows: repeat(2, 1fr);
@@ -100,6 +102,7 @@
   height: 100%;
   max-height: 80vh;
   width: 100%;
+  padding:0;
 }
 
 .image-item {
@@ -204,23 +207,14 @@
     transition: opacity 0.5s ease;
   }
 
-  .search-form {
-    position: absolute;
-    bottom: 10%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 85%;
-    max-width: 400px;
-    padding: 0.5vw;
-    z-index: 10;
-  }
 
-  .search-form input {
-    padding: 6px 10px;
+  .input-search {
+    padding: 20px 10px;
     font-size: 13px;
+    background-color: rgb(197, 35, 35);
   }
 
-  .search-form button {
+  .search-form-home button {
     padding: 6px 12px;
     font-size: 12px;
   }

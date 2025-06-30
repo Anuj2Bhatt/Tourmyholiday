@@ -210,18 +210,11 @@ const packageSeasonController = {
     // Upload an image for a season
     async uploadImage(req, res) {
         try {
-            console.log('Upload request received:', {
-                packageId: req.params.packageId,
-                season: req.params.season,
-                file: req.file,
-                body: req.body
-            });
 
             // Convert season to proper case
             const season = req.params.season.charAt(0).toUpperCase() + req.params.season.slice(1).toLowerCase();
             
             if (!req.file) {
-                console.error('No file uploaded');
                 return res.status(400).json({
                     success: false,
                     message: 'No image file uploaded'
@@ -237,14 +230,11 @@ const packageSeasonController = {
                     description: req.body.description || ''
                 };
 
-                console.log('Creating image with data:', imageData);
 
                 const imageId = await PackageSeasonImage.create(imageData);
-                console.log('Image created with ID:', imageId);
                 
                 // Get the created image
                 const image = await PackageSeasonImage.getById(imageId, req.params.packageId);
-                console.log('Retrieved image:', image);
                 
                 if (!image) {
                     throw new Error('Failed to retrieve created image');
@@ -262,20 +252,16 @@ const packageSeasonController = {
                     image: formattedImage
                 });
             } catch (error) {
-                console.error('Database error:', error);
                 // If database operation fails, delete the uploaded file
                 if (req.file) {
                     try {
                         await fs.unlink(req.file.path);
-                        console.log('Deleted uploaded file after database error');
                     } catch (unlinkError) {
-                        console.error('Error deleting uploaded file:', unlinkError);
                     }
                 }
                 throw error;
             }
         } catch (error) {
-            console.error('Controller error:', error);
             res.status(500).json({
                 success: false,
                 message: 'Error uploading image',
@@ -310,8 +296,7 @@ const packageSeasonController = {
                 try {
                     await fs.unlink(path.join('uploads', image.image_path));
                 } catch (unlinkError) {
-                    console.error('Error deleting file:', unlinkError);
-                }
+                    }
                 res.json({ 
                     success: true, 
                     message: 'Image deleted successfully' 
@@ -354,8 +339,7 @@ const packageSeasonController = {
                     try {
                         await fs.unlink(path.join('uploads', oldImage.image_path));
                     } catch (unlinkError) {
-                        console.error('Error deleting old file:', unlinkError);
-                    }
+                        }
                 }
 
                 imageData.image_path = req.file.filename;
@@ -380,8 +364,7 @@ const packageSeasonController = {
                 try {
                     await fs.unlink(req.file.path);
                 } catch (unlinkError) {
-                    console.error('Error deleting file:', unlinkError);
-                }
+                    }
             }
             res.status(500).json({ 
                 success: false, 
@@ -413,7 +396,6 @@ const packageSeasonController = {
                 images: formattedImages
             });
         } catch (error) {
-            console.error('Error fetching season images:', error);
             res.status(500).json({ 
                 success: false, 
                 message: 'Error fetching season images',
@@ -435,7 +417,6 @@ const packageSeasonController = {
 
             res.json(formattedImages);
         } catch (error) {
-            console.error('Error fetching package images:', error);
             res.status(500).json({ 
                 success: false, 
                 message: 'Error fetching images',

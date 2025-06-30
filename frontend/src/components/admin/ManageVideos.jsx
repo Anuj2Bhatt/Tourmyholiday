@@ -58,7 +58,6 @@ const ManageVideos = () => {
         
         setLoading(false);
       } catch (err) {
-        console.error('Error fetching entities:', err);
         setError('Failed to fetch entities. Please try again later.');
         setLoading(false);
         // Initialize empty arrays in case of error
@@ -81,7 +80,6 @@ const ManageVideos = () => {
           const response = await axios.get(`${API_BASE_URL}/api/territory-districts/territory/${selectedTerritoryId}`);
           setTerritoryDistricts(Array.isArray(response.data) ? response.data : []);
         } catch (err) {
-          console.error('Error fetching territory districts:', err);
           setTerritoryDistricts([]);
         }
       }
@@ -102,7 +100,6 @@ const ManageVideos = () => {
       setVideos(res.data);
       setLoading(false);
     } catch (err) {
-      console.error('Error fetching videos:', err);
       setError('Failed to fetch videos. Please try again later.');
       setLoading(false);
     }
@@ -173,7 +170,6 @@ const ManageVideos = () => {
       setShowAddModal(false);
       fetchVideos();
     } catch (err) {
-      console.error('Error adding video:', err);
       setError(err.response?.data?.error || 'Failed to add video. Please try again.');
     }
   };
@@ -186,7 +182,6 @@ const ManageVideos = () => {
       setSuccess('Video deleted successfully!');
       fetchVideos();
     } catch (err) {
-      console.error('Error deleting video:', err);
       setError('Failed to delete video. Please try again.');
     }
   };

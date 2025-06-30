@@ -1,0 +1,219 @@
+.admin-page {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 24px;
+  color: #333;
+}
+
+.add-btn,
+.back-btn {
+  padding: 10px 20px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.add-btn {
+  background: #28a745;
+  color: white;
+  border: none;
+}
+
+.add-btn:hover {
+  background: #218838;
+}
+
+.back-btn {
+  background: none;
+  border: 1px solid #ddd;
+  color: #666;
+}
+
+.back-btn:hover {
+  background: #f8f9fa;
+  border-color: #ccc;
+}
+
+.error-message {
+  margin-bottom: 20px;
+  padding: 12px;
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  color: #721c24;
+  text-align: center;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  font-size: 16px;
+}
+
+.destinations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.destination-card {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.destination-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.card-image {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+}
+
+.card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.card-actions {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.destination-card:hover .card-actions {
+  opacity: 1;
+}
+
+.action-btn {
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  color: white;
+}
+
+.action-btn.edit {
+  background: #007bff;
+}
+
+.action-btn.edit:hover {
+  background: #0056b3;
+}
+
+.action-btn.delete {
+  background: #dc3545;
+}
+
+.action-btn.delete:hover {
+  background: #c82333;
+}
+
+.action-btn.view {
+  background: #6c757d;
+}
+
+.action-btn.view:hover {
+  background: #5a6268;
+}
+
+.card-content {
+  padding: 15px;
+}
+
+.card-content h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  color: #333;
+  line-height: 1.4;
+}
+
+.location {
+  margin: 0 0 12px;
+  color: #666;
+  font-size: 14px;
+}
+
+.card-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+.status {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.status[data-status="active"] {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status[data-status="inactive"] {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.status[data-status="draft"] {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.trending-score {
+  color: #007bff;
+  font-weight: 500;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+
+  .add-btn,
+  .back-btn {
+    width: 100%;
+  }
+
+  .destinations-grid {
+    grid-template-columns: 1fr;
+  }
+} 

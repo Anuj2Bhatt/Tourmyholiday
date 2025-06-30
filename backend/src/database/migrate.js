@@ -15,32 +15,20 @@ async function runMigration() {
       multipleStatements: true // Allow multiple statements
     });
 
-    console.log('Connected to database');
-
     // Read and run village tables migration
     const villageTablesPath = path.join(__dirname, 'migrations', 'create_village_tables.sql');
     const villageTablesSQL = await fs.readFile(villageTablesPath, 'utf8');
-    console.log('Running village tables migration...');
     await connection.query(villageTablesSQL);
-    console.log('Village tables migration completed');
-
     // Read and run slug migration
     const slugMigrationPath = path.join(__dirname, 'migrations', 'add_slug_to_villages.sql');
     const slugMigrationSQL = await fs.readFile(slugMigrationPath, 'utf8');
-    console.log('Running slug migration...');
     await connection.query(slugMigrationSQL);
-    console.log('Slug migration completed');
-
-    console.log('All migrations completed successfully');
-
-  } catch (error) {
-    console.error('Migration failed:', error);
+    } catch (error) {
     process.exit(1);
   } finally {
     if (connection) {
       await connection.end();
-      console.log('Database connection closed');
-    }
+      }
   }
 }
 

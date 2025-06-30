@@ -73,8 +73,8 @@ const ManageMeetOurTeam = () => {
       if (member.image instanceof File) {
         try {
           const formData = new FormData();
-          formData.append('image', member.image);
-          const res = await fetch('http://localhost:5000/api/upload/upload', {
+          formData.append('featured_image', member.image);
+          const res = await fetch('http://localhost:5000/api/upload', {
             method: 'POST',
             body: formData
           });
@@ -84,20 +84,17 @@ const ManageMeetOurTeam = () => {
           }
           
           const data = await res.json();
-          if (!data.url) {
+          if (!data.images || data.images.length === 0) {
             throw new Error('No image URL received from server');
           }
-          imageUrl = data.url;
+          imageUrl = `http://localhost:5000/uploads/${data.images[0]}`;
         } catch (error) {
-          console.error('Image upload error:', error);
           alert('Failed to upload image. Please try again.');
           return;
         }
       }
 
       const memberData = { ...member, image: imageUrl };
-      console.log('Saving member data:', memberData);
-
       if (editingIndex !== null) {
         // Update
         const id = team[editingIndex].id;
@@ -127,7 +124,6 @@ const ManageMeetOurTeam = () => {
         }
 
         const newMember = await addRes.json();
-        console.log('New member added:', newMember);
         setTeam([...team, newMember]);
       }
 
@@ -136,7 +132,6 @@ const ManageMeetOurTeam = () => {
       setEditingIndex(null);
       setLinkError('');
     } catch (error) {
-      console.error('Error saving team member:', error);
       alert('Failed to save team member. Please try again.');
     }
   };

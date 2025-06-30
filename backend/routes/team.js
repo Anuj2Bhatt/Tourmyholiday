@@ -16,10 +16,7 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { name, role, description, image, linkedin } = req.body;
-    console.log('Received team member data:', { name, role, description, image, linkedin });
-
     if (!name || !role) {
-      console.log('Validation failed: missing required fields');
       return res.status(400).json({ message: 'Name and role are required' });
     }
 
@@ -27,8 +24,6 @@ router.post('/', async (req, res) => {
       'INSERT INTO team (name, role, description, image, linkedin) VALUES (?, ?, ?, ?, ?)',
       [name, role, description, image, linkedin]
     );
-
-    console.log('Team member added successfully:', result);
 
     const newMember = { 
       id: result.insertId, 
@@ -41,7 +36,6 @@ router.post('/', async (req, res) => {
 
     res.json(newMember);
   } catch (err) {
-    console.error('Error adding team member:', err);
     res.status(500).json({ 
       message: 'Error adding team member',
       error: err.message 

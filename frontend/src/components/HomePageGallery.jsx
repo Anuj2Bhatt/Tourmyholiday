@@ -57,7 +57,6 @@ const HomePageGallery = () => {
         }
       })
       .catch(error => {
-        console.error('Error fetching gallery images:', error);
         // Keep using default images if API fails
       });
   }, []);
@@ -119,7 +118,7 @@ const HomePageGallery = () => {
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+        navigate(`/search-results?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 
@@ -173,21 +172,22 @@ const HomePageGallery = () => {
             )}
           </div>
 
-          <form className="search-form" onSubmit={handleSearch}>
-            <input
+          <form className="search-form-home" onSubmit={handleSearch}>
+            <input class="input-search"
               type="text"
               placeholder="Search destinations..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              style={{backgroundColor:'rgb(18 52 98)', padding: '.7vw', width:' 90%', marginRight: '.1vw', Color: 'white', border:'none', borderRadius: '2px'}}
             />
-            <button type="submit">Search</button>
+            <button type="submit-home-btn" style={{padding: '.6vw 1vw', cursor: 'pointer', color: 'white', backgroundColor: 'rgb(18 52 98)', border:'none'}}>Search</button>
           </form>
         </div>
 
         {/* Remove Gallery Modal since we're using GalleryViewer for both mobile and desktop */}
         
         <div className="right-section">
-          <div className="image-grid">
+          <div className="image-grid-home">
             {[1, 2, 3, 4].map((index) => (
               <div key={index} className="image-item">
                 <img 

@@ -1,4 +1,4 @@
-const db = require('../config/database');
+const db = require('../db');
 const path = require('path');
 const fs = require('fs');
 
@@ -9,12 +9,16 @@ const territoryWebStoryController = {
             const { territory_id } = req.params;
             
             // First get all districts for this territory
-            const [districts] = await db.query(
+            const [rows] = await db.query(
                 'SELECT id FROM territory_districts WHERE territory_id = ?',
                 [territory_id]
             );
             
+            // Ensure we have an array of districts
+            const districts = Array.isArray(rows) ? rows : [];
+            // Check if we have any districts
             if (districts.length === 0) {
+
                 return res.json([]);
             }
 
@@ -54,7 +58,6 @@ const territoryWebStoryController = {
 
             res.json(stories);
         } catch (error) {
-            console.error('Error fetching territory web stories:', error);
             res.status(500).json({ error: 'Failed to fetch territory web stories' });
         }
     },
@@ -95,28 +98,17 @@ const territoryWebStoryController = {
 
             res.json(story);
         } catch (error) {
-            console.error('Error fetching territory web story:', error);
             res.status(500).json({ error: 'Failed to fetch territory web story' });
         }
     },
 
     // Create new web story
     createTerritoryWebStory: async (req, res) => {
-        console.log('=== Starting createTerritoryWebStory ===');
         try {
-            // Log the complete request
-            console.log('Request body:', req.body);
-            console.log('Request files:', req.files);
-            console.log('Request headers:', req.headers);
-            console.log('Raw request body:', JSON.stringify(req.body, null, 2));
-
-            // Validate required fields
             const requiredFields = ['territory_district_id', 'title', 'slug'];
             const missingFields = requiredFields.filter(field => !req.body[field]);
             
             if (missingFields.length > 0) {
-                console.error('Missing required fields:', missingFields);
-                console.error('Available fields:', Object.keys(req.body));
                 return res.status(400).json({ 
                     error: 'Missing required fields', 
                     fields: missingFields,
@@ -134,32 +126,17 @@ const territoryWebStoryController = {
                 meta_keywords
             } = req.body;
 
-            console.log('Parsed request data:', {
-                territory_district_id,
-                title,
-                slug,
-                description,
-                meta_title,
-                meta_description,
-                meta_keywords
-            });
-
-            // Validate territory_district_id exists
-            console.log('Validating territory_district_id:', territory_district_id);
             const [district] = await db.query(
                 'SELECT id FROM territory_districts WHERE id = ?',
                 [territory_district_id]
             );
 
             if (district.length === 0) {
-                console.error('Invalid territory_district_id:', territory_district_id);
                 return res.status(400).json({ 
                     error: 'Invalid territory district ID',
                     providedId: territory_district_id
                 });
             }
-
-            console.log('District validation successful:', district[0]);
 
             // Handle featured image upload
             let featured_image = null;
@@ -169,11 +146,9 @@ const territoryWebStoryController = {
                 const uploadPath = path.join(__dirname, '../uploads', fileName);
                 await file.mv(uploadPath);
                 featured_image = `uploads/${fileName}`;
-                console.log('Featured image saved:', featured_image);
             }
 
             // Insert web story
-            console.log('Attempting to insert web story...');
             const insertQuery = `
                 INSERT INTO territory_web_stories (
                     territory_district_id, title, slug, 
@@ -181,12 +156,6 @@ const territoryWebStoryController = {
                 ) VALUES (?, ?, ?, ?, ?, ?, ?)
             `;
             
-            console.log('SQL Query:', insertQuery);
-            console.log('Query Parameters:', [
-                territory_district_id, title, slug, 
-                featured_image, meta_title, meta_description, meta_keywords
-            ]);
-
             const [result] = await db.query(
                 insertQuery,
                 [territory_district_id, title, slug, 
@@ -197,7 +166,6 @@ const territoryWebStoryController = {
                 throw new Error('Failed to insert web story - no insertId returned');
             }
 
-            console.log('Web story inserted with ID:', result.insertId);
             const storyId = result.insertId;
 
             // Handle story images
@@ -205,12 +173,6 @@ const territoryWebStoryController = {
                 const images = Array.isArray(req.files.images) ? req.files.images : [req.files.images];
                 const altTexts = req.body.alt_texts ? req.body.alt_texts.split(',') : [];
                 const descriptions = req.body.descriptions ? req.body.descriptions.split(',') : [];
-
-                console.log('Processing images:', {
-                    imageCount: images.length,
-                    altTexts,
-                    descriptions
-                });
 
                 for (let i = 0; i < images.length; i++) {
                     const file = images[i];
@@ -224,38 +186,19 @@ const territoryWebStoryController = {
                         ) VALUES (?, ?, ?, ?, ?)
                     `;
                     
-                    console.log('Inserting image:', {
-                        storyId,
-                        fileName,
-                        altText: altTexts[i] || '',
-                        description: descriptions[i] || '',
-                        order: i
-                    });
-
                     await db.query(
                         imageInsertQuery,
                         [storyId, `uploads/${fileName}`, altTexts[i] || '', descriptions[i] || '', i]
                     );
-                    console.log('Image saved:', fileName);
                 }
             }
 
-            console.log('=== Web story creation completed successfully ===');
             res.json({ 
                 success: true, 
                 message: 'Territory web story created successfully',
                 storyId 
             });
         } catch (error) {
-            console.error('=== Error in createTerritoryWebStory ===');
-            console.error('Error details:', {
-                message: error.message,
-                sqlMessage: error.sqlMessage,
-                sqlState: error.sqlState,
-                code: error.code,
-                stack: error.stack
-            });
-            
             // Check for specific database errors
             if (error.code === 'ER_DUP_ENTRY') {
                 return res.status(400).json({ 
@@ -322,7 +265,6 @@ const territoryWebStoryController = {
                 message: 'Territory web story updated successfully' 
             });
         } catch (error) {
-            console.error('Error updating territory web story:', error);
             res.status(500).json({ error: 'Failed to update territory web story' });
         }
     },
@@ -368,7 +310,6 @@ const territoryWebStoryController = {
                 message: 'Territory web story deleted successfully' 
             });
         } catch (error) {
-            console.error('Error deleting territory web story:', error);
             res.status(500).json({ error: 'Failed to delete territory web story' });
         }
     },
@@ -401,7 +342,6 @@ const territoryWebStoryController = {
 
             res.json(schema);
         } catch (error) {
-            console.error('Error generating story schema:', error);
             res.status(500).json({ error: 'Failed to generate story schema' });
         }
     },
@@ -435,7 +375,6 @@ const territoryWebStoryController = {
                 imageUrl: `uploads/${fileName}`
             });
         } catch (error) {
-            console.error('Error uploading territory web story image:', error);
             res.status(500).json({ error: 'Failed to upload image' });
         }
     },
@@ -469,7 +408,6 @@ const territoryWebStoryController = {
 
             res.json({ success: true, message: 'Image deleted successfully' });
         } catch (error) {
-            console.error('Error deleting territory web story image:', error);
             res.status(500).json({ error: 'Failed to delete image' });
         }
     },
@@ -490,7 +428,6 @@ const territoryWebStoryController = {
 
             res.json({ success: true, message: 'Image updated successfully' });
         } catch (error) {
-            console.error('Error updating territory web story image:', error);
             res.status(500).json({ error: 'Failed to update image' });
         }
     },
@@ -511,7 +448,6 @@ const territoryWebStoryController = {
 
             res.json({ success: true, message: 'Images reordered successfully' });
         } catch (error) {
-            console.error('Error reordering territory web story images:', error);
             res.status(500).json({ error: 'Failed to reorder images' });
         }
     }

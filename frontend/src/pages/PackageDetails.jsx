@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import styles from './PackageDetails.module.css';
 import { toast } from 'react-toastify';
 import axios from 'axios';
@@ -25,6 +25,26 @@ const PackageDetails = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [expandedDay, setExpandedDay] = useState(null);
+  const [packageHotels, setPackageHotels] = useState([]);
+  const [hotelsLoading, setHotelsLoading] = useState(false);
+  const [hotelsError, setHotelsError] = useState(null);
+  const [blogs, setBlogs] = useState([]);
+  const [blogsLoading, setBlogsLoading] = useState(false);
+  const [blogsError, setBlogsError] = useState(null);
+  const [currentBlogPage, setCurrentBlogPage] = useState(0);
+  // Add state for seasons and active season
+  const seasons = ['Summer', 'Monsoon', 'Autumn', 'Winter', 'Spring']; // Using hardcoded seasons for now
+  const [activeSeason, setActiveSeason] = useState(seasons[0]);
+  // Add state for season images (placeholder structure)
+  const [seasonImages, setSeasonImages] = useState({
+    Summer: [], // Initialize as empty arrays, data will be fetched
+    Monsoon: [],
+    Autumn: [],
+    Winter: [],
+    Spring: [],
+  });
+  const [seasonImagesLoading, setSeasonImagesLoading] = useState(false);
+  const [seasonImagesError, setSeasonImagesError] = useState(null);
 
   useEffect(() => {
     const fetchPackageDetails = async () => {
@@ -36,15 +56,17 @@ const PackageDetails = () => {
         }
         const data = await response.json();
         
-        // Parse itinerary if it's a string
-        if (data.itinerary && typeof data.itinerary === 'string') {
-          try {
-            data.itinerary = JSON.parse(data.itinerary);
-          } catch (e) {
-            console.error('Error parsing itinerary:', e);
-            data.itinerary = [];
-          }
-        } else if (!data.itinerary) {
+        // Fetch itinerary data from the new endpoint
+        const itineraryResponse = await fetch(`http://localhost:5000/api/package-itinerary/${data.id}`);
+        if (itineraryResponse.ok) {
+          const itineraryDays = await itineraryResponse.json();
+          // Transform the data to match the expected format
+          data.itinerary = itineraryDays.map(day => ({
+            dayNumber: day.day_number,
+            title: day.title,
+            description: day.description
+          }));
+        } else {
           data.itinerary = [];
         }
 
@@ -59,14 +81,135 @@ const PackageDetails = () => {
     fetchPackageDetails();
   }, [slug]);
 
+  // Add this useEffect to fetch hotels when the package loads
+  useEffect(() => {
+    const fetchPackageHotels = async () => {
+      if (!pkg?.hotels) {
+        return;
+      }
+      
+      try {
+        setHotelsLoading(true);
+        setHotelsError(null);
+        
+        // Parse hotel IDs from the package's hotels field
+        
+        let hotelIds;
+        try {
+          // First parse the hotels data if it's a string
+          const parsedHotels = typeof pkg.hotels === 'string' 
+            ? JSON.parse(pkg.hotels) 
+            : Array.isArray(pkg.hotels) 
+              ? pkg.hotels 
+              : [];
+          
+          // Extract just the IDs from the hotel objects
+          hotelIds = parsedHotels.map(hotel => {
+            if (typeof hotel === 'object' && hotel !== null) {
+              return hotel.id;
+            }
+            return hotel; // If it's already an ID, return as is
+          }).filter(id => id !== undefined && id !== null);
+          
+        } catch (parseError) {
+          hotelIds = [];
+        }
+            
+        if (!hotelIds.length) {
+          setPackageHotels([]);
+          return;
+        }
+
+        // Fetch hotel details for each ID
+        const hotelPromises = hotelIds.map(id => {
+          return axios.get(`http://localhost:5000/api/hotels/${id}`)
+            .then(response => {
+              return response.data;
+            })
+            .catch(error => {
+              return null;
+            });
+        });
+
+        const hotels = await Promise.all(hotelPromises);
+        setPackageHotels(hotels.filter(hotel => hotel !== null));
+      } catch (error) {
+        setHotelsError('Failed to fetch hotel details');
+      } finally {
+        setHotelsLoading(false);
+      }
+    };
+
+    fetchPackageHotels();
+  }, [pkg]);
+
+  // Add useEffect for fetching blogs
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      if (!pkg?.id) return;
+      
+      try {
+        setBlogsLoading(true);
+        setBlogsError(null);
+        const response = await fetch('http://localhost:5000/api/articles');
+        if (!response.ok) throw new Error('Failed to fetch blogs');
+        const data = await response.json();
+        // Filter blogs for this package
+        const packageBlogs = data.filter(blog => blog.packages_id === pkg.id);
+        setBlogs(packageBlogs);
+      } catch (err) {
+        setBlogsError(err.message);
+      } finally {
+        setBlogsLoading(false);
+      }
+    };
+
+    fetchBlogs();
+  }, [pkg?.id]);
+
+  // Add useEffect for fetching season images
+  useEffect(() => {
+    const fetchSeasonImages = async () => {
+      if (!pkg?.id) return;
+      
+      try {
+        setSeasonImagesLoading(true);
+        setSeasonImagesError(null);
+        // Fetch season images for the current package
+        const response = await fetch(`http://localhost:5000/api/package-seasons/${pkg.id}/images`);
+        if (!response.ok) throw new Error('Failed to fetch season images');
+        const data = await response.json();
+
+        // Group images by season
+        const groupedImages = {};
+        seasons.forEach(season => groupedImages[season] = []);
+        
+        if (Array.isArray(data)) {
+          data.forEach(image => {
+            if (groupedImages[image.season]) {
+              groupedImages[image.season].push(image);
+            }
+          });
+        }
+        
+        setSeasonImages(groupedImages);
+      } catch (err) {
+        setSeasonImagesError(err.message);
+      } finally {
+        setSeasonImagesLoading(false);
+      }
+    };
+
+    fetchSeasonImages();
+  }, [pkg?.id]); // Fetch season images when the package data is loaded
+
   // Handle image load success
   const handleImageLoad = (index) => {
     setLoadedImages(prev => [...prev, index]);
   };
 
   // Handle image load error
-  const handleImageError = (index, img) => {
-    console.error(`Error loading image ${index}:`, img);
+  const handleImageError = (index, img) => {  
     setLoadedImages(prev => [...prev, index]); // Still mark as loaded to show placeholder
   };
 
@@ -99,13 +242,10 @@ const PackageDetails = () => {
     setIsSubmitting(true);
 
     try {
-      console.log('Sending enquiry with data:', formData);
       const response = await axios.post('http://localhost:5000/api/enquiry', {
         ...formData,
         packageName: pkg?.package_name || 'Tour Package'
       });
-
-      console.log('Response from server:', response.data);
 
       if (response.data.success) {
         toast.success('Enquiry sent successfully!');
@@ -120,8 +260,6 @@ const PackageDetails = () => {
         });
       }
     } catch (error) {
-      console.error('Error details:', error);
-      console.error('Error response:', error.response?.data);
       toast.error(error.response?.data?.message || 'Failed to send enquiry. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -156,28 +294,224 @@ const PackageDetails = () => {
     }).filter(Boolean);
   };
 
-  // Function to render hotel list with links
-  const renderHotels = (hotelsHtml) => {
-    const hotels = parseHotels(hotelsHtml);
+  // Replace the renderHotels function with this new version
+  const renderHotels = () => {
+    if (hotelsLoading) {
+      return <div className={styles.loading}>Loading hotels...</div>;
+    }
+
+    if (hotelsError) {
+      return <div className={styles.error}>{hotelsError}</div>;
+    }
+
+    if (!packageHotels.length) {
+      return <p>Hotel details will be provided upon booking.</p>;
+    }
+
     return (
       <div className={styles.hotelList}>
-        {hotels.map((hotel, index) => (
-          <div key={index} className={styles.hotelItem}>
-            <button 
-              className={styles.hotelLink}
-              onClick={() => {
-                setSelectedHotel(hotel);
-                setShowHotelModal(true);
-              }}
+        {packageHotels.map((hotel) => {
+          // Parse amenities if they're stored as a string
+          const amenities = typeof hotel.amenities === 'string' 
+            ? JSON.parse(hotel.amenities) 
+            : Array.isArray(hotel.amenities) 
+              ? hotel.amenities 
+              : [];
+
+          return (
+            <Link 
+              to={`/hotels/${hotel.slug}`} 
+              key={hotel.id} 
+              className={styles.hotelItem}
             >
-              <span className={styles.hotelName}>{hotel.name}</span>
-              {hotel.stars && (
-                <span className={styles.hotelStars}>
-                  {'★'.repeat(hotel.stars)}
-                  {'☆'.repeat(5 - hotel.stars)}
-                </span>
-              )}
+              <div className={styles.hotelImage}>
+                <img 
+                  src={hotel.featured_image || '/images/hotel-placeholder.jpg'} 
+                  alt={hotel.name}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = '/images/hotel-placeholder.jpg';
+                  }}
+                />
+              </div>
+              <div className={styles.hotelInfo}>
+                {hotel.star_rating && (
+                  <div className={styles.hotelStars}>
+                    {'★'.repeat(Math.floor(hotel.star_rating))}
+                    {'☆'.repeat(5 - Math.floor(hotel.star_rating))}
+                  </div>
+                )}
+                {amenities.length > 0 && (
+                  <div className={styles.hotelAmenities}>
+                    {amenities.slice(0, 2).map((amenity, index) => (
+                      <span key={index} className={styles.amenityTag}>
+                        {amenity}
+                      </span>
+                    ))}
+                    {amenities.length > 2 && (
+                      <span className={styles.amenityTag}>
+                        +{amenities.length - 2}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    );
+  };
+
+  // Update the downloadItinerary function to directly download the PDF
+  const downloadItinerary = () => {
+    if (pkg?.itinerary_pdf) {
+      // Create a temporary link element
+      const link = document.createElement('a');
+      // Ensure the URL is properly formatted with the base URL
+      const pdfUrl = pkg.itinerary_pdf.startsWith('http')
+        ? pkg.itinerary_pdf
+        : `http://localhost:5000/uploads/${pkg.itinerary_pdf}`;
+      link.href = pdfUrl;
+      // Extract filename from URL or use package name
+      const filename = pkg.itinerary_pdf.split('/').pop() || `${pkg.package_name}-itinerary.pdf`;
+      link.download = filename;
+      // Append to body, click, and remove
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else if (pkg?.itinerary) {
+      // If no PDF but itinerary data exists, create text file
+      const itineraryText = pkg.itinerary.map(day => 
+        `Day ${day.dayNumber}: ${day.title}\n${day.description}\n\n`
+      ).join('');
+
+      const blob = new Blob([itineraryText], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${pkg.package_name} - Itinerary.txt`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } else {
+      toast.error('No itinerary available to download');
+    }
+  };
+
+  // Add blog navigation functions
+  const nextBlogPage = () => {
+    if ((currentBlogPage + 1) * 3 < blogs.length) {
+      setCurrentBlogPage(prev => prev + 1);
+    }
+  };
+
+  const prevBlogPage = () => {
+    if (currentBlogPage > 0) {
+      setCurrentBlogPage(prev => prev - 1);
+    }
+  };
+
+  // Add getImageUrl function
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return '/placeholder-blog.jpg';
+    if (imagePath.startsWith('http')) return imagePath;
+    
+    try {
+      const cleanPath = imagePath.replace(/\\/g, '/').trim();
+      return cleanPath.startsWith('uploads/') 
+        ? `http://localhost:5000/${cleanPath}`
+        : `http://localhost:5000/uploads/${cleanPath}`;
+    } catch (error) {
+      return '/placeholder-blog.jpg';
+    }
+  };
+
+  // Update the blog card image rendering in renderBlogs function
+  const renderBlogs = () => {
+    if (blogsLoading) return <div className={styles.loading}>Loading blogs...</div>;
+    if (blogsError) return <div className={styles.error}>{blogsError}</div>;
+    if (!blogs.length) return null;
+
+    const startIdx = currentBlogPage * 3;
+    const visibleBlogs = blogs.slice(startIdx, startIdx + 3);
+
+    return (
+      <div className={styles.blogsSection}>
+        <h2 className={styles.blogsTitle}>Related Articles</h2>
+        <div className={styles.blogsContainer}>
+          {currentBlogPage > 0 && (
+            <button 
+              className={`${styles.blogNavBtn} ${styles.prevBtn}`}
+              onClick={prevBlogPage}
+              aria-label="Previous blogs"
+            >
+              ←
             </button>
+          )}
+          <div className={styles.blogsGrid}>
+            {visibleBlogs.map(blog => (
+              <div key={blog.id} className={styles.blogCard}>
+                <div className={styles.blogImage}>
+                  <img 
+                    src={getImageUrl(blog.featured_image)} 
+                    alt={blog.title}
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = '/placeholder-blog.jpg';
+                    }}
+                  />
+                </div>
+                <div className={styles.blogContent}>
+                  <h3>{blog.title}</h3>
+                  <p>{blog.description}</p>
+                  <Link to={`/articles/${blog.slug}`} className={styles.readMoreBtn}>
+                    Read More
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+          {(currentBlogPage + 1) * 3 < blogs.length && (
+            <button 
+              className={`${styles.blogNavBtn} ${styles.nextBtn}`}
+              onClick={nextBlogPage}
+              aria-label="Next blogs"
+            >
+              →
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // Update renderSeasonPackages function to show fetched images
+  const renderSeasonPackages = () => {
+    if (seasonImagesLoading) return <div className={styles.loading}>Loading season images...</div>;
+    if (seasonImagesError) return <div className={styles.error}>{seasonImagesError}</div>;
+
+    const imagesForSeason = seasonImages[activeSeason] || [];
+
+    if (!imagesForSeason.length) {
+      return <p>No images available for {activeSeason} season yet.</p>;
+    }
+
+    return (
+      <div className={styles.seasonImagesGrid}> {/* Use the existing style */}
+        {imagesForSeason.map(image => (
+          <div key={image.id} className={styles.seasonImageCard}> {/* Use the existing style */}
+            <img
+              // Use the getImageUrl function to handle both relative and absolute paths
+              src={getImageUrl(image.image_path || '/placeholder-image.jpg')} 
+              alt={image.alt_text || `${activeSeason} Season Image`}
+              className={styles.seasonGridImage} // Use the existing style
+              onError={(e) => { 
+                e.target.onerror = null;
+                e.target.src = '/placeholder-image.jpg'; // Fallback placeholder
+              }}
+            />
           </div>
         ))}
       </div>
@@ -200,8 +534,6 @@ const PackageDetails = () => {
 
   // Filter out null/undefined images and log the results
   const images = allImages.filter(img => img.src);
-  console.log('All available images:', allImages);
-  console.log('Filtered images to display:', images);
 
   // Separate featured image and grid images
   const featuredImage = images[0];
@@ -295,59 +627,88 @@ const PackageDetails = () => {
       </div>
       {/* Row: Itinerary | Tabs | Form */}
       <div className={styles.rowBelowTitle}>
+        { /* Itinerary tab Section Below This there is Price Table */}
+        <div className={styles.itinerarytab}>
         {/* Itinerary */}
+          <div className={styles.itneraryTabsSection}>
         <div className={styles.itineraryBlock}>
           <h2 className={styles.itineraryTitle}>Tour Itinerary</h2>
           <div className={styles.itineraryContent}>
             {Array.isArray(pkg.itinerary) && pkg.itinerary.length > 0 ? (
-              <div className="itinerary-section">
-                <div className="itinerary-content">
-                  <div className="itinerary-days">
-                    {pkg.itinerary.map((day, index) => (
-                      <div key={index} className="itinerary-day">
-                        <div 
-                          className="itinerary-day-header"
-                          onClick={() => setExpandedDay(expandedDay === index ? null : index)}
-                          style={{cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px'}}
-                        >
-                          <span className="day-number">Day {day.dayNumber}</span>
-                          <span className="day-title">{day.title}</span>
-                          <span 
-                            className="toggle-icon"
+              <>
+                <div className="itinerary-section">
+                  <div className="itinerary-content">
+                    <div className="itinerary-days">
+                      {pkg.itinerary.map((day, index) => (
+                        <div key={index} className="itinerary-day">
+                          <div 
+                            className="itinerary-day-header"
+                            onClick={() => setExpandedDay(expandedDay === index ? null : index)}
+                                style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', color: 'white', padding: '.7vw' }}
+                          >
+                            <span className="day-number">Day {day.dayNumber}</span>
+                            <span className="day-title">{day.title}</span>
+                            <span 
+                              className="toggle-icon"
+                              style={{
+                                display: 'inline-block',
+                                transition: 'transform 0.3s',
+                                transform: expandedDay === index ? 'rotate(180deg)' : 'rotate(0deg)',
+                                marginLeft: 'auto',
+                                fontSize: '16px'
+                              }}
+                            >
+                              ▼
+                            </span>
+                          </div>
+                          <div 
+                            className={`itinerary-day-description${expandedDay === index ? ' show' : ''}`}
                             style={{
-                              display: 'inline-block',
-                              transition: 'transform 0.3s',
-                              transform: expandedDay === index ? 'rotate(180deg)' : 'rotate(0deg)',
-                              marginLeft: 'auto',
-                              fontSize: '16px'
+                              maxHeight: expandedDay === index ? '500px' : '0',
+                              overflow: 'hidden',
+                              transition: 'max-height 0.3s ease',
+                              padding: expandedDay === index ? '15px 20px' : '0 20px',
+                              borderTop: expandedDay === index ? '1px solid #eee' : 'none',
+                              color: '#666',
+                                  lineHeight: '1.6',
+                                  backgroundColor: 'rgb(219, 228, 238)'
                             }}
                           >
-                            ▼
-                          </span>
+                            {day.description}
+                          </div>
                         </div>
-                        <div 
-                          className={`itinerary-day-description${expandedDay === index ? ' show' : ''}`}
-                          style={{
-                            maxHeight: expandedDay === index ? '500px' : '0',
-                            overflow: 'hidden',
-                            transition: 'max-height 0.3s ease',
-                            padding: expandedDay === index ? '15px 20px' : '0 20px',
-                            borderTop: expandedDay === index ? '1px solid #eee' : 'none',
-                            color: '#666',
-                            lineHeight: 1.6
-                          }}
-                        >
-                          {day.description}
-                        </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
+                <button 
+                  className={styles.itineraryActionBtn}
+                  onClick={downloadItinerary}
+                  style={{
+                    background: '#1976d2',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '10px 0',
+                    width: '100%',
+                    fontSize: '1rem',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'background 0.2s',
+                    marginTop: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  <i className="fas fa-download"></i>
+                  {pkg.itinerary_pdf ? 'Download PDF Itinerary' : 'Download Itinerary'}
+                </button>
+              </>
             ) : (
               <p className="no-itinerary">No itinerary available for this package.</p>
             )}
-            <button className={styles.itineraryActionBtn}>Places to visit in Arunachal</button>
           </div>
         </div>
         {/* Tabs: Inclusion, Exclusion, Hotels, Flight, Train, FAQ, Note */}
@@ -365,19 +726,15 @@ const PackageDetails = () => {
           </div>
           <div className={styles.tabContent}>
             {activeTab === 'Inclusion' && (
-              <div style={{textAlign: 'left'}}>{renderList(pkg.inclusion)}</div>
+                  <div style={{ textAlign: 'left' }}>{renderList(pkg.inclusion)}</div>
             )}
             {activeTab === 'Exclusion' && (
-              <div style={{textAlign: 'left'}}>{renderList(pkg.exclusion)}</div>
+                  <div style={{ textAlign: 'left' }}>{renderList(pkg.exclusion)}</div>
             )}
             {activeTab === 'Hotels' && (
-              <div style={{textAlign: 'left'}}>
+                  <div style={{ textAlign: 'left' }}>
                 <h3>Accommodation Details</h3>
-                {pkg.hotels ? (
-                  renderHotels(pkg.hotels)
-                ) : (
-                  <p>Hotel details will be provided upon booking.</p>
-                )}
+                {renderHotels()}
               </div>
             )}
             {activeTab === 'Flight' && (
@@ -401,10 +758,10 @@ const PackageDetails = () => {
               </div>
             )}
             {activeTab === 'FAQ' && (
-              <div style={{textAlign: 'left'}} dangerouslySetInnerHTML={{ __html: (pkg.faq || '').replace(/\n/g, '<br />') }} />
+                  <div style={{ textAlign: 'left' }} dangerouslySetInnerHTML={{ __html: (pkg.faq || '').replace(/\n/g, '<br />') }} />
             )}
             {activeTab === 'Note' && (
-              <div style={{textAlign: 'left'}}>
+                  <div style={{ textAlign: 'left' }}>
                 <div dangerouslySetInnerHTML={{ __html: (pkg.note || '').replace(/\n/g, '<br />') }} />
                 <div style={{ marginTop: '20px', marginBottom: '20px' }}>
                   <div className={styles.meta}>
@@ -418,6 +775,41 @@ const PackageDetails = () => {
             )}
           </div>
         </div>
+          </div>
+          {/* Costing Section */}
+          <div className={styles.costingSection}>
+            <h2 className={styles.costingTitle}>Costing</h2>
+            <table className={styles.costingTable}>
+              <thead>
+                <tr>
+                  <th>Mode</th>
+                  <th>Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pkg.quad_price > 0 && (
+                  <tr>
+                    <td>Quad Sharing</td>
+                    <td>₹{pkg.quad_price}</td>
+                  </tr>
+                )}
+                {pkg.triple_price > 0 && (
+                  <tr>
+                    <td>Triple Sharing</td>
+                    <td>₹{pkg.triple_price}</td>
+                  </tr>
+                )}
+                {pkg.double_price > 0 && (
+                  <tr>
+                    <td>Double Sharing</td>
+                    <td>₹{pkg.double_price}</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         {/* Enquiry Form */}
         <div className={styles.rightContent}>
           <div className={styles.enquiryFormWrapper}>
@@ -494,7 +886,7 @@ const PackageDetails = () => {
                 <a
                   href="tel:+919990055699"
                   className={styles.callBtn}
-                  style={{marginLeft: '12px'}}>
+                  style={{ marginLeft: '12px' }}>
                   Call Now
                 </a>
               </div>
@@ -510,8 +902,31 @@ const PackageDetails = () => {
         </div>
       </div>
 
+      {/* Add blogs section after costing section */}
+      {renderBlogs()}
+
+      {/* Add Seasons Section */}
+      <section className={styles.seasonsSection}> {/* Define this style in CSS */}
+        <h2 className={styles.seasonsTitle}>Season of {pkg.package_name}</h2> {/* Define this style in CSS */}
+        <div className={styles.seasonTabs}> {/* Define this style in CSS */}
+          {seasons.map(season => (
+            <button
+              key={season}
+              className={activeSeason === season ? styles.activeSeasonTab : styles.seasonTabButton} // Define these styles in CSS
+              onClick={() => setActiveSeason(season)}
+            >
+              {season}
+            </button>
+          ))}
+        </div>
+        <div className={styles.seasonContent}> {/* Define this style in CSS */}
+          {renderSeasonPackages()}
+        </div>
+      </section>
+
       {/* Hotel Details Modal */}
-      {showHotelModal && selectedHotel && (
+      {
+        showHotelModal && selectedHotel && (
         <div className={styles.hotelModal}>
           <div className={styles.modalContent}>
             <button
@@ -545,8 +960,9 @@ const PackageDetails = () => {
             </div>
           </div>
         </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 };
 

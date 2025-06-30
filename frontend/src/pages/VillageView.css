@@ -64,10 +64,6 @@
     align-items: center;
 }
 
-.hero-overlay {
-    display: none !important;
-}
-
 .hero-content {
     position: relative;
     z-index: 3;
@@ -81,12 +77,6 @@
     min-height: 400px;
     box-sizing: border-box;
     overflow-x: hidden;
-    background: linear-gradient(
-        90deg,
-        rgba(0, 0, 0, 0.85) 0%,
-        rgba(0, 0, 0, 0.6) 50%,
-        rgba(0, 0, 0, 0) 100%
-    );
 }
 
 .hero-text-content {
@@ -458,45 +448,6 @@
 }
 
 /* Hero Section New Elements */
-.hero-top-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 40px;
-    animation: fadeInDown 1s ease-out;
-}
-
-.hero-actions {
-    display: flex;
-    gap: 15px;
-}
-
-.action-button {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(255, 255, 255, 0.15);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    padding: 10px 20px;
-    border-radius: 50px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
-}
-
-.action-button:hover {
-    background: rgba(255, 255, 255, 0.25);
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-}
-
-.action-button svg {
-    font-size: 1.1rem;
-    color: #60a5fa;
-}
-
 .village-badge {
     display: inline-block;
     background: rgba(59,130,246,0.85);
@@ -596,22 +547,6 @@
 
 /* Responsive updates for new elements */
 @media (max-width: 768px) {
-    .hero-top-bar {
-        flex-direction: column;
-        gap: 20px;
-        align-items: flex-start;
-    }
-
-    .hero-actions {
-        width: 100%;
-        justify-content: space-between;
-    }
-
-    .action-button {
-        padding: 8px 15px;
-        font-size: 0.9rem;
-    }
-
     .village-badge {
         font-size: 0.7rem;
         padding: 3px 10px;
@@ -636,17 +571,6 @@
 }
 
 @media (max-width: 480px) {
-    .hero-actions {
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    .action-button {
-        flex: 1;
-        min-width: 120px;
-        justify-content: center;
-    }
-
     .village-badge {
         font-size: 0.9rem;
         padding: 5px 14px;

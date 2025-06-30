@@ -42,7 +42,6 @@ router.get('/:subdistrictId', async (req, res) => {
     );
     res.json(images);
   } catch (error) {
-    console.error('Error fetching territory gallery images:', error);
     res.status(500).json({ message: 'Error fetching territory gallery images' });
   }
 });
@@ -72,7 +71,6 @@ router.post('/', upload.single('image'), async (req, res) => {
 
     res.status(201).json(newImage[0]);
   } catch (error) {
-    console.error('Error adding territory gallery image:', error);
     res.status(500).json({ message: 'Error adding territory gallery image' });
   }
 });
@@ -99,8 +97,7 @@ router.put('/:id', upload.single('image'), async (req, res) => {
         try {
           require('fs').unlinkSync(oldImagePath);
         } catch (err) {
-          console.error('Error deleting old image file:', err);
-        }
+          }
       }
 
       updateQuery += ', image_url = ?';
@@ -123,7 +120,6 @@ router.put('/:id', upload.single('image'), async (req, res) => {
 
     res.json(updatedImage[0]);
   } catch (error) {
-    console.error('Error updating territory gallery image:', error);
     res.status(500).json({ message: 'Error updating territory gallery image' });
   }
 });
@@ -149,12 +145,10 @@ router.delete('/:id', async (req, res) => {
     try {
       require('fs').unlinkSync(imagePath);
     } catch (err) {
-      console.error('Error deleting image file:', err);
-    }
+      }
 
     res.status(204).send();
   } catch (error) {
-    console.error('Error deleting territory gallery image:', error);
     res.status(500).json({ message: 'Error deleting territory gallery image' });
   }
 });

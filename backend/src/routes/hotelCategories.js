@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/database');
+const db = require('../../db');
 
 // Get all hotel categories
 router.get('/', async (req, res) => {
@@ -8,7 +8,6 @@ router.get('/', async (req, res) => {
         const [categories] = await db.query('SELECT * FROM hotel_categories WHERE is_active = true');
         res.json(categories);
     } catch (error) {
-        console.error('Error fetching hotel categories:', error);
         res.status(500).json({ message: 'Error fetching hotel categories' });
     }
 });
@@ -22,7 +21,6 @@ router.get('/:id', async (req, res) => {
         }
         res.json(category[0]);
     } catch (error) {
-        console.error('Error fetching hotel category:', error);
         res.status(500).json({ message: 'Error fetching hotel category' });
     }
 });
@@ -42,7 +40,6 @@ router.post('/', async (req, res) => {
             description
         });
     } catch (error) {
-        console.error('Error creating hotel category:', error);
         if (error.code === 'ER_DUP_ENTRY') {
             return res.status(400).json({ message: 'Category name already exists' });
         }
@@ -69,7 +66,6 @@ router.put('/:id', async (req, res) => {
             is_active
         });
     } catch (error) {
-        console.error('Error updating hotel category:', error);
         if (error.code === 'ER_DUP_ENTRY') {
             return res.status(400).json({ message: 'Category name already exists' });
         }
@@ -89,7 +85,6 @@ router.delete('/:id', async (req, res) => {
         }
         res.json({ message: 'Category deleted successfully' });
     } catch (error) {
-        console.error('Error deleting hotel category:', error);
         res.status(500).json({ message: 'Error deleting hotel category' });
     }
 });

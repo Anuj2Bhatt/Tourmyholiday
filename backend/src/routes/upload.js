@@ -50,8 +50,6 @@ router.get('/', (req, res) => {
 // POST route to handle single image upload (for featured images)
 router.post('/', upload.single('featured_image'), async (req, res) => {
   try {
-    console.log('Upload request received:', req.file);
-    
     if (!req.file) {
       return res.status(400).json({
         success: false,
@@ -66,7 +64,6 @@ router.post('/', upload.single('featured_image'), async (req, res) => {
       images: [req.file.filename] // Return just the filename
     });
   } catch (error) {
-    console.error('Error uploading file:', error);
     res.status(500).json({
       success: false,
       message: 'Error uploading file',

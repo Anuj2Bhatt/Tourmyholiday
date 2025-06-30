@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+import React, { useState, useEffect, useRef } from 'react';
+import { Editor } from '@tinymce/tinymce-react';
 import axios from 'axios';
 import './ArticleForm.css';
 
@@ -951,6 +950,13 @@ const ContentStats = ({ content, metaKeywords, onDensityCheck }) => {
     );
 };
 
+// Add new API endpoints
+const API_ENDPOINTS = {
+  GENERATE_META_DESCRIPTION: 'http://localhost:5000/api/generate/meta-description',
+  GET_KEYWORD_SUGGESTIONS: 'http://localhost:5000/api/generate/keyword-suggestions',
+  ANALYZE_CONTENT: 'http://localhost:5000/api/analyze/content'
+};
+
 const ArticleForm = ({ article, onSave, onCancel, loading }) => {
   const [formData, setFormData] = useState({
     title: '',
@@ -973,20 +979,25 @@ const ArticleForm = ({ article, onSave, onCancel, loading }) => {
   const [metaTitleCount, setMetaTitleCount] = useState(0);
   const [metaDescCount, setMetaDescCount] = useState(0);
   const [keywordInput, setKeywordInput] = useState('');
+  const [isGeneratingMeta, setIsGeneratingMeta] = useState(false);
+  const [isAnalyzingContent, setIsAnalyzingContent] = useState(false);
+  const [contentAnalysis, setContentAnalysis] = useState(null);
+  const [keywordSuggestions, setKeywordSuggestions] = useState([]);
+  const [isMetaAnalyzing, setIsMetaAnalyzing] = useState(false);
+  const [metaDescriptionSuggestions, setMetaDescriptionSuggestions] = useState([]);
+  const [metaKeywordsSuggestions, setMetaKeywordsSuggestions] = useState([]);
 
   useEffect(() => {
     (async () => {
       try {
         const res = await axios.get('http://localhost:5000/api/categories');
         setCategories(res.data);
-        console.log('Categories:', res.data);
       } catch (err) {
         setCategories([]);
       }
       try {
         const res = await axios.get('http://localhost:5000/api/packages');
         setPackages(res.data);
-        console.log('Packages:', res.data);
       } catch (err) {
         setPackages([]);
       }
@@ -1073,7 +1084,6 @@ const ArticleForm = ({ article, onSave, onCancel, loading }) => {
 
   const handleDensityCheck = (keyword, density) => {
     // Remove the alert - we now handle warnings in the UI
-    console.log(`Keyword "${keyword}" density: ${density.toFixed(2)}%`);
   };
 
   const handleSubmit = (e) => {
@@ -1101,13 +1111,7 @@ const ArticleForm = ({ article, onSave, onCancel, loading }) => {
     const formDataToSend = new FormData();
     
     // Log the original formData
-    console.log('Original formData:', formData);
-    console.log('Content Stats:', {
-        wordCount,
-        externalLinks,
-        internalLinks,
-        images
-    });
+    
     
     // Rest of your existing handleSubmit code...
     Object.keys(formData).forEach(key => {
@@ -1115,18 +1119,61 @@ const ArticleForm = ({ article, onSave, onCancel, loading }) => {
         
         if (key === 'featuredImage' && formData[key]) {
             formDataToSend.append('featured_image', formData[key]);
-            console.log('Adding featured_image:', formData[key]);
         } else if (key === 'meta_keywords') {
             const keywords = formData.meta_keywords.join(',');
             formDataToSend.append('meta_keywords', keywords);
-            console.log('Adding meta_keywords:', keywords);
         } else if (value !== null && value !== undefined) {
             formDataToSend.append(key, value);
-            console.log(`Adding ${key}:`, value);
         }
     });
 
     onSave(formDataToSend);
+  };
+
+  const handleGenerateMetaSuggestions = async () => {
+    if (!formData.content || !formData.title) {
+        alert('Please add title and content first');
+        return;
+    }
+
+    setIsMetaAnalyzing(true);
+    try {
+        // Get meta description suggestions
+        const descResponse = await axios.post('http://localhost:5000/api/seo/meta-description', {
+            title: formData.title,
+            content: formData.content
+        });
+
+        // Get keyword suggestions
+        const keywordsResponse = await axios.post('http://localhost:5000/api/seo/keywords', {
+            title: formData.title,
+            content: formData.content
+        });
+
+        setMetaDescriptionSuggestions(descResponse.data.suggestions);
+        setMetaKeywordsSuggestions(keywordsResponse.data.suggestions);
+    } catch (error) {   
+        alert('Error generating suggestions. Please try again.');
+    } finally {
+        setIsMetaAnalyzing(false);
+    }
+  };
+
+  const handleMetaDescriptionSelect = (description) => {
+    setFormData(prev => ({
+        ...prev,
+        meta_description: description
+    }));
+    setMetaDescCount(description.length);
+  };
+
+  const handleKeywordSelect = (keyword) => {
+    if (!formData.meta_keywords.includes(keyword)) {
+        setFormData(prev => ({
+            ...prev,
+            meta_keywords: [...prev.meta_keywords, keyword]
+        }));
+    }
   };
 
   return (
@@ -1247,21 +1294,86 @@ const ArticleForm = ({ article, onSave, onCancel, loading }) => {
           <h3 className="section-title">Article Content</h3>
           <div className="form-group">
             <label>Content:</label>
-            <ReactQuill
+            <Editor
+              apiKey="m5tpfu2byudniwkqc4ba5djkgsypw5ewcjwltepff4t1ffh6"
               value={formData.content}
-              onChange={handleEditorChange}
-              modules={{
-                toolbar: [
-                  [{ 'header': [1, 2, false] }],
-                  ['bold', 'italic', 'underline','strike', 'blockquote'],
-                  [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                  ['link', 'image'],
-                  [{ 'align': [] }],
-                  [{ 'color': [] }, { 'background': [] }],
-                  ['clean']
-                ]
+              onEditorChange={(content) => {
+                setFormData(prev => ({ ...prev, content }));
               }}
-              formats={['header', 'bold', 'italic', 'underline', 'strike', 'blockquote', 'list', 'bullet', 'link', 'image', 'align', 'color', 'background']}
+              init={{
+                height: 500,
+                menubar: true,
+                branding: false,
+                promotion: false,
+                plugins: [
+                  'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                  'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                  'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+                ],
+                toolbar: 'undo redo | blocks | ' +
+                  'bold italic forecolor | alignleft aligncenter ' +
+                  'alignright alignjustify | bullist numlist outdent indent | ' +
+                  'removeformat | image | help',
+                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+                images_upload_handler: async (blobInfo, success, failure) => {
+                  try {
+                    const formData = new FormData();
+                    // Log the blob info
+                    
+                    
+                    // Make sure we're using the correct field name
+                    formData.append('image', blobInfo.blob(), blobInfo.filename());
+                    
+                    // Prompt for alt text
+                    const altText = window.prompt('Please enter alt text for the image (required for accessibility):', '');
+                    if (altText === null) {
+                      failure('Image upload cancelled. Alt text is required.');
+                      return;
+                    }
+                    
+                    formData.append('alt', altText);
+                    
+                    // Log the FormData contents
+                    for (let pair of formData.entries()) {
+                      
+                    }
+                    
+                    const response = await fetch('http://localhost:5000/api/articles/upload', {
+                      method: 'POST',
+                      body: formData
+                    });
+                    
+                    if (!response.ok) {
+                      const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+                      
+                      throw new Error(errorData.message || `Upload failed: ${response.status} ${response.statusText}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    
+                    if (data.url) {
+                      success(data.url);
+                    } else {
+                      throw new Error('No URL returned from server');
+                    }
+                  } catch (error) {
+                        
+                    failure(error.message || 'Failed to upload image. Please try again.');
+                  }
+                },
+                setup: (editor) => {
+                  editor.on('init', () => {
+                    editor.getContainer().style.transition = "border-color 0.15s ease-in-out";
+                  });
+                  editor.on('focus', () => {
+                    editor.getContainer().style.borderColor = "#80bdff";
+                  });
+                  editor.on('blur', () => {
+                    editor.getContainer().style.borderColor = "#ced4da";
+                  });
+                }
+              }}
             />
             {formData.content && formData.meta_keywords && (
                 <ContentStats 
@@ -1325,37 +1437,100 @@ const ArticleForm = ({ article, onSave, onCancel, loading }) => {
           </div>
           <div className="form-group">
             <label>Meta Description:</label>
-            <textarea
-              name="meta_description"
-              value={formData.meta_description}
-              onChange={handleInputChange}
-              className="styled-textarea"
-              maxLength={160}
-              minLength={150}
-              required
-            />
+            <div className="meta-description-container">
+                <textarea
+                    name="meta_description"
+                    value={formData.meta_description}
+                    onChange={handleInputChange}
+                    className="styled-textarea"
+                    maxLength={160}
+                    minLength={150}
+                    required
+                />
+                <div className="meta-description-actions">
+                    <button
+                        type="button"
+                        onClick={handleGenerateMetaSuggestions}
+                        className="suggestion-button"
+                        disabled={isMetaAnalyzing || !formData.content || !formData.title}
+                    >
+                        {isMetaAnalyzing ? (
+                            <>
+                                <span className="spinner"></span>
+                                Analyzing...
+                            </>
+                        ) : (
+                            'Get Suggestions'
+                        )}
+                    </button>
+                </div>
+            </div>
             <small>{metaDescCount} / 160 characters</small>
+
+            {/* Meta Description Suggestions */}
+            {metaDescriptionSuggestions.length > 0 && (
+                <div className="meta-suggestions">
+                    <h4>Suggested Meta Descriptions:</h4>
+                    <div className="suggestion-list">
+                        {metaDescriptionSuggestions.map((suggestion, index) => (
+                            <div 
+                                key={index} 
+                                className="meta-suggestion-item"
+                                onClick={() => handleMetaDescriptionSelect(suggestion.description)}
+                            >
+                                <div className="suggestion-text">{suggestion.description}</div>
+                                <div className="suggestion-metrics">
+                                    <span className={`score ${suggestion.score >= 70 ? 'good' : 'needs-improvement'}`}>
+                                        Score: {suggestion.score}
+                                    </span>
+                                    <span className="length">Length: {suggestion.length}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
           </div>
           <div className="form-group">
-            <label>Meta Keywords (comma or Enter to add):</label>
+            <label>Meta Keywords:</label>
             <div className="keywords-input-container">
-              <input
-                type="text"
-                value={keywordInput}
-                onChange={handleKeywordInput}
-                onKeyDown={handleKeywordKeyDown}
-                className="styled-input"
-                placeholder="Type a keyword and press Enter or comma"
-              />
-              <div className="keywords-container">
-                {formData.meta_keywords.map((kw, idx) => (
-                  <span className="keyword-tag" key={idx}>
-                    {kw}
-                    <button type="button" onClick={() => removeKeyword(kw)}>&times;</button>
-                  </span>
-                ))}
-              </div>
+                <input
+                    type="text"
+                    value={keywordInput}
+                    onChange={handleKeywordInput}
+                    onKeyDown={handleKeywordKeyDown}
+                    className="styled-input"
+                    placeholder="Type a keyword and press Enter or comma"
+                />
+                <div className="keywords-container">
+                    {formData.meta_keywords.map((kw, idx) => (
+                        <span className="keyword-tag" key={idx}>
+                            {kw}
+                            <button type="button" onClick={() => removeKeyword(kw)}>&times;</button>
+                        </span>
+                    ))}
+                </div>
             </div>
+
+            {/* Keyword Suggestions */}
+            {metaKeywordsSuggestions.length > 0 && (
+                <div className="keyword-suggestions">
+                    <h4>Suggested Keywords:</h4>
+                    <div className="suggestion-chips">
+                        {metaKeywordsSuggestions.map((suggestion, index) => (
+                            <span
+                                key={index}
+                                className="suggestion-chip"
+                                onClick={() => handleKeywordSelect(suggestion.keyword)}
+                                title={`Relevance: ${suggestion.relevance}`}
+                            >
+                                {suggestion.keyword}
+                                <span className="relevance">{suggestion.relevance}</span>
+                            </span>
+                        ))}
+                    </div>
+                </div>
+            )}
           </div>
         </div>
         <div className="form-buttons">

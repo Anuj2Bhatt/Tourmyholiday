@@ -41,19 +41,13 @@ const upload = multer({
 router.get('/states/:stateName/places', async (req, res) => {
     try {
         const { stateName } = req.params;
-        console.log('=== Places API Debug ===');
-        console.log('1. Received request for state:', stateName);
-        
         // Get all states for debugging
         const [allStates] = await db.query('SELECT id, name, route FROM states');
-        console.log('2. All states in database:', JSON.stringify(allStates, null, 2));
+        );
         
         // Get state ID with detailed logging
         const stateId = await getStateId(stateName);
-        console.log('3. Found state ID:', stateId);
-        
         if (!stateId) {
-            console.log('4. No state found for:', stateName);
             return res.json([]);
         }
         
@@ -62,8 +56,6 @@ router.get('/states/:stateName/places', async (req, res) => {
             'SELECT COUNT(*) as count FROM places WHERE state_id = ?',
             [stateId]
         );
-        console.log('5. Places count for state:', placesCheck[0].count);
-        
         const query = `
             SELECT 
                 p.*,
@@ -80,25 +72,11 @@ router.get('/states/:stateName/places', async (req, res) => {
         `;
         
         const [places] = await db.query(query, [stateId]);
-        console.log('6. Found places for state:', {
-            stateName,
-            stateId,
-            placesCount: places.length,
-            places: places.map(p => ({
-                id: p.id,
-                title: p.title,
-                state_id: p.state_id
-            }))
+        )
         });
         
         res.json(places || []);
     } catch (error) {
-        console.error('Error in places API:', error);
-        console.error('Error details:', {
-            message: error.message,
-            stack: error.stack,
-            stateName: req.params.stateName
-        });
         res.json([]);
     }
 });
@@ -107,14 +85,9 @@ router.get('/states/:stateName/places', async (req, res) => {
 router.get('/places/images/:filename', (req, res) => {
     try {
         const filename = req.params.filename;
-        console.log('Requested image:', filename);
-        
         const imagePath = path.join(__dirname, '..', 'uploads', 'places', filename);
-        console.log('Image path:', imagePath);
-
         // Check if file exists
         if (!fs.existsSync(imagePath)) {
-            console.log('Image not found at path:', imagePath);
             return res.status(404).json({ message: 'Image not found' });
         }
 
@@ -135,12 +108,10 @@ router.get('/places/images/:filename', (req, res) => {
         // Stream the file
         const fileStream = fs.createReadStream(imagePath);
         fileStream.on('error', (error) => {
-            console.error('Error streaming file:', error);
             res.status(500).json({ message: 'Error streaming file' });
         });
         fileStream.pipe(res);
     } catch (error) {
-        console.error('Error serving image:', error);
         res.status(500).json({ message: 'Error serving image' });
     }
 });
@@ -148,16 +119,11 @@ router.get('/places/images/:filename', (req, res) => {
 // Helper function to get state ID from state name/URL
 async function getStateId(stateName) {
     try {
-        console.log('=== getStateId Debug ===');
-        console.log('1. Input stateName:', stateName);
-        
         // Remove leading slash and clean the state name
         const cleanStateName = stateName.replace(/^\//, '').toLowerCase().trim();
-        console.log('2. Cleaned state name:', cleanStateName);
-        
         // Get all states for debugging
         const [allStates] = await db.query('SELECT id, name, route FROM states');
-        console.log('3. Available states:', JSON.stringify(allStates, null, 2));
+        );
         
         // Try exact match first
         const [exactMatch] = await db.query(
@@ -169,10 +135,9 @@ async function getStateId(stateName) {
             [cleanStateName, cleanStateName, cleanStateName]
         );
         
-        console.log('4. Exact match query results:', JSON.stringify(exactMatch, null, 2));
+        );
         
         if (exactMatch.length > 0) {
-            console.log('5. Found exact match:', exactMatch[0]);
             return exactMatch[0].id;
         }
         
@@ -185,22 +150,14 @@ async function getStateId(stateName) {
             [`%${cleanStateName}%`, `%${cleanStateName}%`]
         );
         
-        console.log('6. Fuzzy match query results:', JSON.stringify(fuzzyMatch, null, 2));
+        );
         
         if (fuzzyMatch.length > 0) {
-            console.log('7. Found fuzzy match:', fuzzyMatch[0]);
             return fuzzyMatch[0].id;
         }
         
-        console.log('8. No state found for:', cleanStateName);
         return null;
     } catch (error) {
-        console.error('Error in getStateId:', error);
-        console.error('Error details:', {
-            message: error.message,
-            stack: error.stack,
-            stateName
-        });
         throw error;
     }
 }
@@ -224,7 +181,6 @@ router.get('/places/:id', async (req, res) => {
         
         res.json(places[0]);
     } catch (error) {
-        console.error('Error fetching place:', error);
         res.status(500).json({ message: 'Error fetching place' });
     }
 });
@@ -291,7 +247,6 @@ router.post('/states/:stateName/places', upload.single('featuredImage'), async (
             placeId: result.insertId
         });
     } catch (error) {
-        console.error('Error creating place:', error);
         res.status(500).json({ 
             message: error.message || 'Error creating place',
             details: {
@@ -367,7 +322,6 @@ router.put('/states/:stateName/places/:id', upload.single('featuredImage'), asyn
         
         res.json({ message: 'Place updated successfully' });
     } catch (error) {
-        console.error('Error updating place:', error);
         res.status(404).json({ 
             message: error.message || 'Error updating place',
             details: {
@@ -396,7 +350,6 @@ router.delete('/states/:stateName/places/:id', async (req, res) => {
         
         res.json({ message: 'Place deleted successfully' });
     } catch (error) {
-        console.error('Error deleting place:', error);
         res.status(404).json({ 
             message: error.message || 'Error deleting place',
             details: {
@@ -425,12 +378,62 @@ router.get('/places', async (req, res) => {
         `;
         
         const [places] = await db.query(query);
-        console.log('Found places:', places);
-        
         res.json(places || []);
     } catch (error) {
-        console.error('Error fetching all places:', error);
         res.status(500).json({ message: 'Error fetching places' });
+    }
+});
+
+// Get a single place by slug
+router.get('/places/slug/:slug', async (req, res) => {
+    try {
+        const { slug } = req.params;
+        const query = `
+            SELECT 
+                p.id,
+                p.state_id,
+                p.title,
+                p.slug,
+                p.location,
+                p.description,
+                p.content,
+                p.best_time_to_visit as bestTimeToVisit,
+                p.entry_fee as entryFee,
+                p.timings,
+                p.featured,
+                p.featured_image,
+                p.created_at as createdAt,
+                p.updated_at as updatedAt,
+                s.name as state_name,
+                CASE 
+                    WHEN p.featured_image IS NOT NULL 
+                    THEN CONCAT('http://localhost:5000/uploads/places/', p.featured_image)
+                    ELSE NULL 
+                END as featured_image_url
+            FROM places p
+            JOIN states s ON p.state_id = s.id
+            WHERE p.slug = ?
+        `;
+        
+        const [places] = await db.query(query, [slug]);
+        
+        if (!places || places.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Place not found'
+            });
+        }
+
+        res.json({
+            success: true,
+            data: places[0]
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching place',
+            error: error.message
+        });
     }
 });
 

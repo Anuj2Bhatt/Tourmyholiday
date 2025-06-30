@@ -100,7 +100,6 @@ const ManageStates = () => {
       await fetchStates();
       closeModal();
     } catch (err) {
-      console.error('Error:', err);
       const errorMessage = err.response?.data?.message || 'Failed to save state';
       setError(errorMessage);
       toast.error(errorMessage);
@@ -118,7 +117,6 @@ const ManageStates = () => {
       toast.success('State deleted successfully');
       await fetchStates(); // Refresh the list after deletion
     } catch (err) {
-      console.error('Error deleting state:', err);
       const errorMessage = err.response?.data?.message || 'Failed to delete state';
       setError(errorMessage);
       toast.error(errorMessage);

@@ -34,8 +34,6 @@ const upload = multer({
 router.get('/:villageId', async (req, res) => {
   try {
     const { villageId } = req.params;
-    console.log('Fetching images for territory village ID:', villageId);
-    
     // First check if village exists
     const [village] = await db.query('SELECT id FROM territory_villages WHERE id = ?', [villageId]);
     if (village.length === 0) {
@@ -61,7 +59,6 @@ router.get('/:villageId', async (req, res) => {
       data: formattedImages
     });
   } catch (error) {
-    console.error('Error fetching territory village images:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch village images: ' + error.message
@@ -116,7 +113,6 @@ router.post('/', upload.array('images', 10), async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error uploading territory village images:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to upload images: ' + error.message
@@ -157,7 +153,6 @@ router.delete('/:imageId', async (req, res) => {
       message: 'Image deleted successfully'
     });
   } catch (error) {
-    console.error('Error deleting territory village image:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to delete image: ' + error.message

@@ -12,7 +12,7 @@ const UnionTeritory = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetchTerritories();
+    fetchTerritories(); 
   }, []);
 
   const fetchTerritories = async () => {

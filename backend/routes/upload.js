@@ -72,7 +72,6 @@ router.post('/state-village-images', upload.array('images', 10), async (req, res
     });
 
   } catch (error) {
-    console.error('Error uploading state village images:', error);
     res.status(500).json({ 
       success: false, 
       message: 'Error uploading images',
@@ -120,7 +119,6 @@ router.post('/territory-village-images', upload.array('images', 10), async (req,
     });
 
   } catch (error) {
-    console.error('Error uploading territory village images:', error);
     res.status(500).json({ 
       success: false, 
       message: 'Error uploading images',
@@ -148,7 +146,6 @@ router.get('/state-village-images/:villageId', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error fetching state village images:', error);
     res.status(500).json({ 
       success: false, 
       message: 'Error fetching images',
@@ -176,7 +173,6 @@ router.get('/territory-village-images/:villageId', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error fetching territory village images:', error);
     res.status(500).json({ 
       success: false, 
       message: 'Error fetching images',
@@ -223,7 +219,6 @@ router.delete('/village-image/:imageId/:type', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error deleting image:', error);
     res.status(500).json({ 
       success: false, 
       message: 'Error deleting image',

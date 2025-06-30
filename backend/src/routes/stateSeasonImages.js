@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../db');
+const pool = require('../../db');
 const path = require('path');
 const multer = require('multer');
 
@@ -58,28 +58,38 @@ const handleMulterError = (err, req, res, next) => {
   next();
 };
 
-// Get season images for a state
-router.get('/:stateId/:season', async (req, res) => {
-  try {
-    const { stateId, season } = req.params;
-    console.log('Fetching season images for state:', stateId, 'season:', season);
+// Update the seasons array to include all five seasons
+const SEASONS = ['summer', 'monsoon', 'autumn', 'winter', 'spring'];
 
+// Get all season images for a state
+router.get('/:stateId', async (req, res) => {
+  try {
+    const { stateId } = req.params;
     // First check if state exists
     const [states] = await pool.query('SELECT id FROM states WHERE id = ?', [stateId]);
     if (states.length === 0) {
       return res.status(404).json({ message: 'State not found' });
     }
 
-    // Get images for this state and season
+    // Get images for all seasons of this state
     const [images] = await pool.query(`
       SELECT id, state_id, season, url, location, alt, caption, created_at, updated_at
       FROM state_season_images 
-      WHERE state_id = ? AND season = ?
-      ORDER BY created_at DESC
-    `, [stateId, season]);
+      WHERE state_id = ?
+      ORDER BY season, created_at DESC
+    `, [stateId]);
 
-    // Format image URLs - fix duplicate uploads folder
-    const formattedImages = images.map(image => {
+    // Group images by season
+    const seasonImages = {
+      summer: [],
+      monsoon: [],
+      autumn: [],
+      winter: [],
+      spring: []
+    };
+
+    // Format and group images
+    images.forEach(image => {
       let imageUrl = image.url;
       
       // Remove any leading slashes
@@ -92,23 +102,20 @@ router.get('/:stateId/:season', async (req, res) => {
         imageUrl = imageUrl.substring(8);
       }
       
-      // If it's already a full URL, return as is
-      if (imageUrl.startsWith('http')) {
-        return { ...image, url: imageUrl };
-      }
-      
-      // Otherwise, construct the full URL
-      return { 
-        ...image, 
-        url: `http://localhost:5000/uploads/${imageUrl}`
+      // Format the image URL
+      const formattedImage = {
+        ...image,
+        url: imageUrl.startsWith('http') ? imageUrl : `${process.env.API_BASE_URL || 'http://localhost:5000'}/uploads/${imageUrl}`
       };
-    });
 
-    console.log(`Found ${images.length} images for state ${stateId} season ${season}`);
-    console.log('Formatted image URLs:', formattedImages.map(img => img.url));
-    res.json(formattedImages);
+      // Add to appropriate season array
+      if (SEASONS.includes(image.season.toLowerCase())) {
+        seasonImages[image.season.toLowerCase()].push(formattedImage);
+      }
+    });
+    
+    res.json(seasonImages);
   } catch (error) {
-    console.error('Error fetching season images:', error);
     res.status(500).json({ message: 'Failed to fetch season images', error: error.message });
   }
 });
@@ -141,35 +148,32 @@ router.put('/:imageId', async (req, res) => {
     const imageUrl = updatedImage[0].url;
     const formattedImage = {
       ...updatedImage[0],
-      url: imageUrl.startsWith('http') 
-        ? imageUrl 
-        : `http://localhost:5000/uploads/${imageUrl}`
+      url: imageUrl.startsWith('http') ? imageUrl : `${process.env.API_BASE_URL || 'http://localhost:5000'}/uploads/${imageUrl}`
     };
 
     res.json(formattedImage);
   } catch (err) {
-    console.error('Error updating image:', err);
     res.status(500).json({ error: 'Failed to update image' });
   }
 });
 
-// Update POST route to store consistent URLs
+// Update POST route validation
 router.post('/', upload.single('image'), handleMulterError, async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No image file uploaded' });
     }
 
-    const { state_id, season, location, alt, caption } = req.body;
+    const { stateId, season, location, alt, caption } = req.body;
 
-    if (!state_id || !season) {
-      return res.status(400).json({ error: 'State ID and season are required' });
+    if (!stateId || !season || !location || !alt) {
+      return res.status(400).json({ error: 'All fields are required' });
     }
 
-    // Validate season
-    const validSeasons = ['winter', 'summer', 'autumn', 'spring'];
-    if (!validSeasons.includes(season.toLowerCase())) {
-      return res.status(400).json({ error: 'Invalid season. Must be one of: winter, summer, autumn, spring' });
+    if (!SEASONS.includes(season)) {
+      return res.status(400).json({ 
+        error: 'Invalid season. Must be one of: summer, monsoon, autumn, winter, spring' 
+      });
     }
 
     // Store just the filename in database
@@ -177,7 +181,7 @@ router.post('/', upload.single('image'), handleMulterError, async (req, res) => 
 
     const [result] = await pool.query(
       'INSERT INTO state_season_images (state_id, season, url, location, alt, caption) VALUES (?, ?, ?, ?, ?, ?)',
-      [state_id, season.toLowerCase(), imageUrl, location || null, alt || null, caption || null]
+      [stateId, season.toLowerCase(), imageUrl, location || null, alt || null, caption || null]
     );
 
     const [newImage] = await pool.query(
@@ -188,12 +192,11 @@ router.post('/', upload.single('image'), handleMulterError, async (req, res) => 
     // Format response URL
     const formattedImage = {
       ...newImage[0],
-      url: `http://localhost:5000/uploads/${imageUrl}`
+      url: `${process.env.API_BASE_URL || 'http://localhost:5000'}/uploads/${imageUrl}`
     };
 
     res.status(201).json(formattedImage);
   } catch (err) {
-    console.error('Error uploading season image:', err);
     res.status(500).json({ error: 'Failed to upload image' });
   }
 });
@@ -217,13 +220,10 @@ router.delete('/:imageId', async (req, res) => {
     try {
       require('fs').unlinkSync(imagePath);
     } catch (err) {
-      console.warn('Could not delete image file:', err);
-    }
+      }
 
-    console.log('Successfully deleted season image:', imageId);
     res.json({ message: 'Image deleted successfully' });
   } catch (error) {
-    console.error('Error deleting season image:', error);
     res.status(500).json({ message: 'Failed to delete image', error: error.message });
   }
 });

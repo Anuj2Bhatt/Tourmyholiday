@@ -15,11 +15,11 @@ const ManageEvents = () => {
   const fetchEvents = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/events');
+      const res = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/events`);
       const data = await res.json();
       setEvents(data);
-    } catch (err) {
-      setError('Failed to fetch events');
+    } catch (error) {
+      console.error('Error fetching events:', error);
     } finally {
       setLoading(false);
     }
@@ -31,12 +31,15 @@ const ManageEvents = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Delete this event?')) return;
-    try {
-      await fetch(`http://localhost:5000/api/events/${id}`, { method: 'DELETE' });
-      fetchEvents();
-    } catch {
-      setError('Failed to delete event');
+    if (window.confirm('Are you sure you want to delete this event?')) {
+      try {
+        await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/events/${id}`, { method: 'DELETE' });
+        alert('Event deleted successfully!');
+        fetchEvents();
+      } catch (error) {
+        console.error('Error deleting event:', error);
+        alert('Error deleting event');
+      }
     }
   };
 

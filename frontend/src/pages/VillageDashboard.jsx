@@ -1,75 +1,66 @@
 import React, { useEffect, useState, useRef } from 'react';
 import './VillageDashboard.css';
-import { FaSearch, FaUsers, FaHome, FaTree, FaMountain, FaBook, FaClock, FaRupeeSign, FaChevronLeft, FaChevronRight, FaArrowRight } from 'react-icons/fa';
+import { FaUsers, FaHome, FaTree, FaMountain, FaBook, FaClock, FaRupeeSign, FaChevronLeft, FaChevronRight, FaArrowRight } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 
 const VillageDashboard = () => {
-  const [villageData, setVillageData] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [seasonalVillages, setSeasonalVillages] = useState([]);
-  const [cultureVillages, setCultureVillages] = useState([]);
+  const [allVillages, setAllVillages] = useState([]);
+  const [loadingVillages, setLoadingVillages] = useState(true);
   const [packages, setPackages] = useState([]);
-  const [loadingSeasonal, setLoadingSeasonal] = useState(true);
-  const [loadingCulture, setLoadingCulture] = useState(true);
   const [loadingPackages, setLoadingPackages] = useState(true);
   const packagesSliderRef = useRef(null);
   const [showLeftNav, setShowLeftNav] = useState(false);
   const [showRightNav, setShowRightNav] = useState(true);
 
-  // Dummy data for seasonal and cultural sections
-  const dummySeasonalVillages = [
-    {
-      id: 1,
-      name: "Malana",
-      state: "Himachal Pradesh",
-      season: "Summer",
-      seasonalDescription: "Experience the magical beauty of Malana during summer with its lush green valleys and pleasant weather.",
-      image: "https://images.unsplash.com/photo-1599669454699-248893623440?ixlib=rb-4.0.3"
-    },
-    {
-      id: 2,
-      name: "Khajjiar",
-      state: "Himachal Pradesh",
-      season: "Winter",
-      seasonalDescription: "Witness the winter wonderland of Khajjiar with snow-covered meadows and frozen lakes.",
-      image: "https://images.unsplash.com/photo-1585409677983-0f6c41f9a05b?ixlib=rb-4.0.3"
-    },
-    {
-      id: 3,
-      name: "Munnar",
-      state: "Kerala",
-      season: "Monsoon",
-      seasonalDescription: "Experience the magical monsoon in Munnar with misty tea gardens and gushing waterfalls.",
-      image: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?ixlib=rb-4.0.3"
-    }
-  ];
+  // API URL
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
-  const dummyCultureVillages = [
-    {
-      id: 1,
-      name: "Majuli",
-      state: "Assam",
-      cultureType: "Tribal Culture",
-      cultureDescription: "World's largest river island known for its unique tribal culture and traditional mask-making art.",
-      image: "https://images.unsplash.com/photo-1585409677983-0f6c41f9a05b?ixlib=rb-4.0.3"
-    },
-    {
-      id: 2,
-      name: "Chettinad",
-      state: "Tamil Nadu",
-      cultureType: "Heritage",
-      cultureDescription: "Famous for its unique architecture, traditional cuisine, and rich cultural heritage.",
-      image: "https://images.unsplash.com/photo-1599669454699-248893623440?ixlib=rb-4.0.3"
-    },
-    {
-      id: 3,
-      name: "Ziro",
-      state: "Arunachal Pradesh",
-      cultureType: "Tribal Heritage",
-      cultureDescription: "Home to the Apatani tribe, known for their unique culture and sustainable farming practices.",
-      image: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?ixlib=rb-4.0.3"
-    }
-  ];
+  // Helper to get random villages
+  const getRandomVillages = (count) => {
+    if (!allVillages.length) return [];
+    const shuffled = [...allVillages].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, count);
+  };
+
+  // Format image URL
+  const formatImageUrl = (imagePath) => {
+    if (!imagePath) return 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80';
+    if (imagePath.startsWith('http')) return imagePath;
+    return `${API_URL}/${imagePath}`;
+  };
+
+  useEffect(() => {
+    const fetchVillages = async () => {
+      try {
+        setLoadingVillages(true);
+        const stateVillagesResponse = await axios.get(`${API_URL}/api/villages`);
+        const stateVillages = stateVillagesResponse.data || [];
+        const territoryVillagesResponse = await axios.get(`${API_URL}/api/territory-villages`);
+        const territoryVillages = territoryVillagesResponse.data || [];
+        const allVillagesData = [
+          ...stateVillages.map(village => ({ ...village, type: 'state' })),
+          ...territoryVillages.map(village => ({ ...village, type: 'territory' }))
+        ];
+        setAllVillages(allVillagesData);
+        setLoadingVillages(false);
+      } catch (error) {
+        setAllVillages([]);
+        setLoadingVillages(false);
+      }
+    };
+    fetchVillages();
+    setLoadingPackages(true);
+    axios.get(`${API_URL}/api/packages`)
+      .then(res => {
+        setPackages(res.data || []);
+        setLoadingPackages(false);
+      })
+      .catch(err => {
+        setPackages([]);
+        setLoadingPackages(false);
+      });
+  }, []);
 
   const scrollPackages = (direction) => {
     if (packagesSliderRef.current) {
@@ -89,142 +80,13 @@ const VillageDashboard = () => {
     }
   };
 
-  useEffect(() => {
-    setSeasonalVillages(dummySeasonalVillages);
-    setCultureVillages(dummyCultureVillages);
-    setLoadingSeasonal(false);
-    setLoadingCulture(false);
-
-    // Fetch travel packages
-    setLoadingPackages(true);
-    fetch('http://localhost:5000/api/packages')
-      .then(res => res.json())
-      .then(data => {
-        setPackages(data || []);
-        setLoadingPackages(false);
-      })
-      .catch(err => {
-        console.error('Error fetching packages:', err);
-        setPackages([]);
-        setLoadingPackages(false);
-      });
-
-    // Latest India data (2023 estimates)
-    const villageData = {
-      stats: {
-        totalVillages: 662000,
-        totalStates: 28,
-        totalUTs: 8,
-        totalStatesAndUTs: 36,
-        totalDistricts: 766,
-        totalPopulation: "1.43B",
-        ruralPopulation: "930M",
-        literacyRate: "77.7%",
-        ruralLiteracy: "73.5%",
-        avgHouseholdSize: 4.7,
-        totalHouseholds: "250M"
-      },
-      featuredVillages: [
-        {
-          name: "Malana",
-          state: "Himachal Pradesh",
-          image: "https://images.unsplash.com/photo-1599669454699-248893623440?ixlib=rb-4.0.3",
-          description: "Ancient village known for its unique culture and traditions"
-        },
-        {
-          name: "Khajjiar",
-          state: "Himachal Pradesh",
-          image: "https://images.unsplash.com/photo-1585409677983-0f6c41f9a05b?ixlib=rb-4.0.3",
-          description: "Mini Switzerland of India"
-        },
-        {
-          name: "Munnar",
-          state: "Kerala",
-          image: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?ixlib=rb-4.0.3",
-          description: "Tea Gardens and Natural Beauty"
-        }
-      ]
-    };
-    setVillageData(villageData);
-
-    const slider = packagesSliderRef.current;
-    if (slider) {
-      slider.addEventListener('scroll', handlePackagesScroll);
-      handlePackagesScroll();
-    }
-
-    return () => {
-      if (slider) {
-        slider.removeEventListener('scroll', handlePackagesScroll);
-      }
-    };
-  }, []);
-
   return (
     <div className="village-dashboard">
-      {/* Hero Section with Search */}
+      {/* Hero Section */}
       <section className="hero-section">
         <div className="hero-content">
           <h1>Discover India's Beautiful Villages</h1>
           <p>Explore the rich culture, traditions, and natural beauty of Indian villages</p>
-          <div className="search-container">
-            <div className="search-box">
-              <FaSearch className="search-icon" />
-              <input 
-                type="text" 
-                placeholder="Search villages, states, or districts..." 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <button className="search-button">Search</button>
-          </div>
-        </div>
-      </section>
-
-      {/* Updated Stats Section */}
-      <section className="stats-section">
-        <div className="stats-grid">
-          <div className="stat-card">
-            <FaHome className="stat-icon" />
-            <h3>{villageData?.stats?.totalVillages.toLocaleString()}</h3>
-            <p>Total Villages</p>
-          </div>
-          <div className="stat-card">
-            <FaHome className="stat-icon" />
-            <h3>{villageData?.stats?.totalStatesAndUTs}</h3>
-            <p>States & UTs</p>
-          </div>
-          <div className="stat-card">
-            <FaTree className="stat-icon" />
-            <h3>{villageData?.stats?.totalDistricts}</h3>
-            <p>Districts</p>
-          </div>
-          <div className="stat-card">
-            <FaUsers className="stat-icon" />
-            <h3>{villageData?.stats?.totalPopulation}</h3>
-            <p>Total Population</p>
-          </div>
-          <div className="stat-card">
-            <FaUsers className="stat-icon" />
-            <h3>{villageData?.stats?.ruralPopulation}</h3>
-            <p>Rural Population</p>
-          </div>
-          <div className="stat-card">
-            <FaBook className="stat-icon" />
-            <h3>{villageData?.stats?.literacyRate}</h3>
-            <p>Literacy Rate</p>
-          </div>
-          <div className="stat-card">
-            <FaBook className="stat-icon" />
-            <h3>{villageData?.stats?.ruralLiteracy}</h3>
-            <p>Rural Literacy</p>
-          </div>
-          <div className="stat-card">
-            <FaHome className="stat-icon" />
-            <h3>{villageData?.stats?.totalHouseholds}</h3>
-            <p>Rural Households</p>
-          </div>
         </div>
       </section>
 
@@ -232,15 +94,17 @@ const VillageDashboard = () => {
       <section className="featured-villages-section">
         <h2>Featured Villages</h2>
         <div className="featured-villages-grid">
-          {villageData?.featuredVillages?.map((village, index) => (
+          {loadingVillages ? (
+            <div className="loading-state">Loading villages...</div>
+          ) : getRandomVillages(6).map((village, index) => (
             <Link to={`/village/${village.id}`} key={index} className="village-card">
               <div className="village-image">
-                <img src={village.image} alt={village.name} />
+                <img src={formatImageUrl(village.featured_image || village.preview_image)} alt={village.name} />
               </div>
               <div className="village-info">
                 <h3>{village.name}</h3>
-                <p className="village-state">{village.state}</p>
-                <p className="village-description">{village.description}</p>
+                <p className="village-state">{village.state_name || village.state || ''}</p>
+                <p className="village-description">{village.description?.slice(0, 80) || ''}</p>
                 <button className="explore-button">Explore Village</button>
               </div>
             </Link>
@@ -248,73 +112,48 @@ const VillageDashboard = () => {
         </div>
       </section>
 
-      {/* Seasonal Highlights Section */}
       <section className="seasonal-highlights-section">
         <h2>Seasonal Highlights</h2>
         <div className="seasonal-highlights-grid">
-          {loadingSeasonal ? (
-            <div className="loading-state">Loading seasonal highlights...</div>
-          ) : seasonalVillages && seasonalVillages.length > 0 ? (
-            seasonalVillages.map((village, index) => (
-              <Link to={`/village/${village.id}`} key={index} className="seasonal-card">
-                <div className="seasonal-image">
-                  <img 
-                    src={village.image}
-                    alt={village.name}
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80';
-                    }}
-                  />
-                </div>
-                <div className="seasonal-content">
-                  <h3>{village.name}</h3>
-                  <p className="village-name">{village.state}</p>
-                  <span className="season">{village.season}</span>
-                  <p>{village.seasonalDescription}</p>
-                </div>
-              </Link>
-            ))
-          ) : (
-            <div className="no-data">No seasonal highlights available.</div>
-          )}
+          {loadingVillages ? (
+            <div className="loading-state">Loading villages...</div>
+          ) : getRandomVillages(6).map((village, index) => (
+            <Link to={`/village/${village.id}`} key={index} className="seasonal-card">
+              <div className="seasonal-image">
+                <img src={formatImageUrl(village.featured_image || village.preview_image)} alt={village.name} />
+              </div>
+              <div className="seasonal-content">
+                <h3>{village.name}</h3>
+                <p className="village-name">{village.state_name || village.state || ''}</p>
+                <span className="season">{village.season || 'All Seasons'}</span>
+                <p>{village.description?.slice(0, 80) || ''}</p>
+              </div>
+            </Link>
+          ))}
         </div>
       </section>
 
-      {/* Local Culture & Heritage Section */}
       <section className="culture-heritage-section">
         <h2>Local Culture & Heritage</h2>
         <div className="culture-grid">
-          {loadingCulture ? (
-            <div className="loading-state">Loading cultural highlights...</div>
-          ) : cultureVillages && cultureVillages.length > 0 ? (
-            cultureVillages.map((village, index) => (
-              <Link to={`/village/${village.id}`} key={index} className="culture-card">
-                <div className="culture-image">
-                  <img 
-                    src={village.image}
-                    alt={village.name}
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80';
-                    }}
-                  />
-                </div>
-                <div className="culture-content">
-                  <h3>{village.name}</h3>
-                  <p className="village-name">{village.state}</p>
-                  <span className="culture-type">{village.cultureType}</span>
-                  <p>{village.cultureDescription}</p>
-                </div>
-              </Link>
-            ))
-          ) : (
-            <div className="no-data">No cultural highlights available.</div>
-          )}
+          {loadingVillages ? (
+            <div className="loading-state">Loading villages...</div>
+          ) : getRandomVillages(6).map((village, index) => (
+            <Link to={`/village/${village.id}`} key={index} className="culture-card">
+              <div className="culture-image">
+                <img src={formatImageUrl(village.featured_image || village.preview_image)} alt={village.name} />
+              </div>
+              <div className="culture-content">
+                <h3>{village.name}</h3>
+                <p className="village-name">{village.state_name || village.state || ''}</p>
+                <span className="culture-type">{village.cultureType || 'Culture'}</span>
+                <p>{village.description?.slice(0, 80) || ''}</p>
+              </div>
+            </Link>
+          ))}
         </div>
       </section>
 
-      {/* Travel Packages Section */}
       <section className="packages-section">
         <h2>Travel Packages</h2>
         <div className="packages-slider-container">
@@ -382,7 +221,6 @@ const VillageDashboard = () => {
         </div>
       </section>
 
-      {/* Filters Section */}
       <section className="filters-section">
         <h2>Filter Villages</h2>
         <div className="filters-container">
@@ -390,8 +228,8 @@ const VillageDashboard = () => {
             <label>State</label>
             <select>
               <option value="">Select State</option>
-              {villageData?.states?.map((state, index) => (
-                <option key={index} value={state.name}>{state.name}</option>
+              {allVillages.map((village, index) => (
+                <option key={index} value={village.state}>{village.state}</option>
               ))}
             </select>
           </div>

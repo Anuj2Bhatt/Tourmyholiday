@@ -1,104 +1,163 @@
 const TerritoryImage = require('../models/TerritoryImage');
 const Territory = require('../models/Territory');
 const { ApiResponse } = require('../utils/ApiResponse');
+const pool = require('../../config/database');
+const path = require('path');
+const fs = require('fs').promises;
 
 // Get all images for a territory
-exports.getTerritoryImages = async (req, res) => {
+const getTerritoryImages = async (req, res) => {
   try {
-    const { territoryId } = req.params;
-    const images = await TerritoryImage.getByTerritoryId(territoryId);
-    return res.json(new ApiResponse(true, 'Territory images fetched successfully', images));
+    const { territory_id } = req.query;
+    
+    let query = `
+      SELECT * FROM territory_images
+      WHERE 1=1
+    `;
+    const params = [];
+
+    if (territory_id) {
+      query += ' AND territory_id = ?';
+      params.push(territory_id);
+    }
+
+    query += ' ORDER BY display_order ASC, created_at DESC';
+
+    const [images] = await pool.query(query, params);
+
+    res.json({
+      success: true,
+      data: images
+    });
+
   } catch (error) {
-    console.error('Error fetching territory images:', error);
-    return res.status(500).json(new ApiResponse(false, 'Error fetching territory images'));
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching territory images'
+    });
   }
 };
 
-// Add a new image for a territory
-exports.addTerritoryImage = async (req, res) => {
+// Upload territory image
+const uploadTerritoryImage = async (req, res) => {
+  let connection;
   try {
-    const { territory_id, alt_text, description, is_featured, display_order } = req.body;
-    
     if (!req.file) {
-      return res.status(400).json(new ApiResponse(false, 'Image file is required'));
+      throw new Error('No image file uploaded');
     }
 
-    // Check if territory exists
-    const territory = await Territory.getById(territory_id);
-    if (!territory) {
-      return res.status(404).json(new ApiResponse(false, 'Territory not found'));
-    }
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
 
-    const imageUrl = `/uploads/${req.file.filename}`;
+    const { territory_id, title, description, is_featured = false, display_order = 0 } = req.body;
     
-    const imageData = {
-      territory_id,
-      image_url: imageUrl,
-      alt_text,
-      description,
-      is_featured: is_featured === 'true',
-      display_order: display_order || 0
-    };
+    if (!territory_id) {
+      throw new Error('Territory ID is required');
+    }
 
-    const newImage = await TerritoryImage.create(imageData);
-    return res.status(201).json(new ApiResponse(true, 'Image added successfully', newImage));
+    // Insert image data
+    const [result] = await connection.query(
+      `INSERT INTO territory_images (
+        territory_id, image_path, title, description, 
+        is_featured, display_order
+      ) VALUES (?, ?, ?, ?, ?, ?)`,
+      [
+        territory_id,
+        req.file.filename,
+        title || null,
+        description || null,
+        is_featured ? 1 : 0,
+        display_order
+      ]
+    );
+
+    await connection.commit();
+
+    res.status(201).json({
+      success: true,
+      message: 'Territory image uploaded successfully',
+      data: {
+        id: result.insertId,
+        territory_id,
+        image_path: req.file.filename,
+        title,
+        description,
+        is_featured,
+        display_order
+      }
+    });
+
   } catch (error) {
-    console.error('Error adding territory image:', error);
-    return res.status(500).json(new ApiResponse(false, 'Error adding territory image'));
+    if (connection) {
+      await connection.rollback();
+    }
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Error uploading territory image'
+    });
+  } finally {
+    if (connection) {
+      connection.release();
+    }
   }
 };
 
-// Update an existing image
-exports.updateTerritoryImage = async (req, res) => {
+// Delete territory image
+const deleteTerritoryImage = async (req, res) => {
+  let connection;
   try {
-    const { imageId } = req.params;
-    const { alt_text, description, is_featured, display_order } = req.body;
-    
-    const image = await TerritoryImage.getById(imageId);
-    if (!image) {
-      return res.status(404).json(new ApiResponse(false, 'Image not found'));
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    const imageId = req.params.id;
+
+    // Get image info before deleting
+    const [image] = await connection.query(
+      'SELECT image_path FROM territory_images WHERE id = ?',
+      [imageId]
+    );
+
+    if (!image[0]) {
+      throw new Error('Image not found');
     }
 
-    const updateData = {
-      alt_text: alt_text || image.alt_text,
-      description: description || image.description,
-      is_featured: is_featured === 'true' ? true : image.is_featured,
-      display_order: display_order || image.display_order
-    };
+    // Delete image file
+    const imagePath = path.join(__dirname, '../../uploads', image[0].image_path);
+    try {
+      await fs.unlink(imagePath);
+    } catch (error) {
+      }
 
-    // If new image file is uploaded
-    if (req.file) {
-      updateData.image_url = `/uploads/${req.file.filename}`;
-    }
+    // Delete from database
+    await connection.query(
+      'DELETE FROM territory_images WHERE id = ?',
+      [imageId]
+    );
 
-    const updatedImage = await TerritoryImage.update(imageId, updateData);
-    return res.json(new ApiResponse(true, 'Image updated successfully', updatedImage));
+    await connection.commit();
+
+    res.json({
+      success: true,
+      message: 'Territory image deleted successfully'
+    });
+
   } catch (error) {
-    console.error('Error updating territory image:', error);
-    return res.status(500).json(new ApiResponse(false, 'Error updating territory image'));
-  }
-};
-
-// Delete an image
-exports.deleteTerritoryImage = async (req, res) => {
-  try {
-    const { imageId } = req.params;
-    
-    const image = await TerritoryImage.getById(imageId);
-    if (!image) {
-      return res.status(404).json(new ApiResponse(false, 'Image not found'));
+    if (connection) {
+      await connection.rollback();
     }
-
-    await TerritoryImage.delete(imageId);
-    return res.json(new ApiResponse(true, 'Image deleted successfully'));
-  } catch (error) {
-    console.error('Error deleting territory image:', error);
-    return res.status(500).json(new ApiResponse(false, 'Error deleting territory image'));
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Error deleting territory image'
+    });
+  } finally {
+    if (connection) {
+      connection.release();
+    }
   }
 };
 
 // Toggle featured status
-exports.toggleFeatured = async (req, res) => {
+const toggleFeatured = async (req, res) => {
   try {
     const { imageId } = req.params;
     
@@ -110,13 +169,12 @@ exports.toggleFeatured = async (req, res) => {
     const updatedImage = await TerritoryImage.toggleFeatured(imageId);
     return res.json(new ApiResponse(true, 'Featured status updated successfully', updatedImage));
   } catch (error) {
-    console.error('Error toggling featured status:', error);
     return res.status(500).json(new ApiResponse(false, 'Error updating featured status'));
   }
 };
 
 // Update display order
-exports.updateDisplayOrder = async (req, res) => {
+const updateDisplayOrder = async (req, res) => {
   try {
     const { imageId } = req.params;
     const { display_order } = req.body;
@@ -133,7 +191,14 @@ exports.updateDisplayOrder = async (req, res) => {
     const updatedImage = await TerritoryImage.updateDisplayOrder(imageId, display_order);
     return res.json(new ApiResponse(true, 'Display order updated successfully', updatedImage));
   } catch (error) {
-    console.error('Error updating display order:', error);
     return res.status(500).json(new ApiResponse(false, 'Error updating display order'));
   }
+};
+
+module.exports = {
+  getTerritoryImages,
+  uploadTerritoryImage,
+  deleteTerritoryImage,
+  toggleFeatured,
+  updateDisplayOrder
 }; 

@@ -40,12 +40,9 @@ const upload = multer({
 router.get('/season/:seasonId', async (req, res) => {
   try {
     const { seasonId } = req.params;
-    console.log('Fetching images for season:', seasonId);
-
     // Check if season exists
     const [season] = await pool.query('SELECT id FROM seasons WHERE id = ?', [seasonId]);
     if (season.length === 0) {
-      console.log('Season not found:', seasonId);
       return res.status(404).json({ error: 'Season not found' });
     }
 
@@ -53,7 +50,6 @@ router.get('/season/:seasonId', async (req, res) => {
     try {
       await pool.query('SELECT 1 FROM season_images LIMIT 1');
     } catch (error) {
-      console.log('Season images table does not exist, creating it...');
       await pool.query(`
         CREATE TABLE IF NOT EXISTS season_images (
           id INT PRIMARY KEY AUTO_INCREMENT,
@@ -79,10 +75,8 @@ router.get('/season/:seasonId', async (req, res) => {
       image_url: `http://localhost:5000/uploads/${path.basename(img.image_url)}`
     }));
     
-    console.log('Found images:', formattedImages.length);
     res.json(formattedImages);
   } catch (error) {
-    console.error('Error fetching season images:', error);
     res.status(500).json({ 
       error: 'Failed to fetch season images',
       details: error.message,
@@ -100,7 +94,6 @@ router.post('/season/:seasonId', upload.single('image'), async (req, res) => {
     // Check if season exists
     const [season] = await pool.query('SELECT id FROM seasons WHERE id = ?', [seasonId]);
     if (season.length === 0) {
-      console.log('Season not found:', seasonId);
       return res.status(404).json({ error: 'Season not found' });
     }
     
@@ -123,7 +116,6 @@ router.post('/season/:seasonId', upload.single('image'), async (req, res) => {
       location
     });
   } catch (error) {
-    console.error('Error adding season image:', error);
     res.status(500).json({ 
       error: 'Failed to add season image',
       details: error.message,
@@ -155,7 +147,6 @@ router.delete('/:id', async (req, res) => {
     
     res.json({ message: 'Image deleted successfully' });
   } catch (error) {
-    console.error('Error deleting season image:', error);
     res.status(500).json({ 
       error: 'Failed to delete season image',
       details: error.message,
@@ -214,7 +205,6 @@ router.put('/:id', upload.single('image'), async (req, res) => {
 
     res.json(formattedImage);
   } catch (error) {
-    console.error('Error updating season image:', error);
     res.status(500).json({ 
       error: 'Failed to update season image',
       details: error.message,

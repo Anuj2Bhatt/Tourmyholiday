@@ -4,9 +4,8 @@ import StateHistoryCard from './StateHistoryCard';
 import './StatePage.css';
 import DistrictCard from './DistrictCard';
 import PlacesToVisitCard from './PlacesToVisitCard';
-import SeasonalPlaces from './SeasonalPlaces';
 import axios from 'axios';
-import DistrictGallery from './DistrictGallery';
+import { API_URL } from '../config';
 
 const StatePage = () => {
   const { stateName } = useParams();
@@ -23,10 +22,33 @@ const StatePage = () => {
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const carouselRef = useRef(null);
-  const [articlesCount, setArticlesCount] = useState(0);
-  const [packagesCount, setPackagesCount] = useState(0);
-  const [hotelsCount, setHotelsCount] = useState(0);
+  const [setArticlesCount] = useState(0);
+  const [setPackagesCount] = useState(0);
+  const [setHotelsCount] = useState(0);
+  const [currentPlacesPage, setCurrentPlacesPage] = useState(0);
+  const placesScrollRef = useRef(null);
+  const [totalPlacesPages, setTotalPlacesPages] = useState(0);
+  const [seasonImages, setSeasonImages] = useState({
+    summer: [],
+    monsoon: [],
+    autumn: [],
+    winter: [],
+    spring: []
+  });
+  const [activeSeason, setActiveSeason] = useState('summer');
+  const [selectedSeason] = useState('all');
 
+
+  const scrollRef = useRef(null);
+
+  const scroll = (direction) => {
+    const container = scrollRef.current;
+    const scrollAmount = container.offsetWidth;
+    container.scrollBy({
+      left: direction === 'left' ? -scrollAmount : scrollAmount,
+      behavior: 'smooth',
+    });
+  };
   // Card images from localStorage
   const getCardImage = (key) => localStorage.getItem(key);
   const [hotelImg, setHotelImg] = useState(getCardImage('hotel_card_img'));
@@ -45,16 +67,17 @@ const StatePage = () => {
     reader.readAsDataURL(file);
   };
 
+
   const checkServerStatus = async () => {
     try {
-      const response = await fetch('http://localhost:5000/test');
+      const response = await fetch(`${API_URL}/test`);
       if (!response.ok) {
         throw new Error('Server is not responding properly');
       }
       const data = await response.json();
       return data.message === 'Server is running';
     } catch (err) {
-      console.error('Server check failed:', err);
+      console.error('Server status check failed:', err);
       return false;
     }
   };
@@ -63,60 +86,60 @@ const StatePage = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       // Check server status
       const isServerRunning = await checkServerStatus();
       if (!isServerRunning) {
         throw new Error('Backend server is not running. Please start the server and try again.');
       }
-      
+
       // Format state name for API
       const formattedStateName = stateName.toLowerCase().replace(/\s+/g, '-');
-      
+
       // Fetch state data
-      const response = await fetch(`http://localhost:5000/api/states/${formattedStateName}`);
-      
+      const response = await fetch(`${API_URL}/api/states/${formattedStateName}`);
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Failed to fetch state data: ${response.statusText}`);
+        // Check if response is JSON
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || `Failed to fetch state data: ${response.statusText}`);
+        } else {
+          throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+        }
       }
-      
+
       const data = await response.json();
-      console.log('API Response:', data);
-      
       if (!data.history || !Array.isArray(data.history)) {
-        console.error('History data is missing or invalid:', data.history);
         throw new Error('Invalid history data received from server');
       }
 
       // Fetch state images
-      const imagesResponse = await fetch(`http://localhost:5000/api/states/images/${data.id}`);
+      const imagesResponse = await fetch(`${API_URL}/api/states/images/${data.id}`);
       let images = [];
       if (imagesResponse.ok) {
         const imagesData = await imagesResponse.json();
         images = imagesData.map(img => ({
           ...img,
-          url: img.url.startsWith('http') ? img.url : `http://localhost:5000${img.url}`
+          url: img.url.startsWith('http') ? img.url : `${API_URL}${img.url}`
         }));
       }
 
-      // Fetch districts for this state
-      const districtsResponse = await fetch(`http://localhost:5000/api/districts/state/${data.name}`);
+      const districtsResponse = await fetch(`${API_URL}/api/districts/state/${data.name}`);
       if (!districtsResponse.ok) {
-        console.error('Failed to fetch districts:', await districtsResponse.text());
-        setDistricts([]);
+        setDistricts([]); // ✅ move this inside the if block
       } else {
         const districtsData = await districtsResponse.json();
-        console.log('Districts data:', districtsData);
         setDistricts(districtsData);
       }
 
       // Ensure each history item has the correct image URL
       const historyWithImages = data.history.map(item => ({
         ...item,
-        image: item.image ? (item.image.startsWith('http') ? item.image : `http://localhost:5000${item.image}`) : null
+        image: item.image ? (item.image.startsWith('http') ? item.image : `${API_URL}${item.image}`) : null
       }));
-      
+
       setStateData({
         ...data,
         history: historyWithImages,
@@ -124,28 +147,30 @@ const StatePage = () => {
       });
 
       // Fetch places to visit using the correct API endpoint
-      const placesResponse = await fetch(`http://localhost:5000/api/places/states/${formattedStateName}/places`);
+      const placesResponse = await fetch(`${API_URL}/api/places/states/${data.id}/places`);
       if (placesResponse.ok) {
-        const placesData = await placesResponse.json();
-        console.log('Places data:', placesData);
+        const placesResponseData = await placesResponse.json();
+        // Get the places array from the response
+        const placesData = placesResponseData.data || [];
+
         // Sort places: featured places first, then by creation date
         const sortedPlaces = placesData.sort((a, b) => {
           if (a.featured && !b.featured) return -1;
           if (!a.featured && b.featured) return 1;
           return new Date(b.created_at) - new Date(a.created_at);
         });
+
         // Ensure each place has the correct image URL
         const placesWithImages = sortedPlaces.map(place => ({
           ...place,
-          featured_image_url: place.featured_image ? 
-            (place.featured_image.startsWith('http') ? 
-              place.featured_image : 
-              `http://localhost:5000/uploads/places/${place.featured_image}`) : 
+          featured_image_url: place.featured_image ?
+            (place.featured_image.startsWith('http') ?
+              place.featured_image :
+              `${API_URL}/uploads/places/${place.featured_image}`) :
             null
         }));
         setPlacesToVisit(placesWithImages);
       } else {
-        console.error('Failed to fetch places:', await placesResponse.text());
         setPlacesToVisit([]);
       }
 
@@ -153,17 +178,17 @@ const StatePage = () => {
       if (!stateData) return;
       const slug = stateData.slug || stateData.name?.toLowerCase().replace(/\s+/g, '-');
       // Fetch articles count
-      fetch(`http://localhost:5000/api/states/${slug}/articles`)
+      fetch(`${API_URL}/api/states/${slug}/articles`)
         .then(res => res.json())
         .then(data => setArticlesCount(Array.isArray(data) ? data.length : 0))
         .catch(() => setArticlesCount(0));
       // Fetch packages count
-      fetch(`http://localhost:5000/api/states/${slug}/packages`)
+      fetch(`${API_URL}/api/states/${slug}/packages`)
         .then(res => res.json())
         .then(data => setPackagesCount(Array.isArray(data) ? data.length : 0))
         .catch(() => setPackagesCount(0));
       // Fetch hotels count
-      fetch(`http://localhost:5000/api/states/${slug}/hotels`)
+      fetch(`${API_URL}/api/states/${slug}/hotels`)
         .then(res => res.json())
         .then(data => setHotelsCount(Array.isArray(data) ? data.length : 0))
         .catch(() => setHotelsCount(0));
@@ -191,13 +216,13 @@ const StatePage = () => {
   }, [stateData]);
 
   const nextSlide = () => {
-    setCurrentSlide((prev) => 
+    setCurrentSlide((prev) =>
       prev === stateData?.images.length - 1 ? 0 : prev + 1
     );
   };
 
   const prevSlide = () => {
-    setCurrentSlide((prev) => 
+    setCurrentSlide((prev) =>
       prev === 0 ? stateData?.images.length - 1 : prev - 1
     );
   };
@@ -205,15 +230,28 @@ const StatePage = () => {
   const handleShowMore = () => {
     setShowAllCards(true);
   };
+  useEffect(() => {
+    const fetchSeasonImages = async () => {
+      try {
+        if (!stateData?.id) return;
+        const response = await axios.get(`${API_URL}/api/state-season-images/${stateData.id}`);
+        setSeasonImages(response.data);
+      } catch (error) {
+        console.error('Error fetching season images:', error);
+      }
+    };
+
+    fetchSeasonImages();
+  }, [stateData]);
 
   // Add this new useEffect for fetching videos
   useEffect(() => {
     const fetchVideos = async () => {
       if (!stateData?.id) return;
-      
+
       try {
         setVideosLoading(true);
-        const response = await axios.get(`http://localhost:5000/api/videos`, {
+        const response = await axios.get(`${API_URL}/api/videos`, {
           params: {
             entity_type: 'state',
             entity_id: stateData.id
@@ -254,18 +292,59 @@ const StatePage = () => {
     setCarouselIndex((prev) => (prev + 1) % videos.length);
   };
 
+
   // Get the 3 videos to show
   const visibleVideos = videos.slice(carouselIndex, carouselIndex + 3);
   if (visibleVideos.length < 3 && videos.length > 3) {
     visibleVideos.push(...videos.slice(0, 3 - visibleVideos.length));
   }
 
+  // Calculate total pages when places data changes
+  useEffect(() => {
+    if (placesToVisit.length > 0) {
+      const cardsPerPage = window.innerWidth >= 1200 ? 4 :
+        window.innerWidth >= 992 ? 3 :
+          window.innerWidth >= 576 ? 2 : 1;
+      setTotalPlacesPages(Math.ceil(placesToVisit.length / cardsPerPage));
+    }
+  }, [placesToVisit]);
+
+  const handlePlacesScroll = (direction) => {
+    if (!placesScrollRef.current) return;
+
+    const container = placesScrollRef.current;
+    const cardWidth = container.querySelector('.places-to-visit-card')?.offsetWidth || 300;
+    const gap = 30; // This should match the gap in CSS
+    const scrollAmount = (cardWidth + gap) * (window.innerWidth >= 1200 ? 4 :
+      window.innerWidth >= 992 ? 3 :
+        window.innerWidth >= 576 ? 2 : 1);
+
+    if (direction === 'left') {
+      container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+      setCurrentPlacesPage(prev => Math.max(0, prev - 1));
+    } else {
+      container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+      setCurrentPlacesPage(prev => Math.min(totalPlacesPages - 1, prev + 1));
+    }
+  };
+
+
+
+  // Filter places based on selected season
+  const getFilteredPlaces = () => {
+    if (selectedSeason === 'all') return placesToVisit;
+    return placesToVisit.filter(place => {
+      const bestTime = place.best_time_to_visit?.toLowerCase() || '';
+      return bestTime.includes(selectedSeason.toLowerCase());
+    });
+  };
+
   if (loading) {
     return (
       <div className="state-page">
         <div className="loading-container">
           <div className="loading-spinner"></div>
-          <p>Loading state data...</p>
+          <p>Loading data...</p>
         </div>
       </div>
     );
@@ -298,9 +377,11 @@ const StatePage = () => {
     );
   }
 
+
+
   // Get the history items to display
-  const displayedHistory = showAllCards 
-    ? stateData.history 
+  const displayedHistory = showAllCards
+    ? stateData.history
     : stateData.history.slice(0, 3);
 
   return (
@@ -313,11 +394,11 @@ const StatePage = () => {
               <button className="slider-btn prev" onClick={prevSlide}>❮</button>
               <div className="slider">
                 {stateData.images.map((img, index) => (
-                  <div 
-                    key={index} 
+                  <div
+                    key={index}
                     className={`slide ${index === currentSlide ? 'active' : ''}`}
                   >
-                    <img 
+                    <img
                       src={img.url}
                       alt={img.alt || img.caption || 'State image'}
                       onError={(e) => {
@@ -333,8 +414,8 @@ const StatePage = () => {
             </div>
             <div className="slider-dots">
               {stateData.images.map((_, index) => (
-                <span 
-                  key={index} 
+                <span
+                  key={index}
                   className={`dot ${index === currentSlide ? 'active' : ''}`}
                   onClick={() => setCurrentSlide(index)}
                 />
@@ -401,8 +482,8 @@ const StatePage = () => {
         ) : districts && districts.length > 0 ? (
           <div className="districts-grid">
             {districts.map(district => (
-              <DistrictCard 
-                key={district.id} 
+              <DistrictCard
+                key={district.id}
                 district={district}
               />
             ))}
@@ -417,35 +498,119 @@ const StatePage = () => {
       {/* Places to Visit Section */}
       <div className="places-to-visit-section">
         <h2>Popular Places to Visit in {stateData.name}</h2>
-        <div className="places-slider-container">
-          <button 
-            className="places-slider-btn prev" 
-            onClick={() => {
-              const container = document.querySelector('.places-grid');
-              container.scrollBy({ left: -400, behavior: 'smooth' });
-            }}
-          >
-            ❮
-          </button>
-          <div className="places-grid">
-            {placesToVisit.map(place => (
-              <PlacesToVisitCard key={place.id} place={place} />
-            ))}
+        {loading ? (
+          <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <p>Loading places...</p>
           </div>
-          <button 
-            className="places-slider-btn next"
-            onClick={() => {
-              const container = document.querySelector('.places-grid');
-              container.scrollBy({ left: 400, behavior: 'smooth' });
-            }}
-          >
-            ❯
-          </button>
-        </div>
+        ) : error ? (
+          <div className="error-container">
+            <p>Error loading places: {error}</p>
+            <button onClick={fetchStateData} className="retry-btn">Retry</button>
+          </div>
+        ) : placesToVisit && placesToVisit.length > 0 ? (
+          <div className="places-container">
+            {currentPlacesPage > 0 && (
+              <button
+                className="places-nav-btn left"
+                onClick={() => handlePlacesScroll('left')}
+                aria-label="Previous places"
+              >
+                &#8592;
+              </button>
+            )}
+            <div className="places-grid" ref={placesScrollRef}>
+              {getFilteredPlaces().map(place => (
+                <PlacesToVisitCard
+                  key={place.id}
+                  place={place}
+                />
+              ))}
+            </div>
+            {currentPlacesPage < totalPlacesPages - 1 && (
+              <button
+                className="places-nav-btn right"
+                onClick={() => handlePlacesScroll('right')}
+                aria-label="Next places"
+              >
+                &#8594;
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="no-places-message">
+            <p>No places available for {stateData.name} yet.</p>
+          </div>
+        )}
       </div>
 
-      {/* Add Seasonal Places section after the places to visit section */}
-      <SeasonalPlaces stateId={stateData.id} stateName={stateData.name} />
+      <div className="seasonal-highlights-section">
+        <h2 className="section-title">Seasonal Highlights</h2>
+        <p className="section-description">
+          Discover the beauty of {stateData.name} through different seasons
+        </p>
+
+        <div className="season-tabs">
+          <button
+            className={`season-tab ${activeSeason === 'summer' ? 'active' : ''}`}
+            onClick={() => setActiveSeason('summer')}
+          >
+            Summer
+          </button>
+          <button
+            className={`season-tab ${activeSeason === 'monsoon' ? 'active' : ''}`}
+            onClick={() => setActiveSeason('monsoon')}
+          >
+            Monsoon
+          </button>
+          <button
+            className={`season-tab ${activeSeason === 'autumn' ? 'active' : ''}`}
+            onClick={() => setActiveSeason('autumn')}
+          >
+            Autumn
+          </button>
+          <button
+            className={`season-tab ${activeSeason === 'winter' ? 'active' : ''}`}
+            onClick={() => setActiveSeason('winter')}
+          >
+            Winter
+          </button>
+          <button
+            className={`season-tab ${activeSeason === 'spring' ? 'active' : ''}`}
+            onClick={() => setActiveSeason('spring')}
+          >
+            Spring
+          </button>
+        </div>
+
+        <div className="seasonal-images-carousel-wrapper">
+          <button onClick={() => scroll('left')} className="scroll-button left">←</button>
+
+          <div className="seasonal-images-carousel" ref={scrollRef}>
+            {seasonImages[activeSeason]?.length > 0 ? (
+              seasonImages[activeSeason].map(image => (
+                <div key={image.id} className="seasonal-image-card">
+                  <h3 className="seasonal-image-title">{image.location}</h3>
+                  <img
+                    src={image.url}
+                    alt={image.alt || `${activeSeason} in ${image.location}`}
+                    loading="lazy"
+                    className="seasonal-image"
+                  />
+                  {image.caption && <p className="seasonal-image-caption">{image.caption}</p>}
+                </div>
+              ))
+            ) : (
+              <div className="no-images-message">
+                No images available for {activeSeason} season
+              </div>
+            )}
+          </div>
+
+          <button onClick={() => scroll('right')} className="scroll-button right">→</button>
+        </div>
+
+      </div>
 
       {/* Videos Section */}
       <section className="state-videos-section">
@@ -475,13 +640,13 @@ const StatePage = () => {
                     videoId = url.split('embed/')[1]?.split('?')[0];
                   } else if (url.length === 11) {
                     videoId = url;
-                  } 
+                  }
                   return videoId;
                 };
                 const videoId = getYouTubeId(video.youtube_url);
                 return (
                   <div key={carouselIndex + index} className="video-thumb-card carousel-video-card">
-                    <div className="video-thumb-image" style={{position: 'relative'}}>
+                    <div className="video-thumb-image" style={{ position: 'relative' }}>
                       {videoId ? (
                         <iframe
                           src={`https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1`}
@@ -490,7 +655,7 @@ const StatePage = () => {
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                           allowFullScreen
                           loading="lazy"
-                          style={{width: '100%', height: '100%', borderRadius: '8px'}}
+                          style={{ width: '100%', height: '100%', borderRadius: '8px' }}
                           tabIndex={0}
                           onFocus={handleIframeFocus}
                           onBlur={handleIframeBlur}
@@ -603,6 +768,8 @@ const StatePage = () => {
           </div>
         </div>
       </section>
+
+
     </div>
   );
 };

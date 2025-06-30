@@ -9,7 +9,7 @@ export const territoryImageService = {
       const response = await axios.get(`${API_URL}/api/territory-images/by-territory/${territoryId}`);
       return response.data;
     } catch (error) {
-      throw error.response?.data || error.message;
+      throw error.response?.data || error.message;    
     }
   },
 

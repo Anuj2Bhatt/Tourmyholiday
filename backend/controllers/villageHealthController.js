@@ -31,7 +31,6 @@ const getStateVillageHealth = async (req, res) => {
       data: healthData[0]
     });
   } catch (error) {
-    console.error('Error fetching state village health data:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch health data'
@@ -70,7 +69,6 @@ const getTerritoryVillageHealth = async (req, res) => {
       data: healthData[0]
     });
   } catch (error) {
-    console.error('Error fetching territory village health data:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch health data'
@@ -159,7 +157,6 @@ const updateStateVillageHealth = async (req, res) => {
       message: 'Health data updated successfully'
     });
   } catch (error) {
-    console.error('Error updating state village health data:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to update health data'
@@ -248,7 +245,6 @@ const updateTerritoryVillageHealth = async (req, res) => {
       message: 'Health data updated successfully'
     });
   } catch (error) {
-    console.error('Error updating territory village health data:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to update health data'

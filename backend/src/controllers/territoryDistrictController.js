@@ -1,4 +1,4 @@
-const db = require('../config/database');
+const db = require('../../db');
 const path = require('path');
 const fs = require('fs');
 
@@ -12,7 +12,6 @@ const getTerritoryDistricts = async (req, res) => {
         );
         res.json(districts);
     } catch (error) {
-        console.error('Error fetching territory districts:', error);
         res.status(500).json({ error: 'Failed to fetch territory districts' });
     }
 };
@@ -32,7 +31,6 @@ const getTerritoryDistrict = async (req, res) => {
         
         res.json(districts[0]);
     } catch (error) {
-        console.error('Error fetching district:', error);
         res.status(500).json({ error: 'Failed to fetch district' });
     }
 };
@@ -61,7 +59,6 @@ const createTerritoryDistrict = async (req, res) => {
 
         res.status(201).json(newDistrict[0]);
     } catch (error) {
-        console.error('Error creating district:', error);
         if (error.code === 'ER_DUP_ENTRY') {
             res.status(400).json({ error: 'A district with this slug already exists' });
         } else {
@@ -115,7 +112,6 @@ const updateTerritoryDistrict = async (req, res) => {
 
         res.json(updatedDistrict[0]);
     } catch (error) {
-        console.error('Error updating district:', error);
         if (error.code === 'ER_DUP_ENTRY') {
             res.status(400).json({ error: 'A district with this slug already exists' });
         } else {
@@ -152,7 +148,6 @@ const deleteTerritoryDistrict = async (req, res) => {
 
         res.json({ message: 'District deleted successfully' });
     } catch (error) {
-        console.error('Error deleting district:', error);
         res.status(500).json({ error: 'Failed to delete district' });
     }
 };
@@ -205,7 +200,6 @@ const updateTerritoryDistrictData = async (req, res) => {
             district: updatedDistrict[0]
         });
     } catch (error) {
-        console.error('Error updating district data:', error);
         res.status(500).json({ error: 'Failed to update district data' });
     }
 };

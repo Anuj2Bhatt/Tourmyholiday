@@ -11,8 +11,8 @@ const AdminLogin = () => {
 
   // Hard-coded credentials as requested
   const adminCredentials = {
-    username: 'anujbhatt479@gmail.com',
-    password: 'Ramdev@123'
+    username: 'Tourmyholiday#to@my$ho',
+    password: 'Apple@123#shreya'
   };
 
   // Check for saved credentials when component mounts
@@ -42,7 +42,7 @@ const AdminLogin = () => {
       // Redirect to dashboard
       navigate('/admin-dashboard');
     } else {
-      setError('Invalid username or password');
+      setError('Recheck UserName And Password');
     }
   };
 

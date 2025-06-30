@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import './Tourism.css';
+
+// Define API URL
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const Tourism = () => {
   const navigate = useNavigate();
@@ -10,6 +14,8 @@ const Tourism = () => {
   const [showTrendingDetails, setShowTrendingDetails] = useState(null);
   const [currentHeroImage, setCurrentHeroImage] = useState(0);
   const [showVirtualTour, setShowVirtualTour] = useState(null);
+  const [trendingDestinations, setTrendingDestinations] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const categories = [
     'All',
@@ -29,49 +35,6 @@ const Tourism = () => {
   ];
 
   // Trending destinations with trending score
-  const trendingDestinations = [
-    {
-      id: 101,
-      name: 'Leh Ladakh',
-      image: 'https://static.toiimg.com/photo/48230811.cms',
-      description: 'Experience the breathtaking landscapes and unique culture of Ladakh, now open after winter closure.',
-      trendingFactor: 'Recently opened after winter, booking surge for summer travel',
-      trendingScore: 98,
-      season: 'Summer',
-      category: 'Adventure'
-    },
-    {
-      id: 102,
-      name: 'Kashmir Valley',
-      image: 'https://www.tourmyindia.com/blog//wp-content/uploads/2022/04/Best-Places-to-Visit-in-Kashmir-Srinagar-Dal-Lake.jpg',
-      description: 'Visit the paradise on earth with blooming tulip gardens and pleasant weather.',
-      trendingFactor: 'Tulip season and improved tourism infrastructure',
-      trendingScore: 95,
-      season: 'Spring',
-      category: 'Cultural'
-    },
-    {
-      id: 103,
-      name: 'Coorg Coffee Plantations',
-      image: 'https://www.holidify.com/images/cmsuploads/compressed/5877728133_c261bfe168_b_20180302140149.jpg',
-      description: 'Discover the coffee culture and misty hills of Karnataka\'s coffee country.',
-      trendingFactor: 'Workation trend and coffee harvesting season',
-      trendingScore: 92,
-      season: 'Winter',
-      category: 'Cultural'
-    },
-    {
-      id: 104,
-      name: 'Rann of Kutch Festival',
-      image: 'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/17/78/fb/c5/photo5jpg.jpg?w=1200&h=-1&s=1',
-      description: 'Experience the vibrant cultural festival against the backdrop of white salt desert.',
-      trendingFactor: 'Ongoing cultural festival with international visitors',
-      trendingScore: 90,
-      season: 'Winter',
-      category: 'Cultural'
-    }
-  ];
-
   const tourismSpots = [
     {
       id: 1,
@@ -312,6 +275,126 @@ const Tourism = () => {
     { id: 3, name: 'Nikhil Verma', location: 'Bangalore', review: 'Kerala backwaters experience was serene and relaxing. Highly recommended!', rating: 5, image: 'https://randomuser.me/api/portraits/men/15.jpg' }
   ];
 
+  // Fetch trending destinations
+  useEffect(() => {
+    const fetchTrendingDestinations = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(`${API_URL}/api/tourism`, {
+          params: {
+            is_featured: true,
+            is_active: true,
+            status: 'published',
+            limit: 4
+          }
+        });
+
+        if (response.data.success) {
+          // Transform the data to match our card structure
+          const destinations = response.data.data.map(destination => {
+            return {
+              id: destination.id,
+              name: destination.name,
+              location: destination.location_name,
+              description: destination.short_description,
+              image: destination.featured_image, // Keep the original image path
+              price: destination.price,
+              slug: destination.slug,
+              budget_range_min: destination.budget_range_min,
+              budget_range_max: destination.budget_range_max,
+              // Add a random discount between 10-15%
+              specialOffer: {
+                discount: Math.floor(Math.random() * (15 - 10 + 1)) + 10
+              }
+            };
+          });
+          setTrendingDestinations(destinations);
+        }
+      } catch (error) {
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTrendingDestinations();
+  }, []);
+
+  // Add new TrendingDestinationCard component
+  const TrendingDestinationCard = ({ destination }) => {
+    const [isBookmarked, setIsBookmarked] = useState(false);
+
+    const handleBookNow = () => {
+      navigate(`/tourism/${destination.slug}`);
+    };
+
+    // Get the full image URL
+    const getImageUrl = (imagePath) => {
+      if (!imagePath) return `${API_URL}/images/placeholder.jpg`;
+      if (imagePath.startsWith('http')) return imagePath;
+      
+      // Remove /uploads/ from the start if it exists
+      const cleanPath = imagePath.replace(/^\/uploads\//, '');
+      return `${API_URL}/uploads/${cleanPath}`;
+    };
+
+    return (
+      <div className="trending-card enhanced">
+        <div className="trending-image">
+          <img 
+            src={getImageUrl(destination.image)} 
+            alt={destination.name}
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2YwZjBmMCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBub3QgYXZhaWxhYmxlPC90ZXh0Pjwvc3ZnPg==';
+            }}
+          />
+          
+          {/* Quick Actions */}
+          <div className="quick-actions">
+            <button 
+              className={`bookmark-btn ${isBookmarked ? 'active' : ''}`}
+              onClick={() => setIsBookmarked(!isBookmarked)}
+            >
+              {isBookmarked ? '★' : '☆'}
+            </button>
+            <button className="share-btn">↗️</button>
+          </div>
+
+          {/* Special Offer Badge */}
+          {destination.specialOffer && (
+            <div className="special-offer-badge">
+              {destination.specialOffer.discount}% OFF
+            </div>
+          )}
+        </div>
+
+        <div className="trending-content">
+          <h3>{destination.name}</h3>
+          <p className="location">{destination.location}</p>
+          <p className="description">{destination.description}</p>
+          
+          <div className="price-info">
+            <span className="price">₹{destination.price?.toLocaleString()}</span>
+            {destination.budget_range_min && destination.budget_range_max && (
+              <span className="budget-range">
+                Budget: ₹{destination.budget_range_min.toLocaleString()} - ₹{destination.budget_range_max.toLocaleString()}
+              </span>
+            )}
+          </div>
+
+          <div className="card-actions">
+            <button 
+              className="book-now-btn"
+              onClick={handleBookNow}
+            >
+              Book Now
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="tourism-container">
       <div 
@@ -355,38 +438,10 @@ const Tourism = () => {
         
         <div className="trending-carousel">
           {trendingDestinations.map(destination => (
-            <div key={destination.id} className="trending-card enhanced">
-              <div className="trending-image">
-                <img src={destination.image} alt={destination.name} />
-                <div className="trending-score">
-                  <span>{destination.trendingScore}%</span>
-                  <div className="trend-meter" style={{width: `${destination.trendingScore}%`}}></div>
-                </div>
-                <div className="trending-overlay">
-                  <button className="view-details-btn">View Details</button>
-                </div>
-              </div>
-              <div className="trending-content">
-                <h3>{destination.name}</h3>
-                <p>{destination.description}</p>
-                <div className="trending-meta">
-                  <span className="trending-season">{destination.season}</span>
-                  <span className="trending-category">{destination.category}</span>
-                </div>
-                <button 
-                  className="trending-info-btn"
-                  onClick={() => setShowTrendingDetails(showTrendingDetails === destination.id ? null : destination.id)}
-                >
-                  {showTrendingDetails === destination.id ? 'Hide Details' : 'Why Trending?'}
-                </button>
-                {showTrendingDetails === destination.id && (
-                  <div className="trending-details">
-                    <p>{destination.trendingFactor}</p>
-                  </div>
-                )}
-              </div>
-              <div className="card-corner-fold"></div>
-            </div>
+            <TrendingDestinationCard 
+              key={destination.id} 
+              destination={destination} 
+            />
           ))}
         </div>
       </div>

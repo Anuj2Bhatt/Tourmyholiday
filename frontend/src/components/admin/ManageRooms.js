@@ -36,9 +36,13 @@ const ManageRooms = () => {
 
   const fetchHotels = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/hotels');
-      const data = await response.json();
-      setHotels(data);
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/hotels`);
+      if (response.ok) {
+        const data = await response.json();
+        setHotels(data);
+      } else {
+        console.error('Failed to fetch hotels');
+      }
     } catch (error) {
       console.error('Error fetching hotels:', error);
     }
@@ -46,9 +50,13 @@ const ManageRooms = () => {
 
   const fetchRooms = async (hotelId) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/hotels/${hotelId}/rooms`);
-      const data = await response.json();
-      setRooms(data);
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/hotels/${hotelId}/rooms`);
+      if (response.ok) {
+        const data = await response.json();
+        setRooms(data);
+      } else {
+        console.error('Failed to fetch rooms');
+      }
     } catch (error) {
       console.error('Error fetching rooms:', error);
     }
@@ -72,7 +80,7 @@ const ManageRooms = () => {
     if (!selectedHotel || !newRoom.type || !newRoom.total_rooms) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/hotels/${selectedHotel}/rooms`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/hotels/${selectedHotel}/rooms`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -93,15 +101,14 @@ const ManageRooms = () => {
         });
       }
     } catch (error) {
-      console.error('Error adding room:', error);
-    }
+      }
   };
 
   const handleRemoveRoom = async (roomId) => {
     if (!selectedHotel) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/hotels/${selectedHotel}/rooms/${roomId}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/hotels/${selectedHotel}/rooms/${roomId}`, {
         method: 'DELETE',
       });
 
@@ -110,8 +117,7 @@ const ManageRooms = () => {
         fetchRooms(selectedHotel);
       }
     } catch (error) {
-      console.error('Error removing room:', error);
-    }
+      }
   };
 
   return (

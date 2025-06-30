@@ -51,28 +51,18 @@ const upload = multer({
 router.get('/subdistrict/:subdistrictId', async (req, res) => {
   try {
     const { subdistrictId } = req.params;
-    console.log('Fetching institutions for subdistrict:', subdistrictId);
-
     // Check if tables exist
     const [tables] = await pool.query('SHOW TABLES LIKE "territory_subdistrict_education"');
-    console.log('Education table exists:', tables.length > 0);
-    
     const [healthcareTables] = await pool.query('SHOW TABLES LIKE "territory_subdistrict_healthcare"');
-    console.log('Healthcare table exists:', healthcareTables.length > 0);
-
     // Fetch both education and healthcare institutions
     const [educationInstitutions] = await pool.query(
       `SELECT * FROM territory_subdistrict_education WHERE territory_subdistrict_id = ?`,
       [subdistrictId]
     );
-    console.log('Education institutions found:', educationInstitutions.length);
-
     const [healthcareInstitutions] = await pool.query(
       `SELECT * FROM territory_subdistrict_healthcare WHERE territory_subdistrict_id = ?`,
       [subdistrictId]
     );
-    console.log('Healthcare institutions found:', healthcareInstitutions.length);
-
     // Format the results
     const education = educationInstitutions.map(inst => ({
       ...inst,
@@ -86,10 +76,8 @@ router.get('/subdistrict/:subdistrictId', async (req, res) => {
       emergency_services: inst.emergency_services === 1
     }));
 
-    console.log('Sending response:', { education: education.length, healthcare: healthcare.length });
     res.json({ education, healthcare });
   } catch (error) {
-    console.error('Error fetching institutions:', error);
     res.status(500).json({ message: 'Error fetching institutions' });
   }
 });
@@ -186,7 +174,6 @@ router.post('/', upload, async (req, res) => {
     if (req.files?.featured_image?.[0]) {
       fs.unlinkSync(path.join(__dirname, '..', 'uploads', req.files.featured_image[0].filename));
     }
-    console.error('Error creating institution:', error);
     res.status(500).json({ 
       message: 'Error creating institution', 
       error: error.message,
@@ -302,7 +289,6 @@ router.put('/:id', upload, async (req, res) => {
     if (req.files?.featured_image?.[0]) {
       fs.unlinkSync(path.join(__dirname, '..', 'uploads', req.files.featured_image[0].filename));
     }
-    console.error('Error updating institution:', error);
     res.status(500).json({ 
       message: 'Error updating institution', 
       error: error.message,
@@ -344,7 +330,6 @@ router.delete('/:id', async (req, res) => {
     await pool.query(`DELETE FROM ${table} WHERE id = ?`, [id]);
     res.json({ message: 'Institution deleted successfully' });
   } catch (error) {
-    console.error('Error deleting institution:', error);
     res.status(500).json({ message: 'Error deleting institution' });
   }
 });

@@ -10,7 +10,6 @@ async function up() {
 
   try {
     // First drop existing foreign key constraints
-    console.log('Dropping existing foreign key constraints...');
     
     // For hotels table
     await connection.execute(`
@@ -31,7 +30,6 @@ async function up() {
     `);
 
     // Now add back the constraints with CASCADE DELETE
-    console.log('Adding back foreign key constraints with CASCADE DELETE...');
 
     // For hotels table
     await connection.execute(`
@@ -60,9 +58,7 @@ async function up() {
       ON DELETE CASCADE
     `);
 
-    console.log('Successfully updated foreign key constraints to use CASCADE DELETE');
   } catch (error) {
-    console.error('Error updating foreign key constraints:', error);
     throw error;
   } finally {
     await connection.end();
@@ -79,7 +75,6 @@ async function down() {
 
   try {
     // Drop the CASCADE DELETE constraints
-    console.log('Dropping CASCADE DELETE constraints...');
     
     // For hotels table
     await connection.execute(`
@@ -100,7 +95,6 @@ async function down() {
     `);
 
     // Add back the original constraints without CASCADE
-    console.log('Adding back original foreign key constraints...');
 
     // For hotels table
     await connection.execute(`
@@ -126,9 +120,7 @@ async function down() {
       REFERENCES states(id)
     `);
 
-    console.log('Successfully reverted foreign key constraints to original state');
   } catch (error) {
-    console.error('Error reverting foreign key constraints:', error);
     throw error;
   } finally {
     await connection.end();

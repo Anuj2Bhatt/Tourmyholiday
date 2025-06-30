@@ -10,8 +10,8 @@
 .subdistrict-header {
   display: flex;
   align-items: center;
-  margin-bottom: 30px;
-  gap: 20px;
+  margin-bottom: 10px;
+  gap: 30px;
 }
 
 .back-button {
@@ -39,9 +39,9 @@
 
 .gallery-split-layout {
   display: flex;
-  gap: 1px;
+  gap: 4px;
   width: 100%;
-  height: 600px;
+  height: 70vh;
   background-color: #f0f0f0;
   margin: 0;
   padding: 0;
@@ -77,13 +77,13 @@
   filter: brightness(1.05);
 }
 
-.gallery-grid {
+.gallery-grid-sub {
   flex: 1;
   min-width: 0;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-template-rows: repeat(2, 1fr);
-  gap: 1px;
+  gap: 5px;
   height: 100%;
   background-color: #f0f0f0;
   margin: 0;
@@ -402,42 +402,177 @@
 }
 
 /* Attractions Section */
-.attractions-grid {
+.attractions-container {
+  position: relative;
+  width: 100%;
+  padding: 0 40px;
+  margin: 20px 0;
+}
+
+.attractions-row {
   display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 20px;
+  width: 100%;
+  transition: transform 0.3s ease;
 }
 
 .attraction-card {
-  background: #f8f9fa;
-  padding: 20px;
+  background: white;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
-.attraction-card h3 {
-  font-size: 1.2rem;
-  color: #333;
-  margin-bottom: 10px;
+.attraction-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-.attraction-card img {
+.card-image {
   width: 100%;
   height: 200px;
   object-fit: cover;
+  background: #f0f0f0;
+}
+
+.card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  margin: 15px 15px 10px;
+  line-height: 1.4;
+}
+
+.card-description {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0 15px 15px;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex-grow: 1;
+}
+
+.read-more-btn {
+  margin: 0 15px 15px;
+  padding: 8px 16px;
+  background: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.read-more-btn:hover {
+  background: #1565c0;
+}
+
+/* Navigation Buttons */
+.attraction-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  background: white;
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  font-size: 20px;
+  color: #333;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  z-index: 2;
+}
+
+.attraction-nav-btn:hover {
+  background: #f8f9fa;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.attraction-nav-btn.prev-btn {
+  left: 0;
+}
+
+.attraction-nav-btn.next-btn {
+  right: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .attractions-row {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .attractions-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .attractions-container {
+    padding: 0 30px;
+  }
+}
+
+@media (max-width: 600px) {
+  .attractions-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .attractions-container {
+    padding: 0 25px;
+  }
+  
+  .attraction-nav-btn {
+    width: 35px;
+    height: 35px;
+    font-size: 18px;
+  }
+}
+
+/* No Data State */
+.no-data {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  font-style: italic;
+  background: #f8f9fa;
   border-radius: 8px;
-  margin: 10px 0;
+  margin: 20px 0;
 }
 
 /* Culture Section */
 .culture-section {
   padding: 2rem 0;
+  position: relative;
+}
+
+.culture-container {
+  position: relative;
+  padding: 0 40px;
+  margin: 0 auto;
+  max-width: 1400px;
 }
 
 .culture-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 2rem;
-  padding: 1rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  margin: 0 auto;
 }
 
 .culture-card {
@@ -462,7 +597,6 @@
   height: 200px;
   overflow: hidden;
   background-color: #f5f5f5;
-  border-radius: 12px 12px 0 0;
 }
 
 .culture-card-image img {
@@ -478,42 +612,44 @@
 }
 
 .culture-card-content {
-  padding: 1.5rem;
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
   flex-grow: 1;
 }
 
 .culture-card-title {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: #333;
-  margin: 0 0 1rem 0;
+  margin: 0 0 0.75rem 0;
   line-height: 1.4;
 }
 
 .culture-card-description {
   color: #666;
-  font-size: 0.95rem;
-  line-height: 1.6;
-  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 1rem;
   flex-grow: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .culture-read-more {
   background: #1976d2;
   color: white;
   border: none;
-  padding: 0.75rem 1.5rem;
+  padding: 0.6rem 1.2rem;
   border-radius: 6px;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.3s ease;
   align-self: flex-start;
   margin-top: auto;
-  text-decoration: none;
-  display: inline-block;
 }
 
 .culture-read-more:hover {
@@ -533,6 +669,39 @@
   text-align: center;
 }
 
+.culture-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  background: white;
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  font-size: 20px;
+  color: #333;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  z-index: 2;
+}
+
+.culture-nav-btn:hover {
+  background: #f8f9fa;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.culture-nav-btn.prev-btn {
+  left: 0;
+}
+
+.culture-nav-btn.next-btn {
+  right: 0;
+}
+
 .culture-no-data {
   text-align: center;
   padding: 3rem;
@@ -547,8 +716,45 @@
   margin: 0;
 }
 
+/* Responsive Design for Culture Section */
+@media (max-width: 1200px) {
+  .culture-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .culture-container {
+    padding: 0 35px;
+  }
+}
+
+@media (max-width: 900px) {
+  .culture-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .culture-container {
+    padding: 0 30px;
+  }
+}
+
+@media (max-width: 600px) {
+  .culture-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .culture-container {
+    padding: 0 25px;
+  }
+  
+  .culture-nav-btn {
+    width: 35px;
+    height: 35px;
+    font-size: 18px;
+  }
+}
+
 /* Travel Information Section Styles */
-.travel-info-grid {
+.travel-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 24px;
@@ -557,15 +763,19 @@
 
 .travel-info-card {
   background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   overflow: hidden;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .travel-info-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.15);
 }
 
 .travel-card-image {
@@ -595,10 +805,15 @@
   background: #f5f5f5;
   color: #666;
   font-size: 14px;
+  padding: 20px;
+  text-align: center;
 }
 
 .travel-card-content {
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
 }
 
 .travel-card-title {
@@ -618,17 +833,21 @@
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  flex-grow: 1;
 }
 
 .travel-read-more {
   background: #1976d2;
   color: white;
   border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  font-size: 0.9rem;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 500;
   cursor: pointer;
   transition: background-color 0.2s ease;
+  align-self: flex-start;
+  margin-top: auto;
 }
 
 .travel-read-more:hover {
@@ -639,7 +858,7 @@
   text-align: center;
   padding: 40px 20px;
   background: #f9f9f9;
-  border-radius: 8px;
+  border-radius: 12px;
   margin: 20px 0;
 }
 
@@ -647,6 +866,44 @@
   color: #666;
   font-size: 1.1rem;
   margin: 0;
+}
+
+/* Responsive Design for Travel Cards */
+@media (max-width: 1200px) {
+  .travel-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .travel-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  .travel-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .travel-card-image {
+    height: 180px;
+  }
+  
+  .travel-card-content {
+    padding: 16px;
+  }
+  
+  .travel-card-title {
+    font-size: 1.2rem;
+  }
+  
+  .travel-read-more {
+    width: 100%;
+    text-align: center;
+  }
 }
 
 /* Economy Section */
@@ -1361,4 +1618,207 @@
   align-items: center;
   justify-content: center;
   margin-bottom: 0.5rem;
+}
+
+/* Virtual Tours Section Styles */
+.virtual-tours-section {
+  margin-top: 40px;
+}
+
+.virtual-tours-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+  margin-top: 20px;
+}
+
+.virtual-tour-card {
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
+  cursor: pointer;
+}
+
+.virtual-tour-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.virtual-tour-card-image {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+}
+
+.virtual-tour-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.virtual-tour-card:hover .virtual-tour-card-image img {
+  transform: scale(1.05);
+}
+
+.virtual-tour-no-image {
+  width: 100%;
+  height: 100%;
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 14px;
+}
+
+.virtual-tour-card-content {
+  padding: 20px;
+}
+
+.virtual-tour-card-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 12px 0;
+  line-height: 1.4;
+}
+
+.virtual-tour-card-description {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.5;
+  margin-bottom: 16px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.virtual-tour-view-btn {
+  background: #1976d2;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+  width: 100%;
+}
+
+.virtual-tour-view-btn:hover {
+  background: #1565c0;
+}
+
+.virtual-tours-no-data {
+  text-align: center;
+  padding: 40px 20px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  margin-top: 20px;
+}
+
+.virtual-tours-no-data-text {
+  color: #666;
+  font-size: 16px;
+  margin: 0;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .virtual-tours-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 16px;
+  }
+
+  .virtual-tour-card-image {
+    height: 160px;
+  }
+
+  .virtual-tour-card-title {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .virtual-tours-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .virtual-tour-card-image {
+    height: 200px;
+  }
+}
+
+/* Street View Modal Styles */
+.street-view-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.street-view-content {
+  position: relative;
+  width: 90%;
+  height: 90%;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.street-view-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.street-view-close:hover {
+  background: #fff;
+}
+
+.street-view-content iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+@media (max-width: 768px) {
+  .street-view-content {
+    width: 95%;
+    height: 95%;
+  }
+
+  .street-view-close {
+    top: 10px;
+    right: 10px;
+    width: 32px;
+    height: 32px;
+    font-size: 20px;
+  }
 } 

@@ -4,7 +4,7 @@ const axios = require('axios');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs').promises;
-const pool = require('../config/database');
+const pool = require('../../db');
 
 // Configure multer storage
 const storage = multer.diskStorage({
@@ -51,7 +51,6 @@ const handleImageUpload = async (req, res, next) => {
     req.body.images = JSON.stringify(imagePaths);
     next();
   } catch (error) {
-    console.error('Error handling image upload:', error);
     res.status(500).json({ error: 'Error uploading images' });
   }
 };
@@ -69,8 +68,8 @@ const deleteOldImages = async (images) => {
       }
     });
   } catch (error) {
-    console.error('Error deleting old images:', error);
-  }
+    console.error('[WEATHER] Error deleting old images:', error.message);
+    }
 };
 
 // Get weather data for a subdistrict
@@ -103,12 +102,13 @@ router.get('/:subdistrictId', async (req, res) => {
     // Fetch weather data from Tomorrow.io API
     const apiKey = process.env.TOMORROW_API_KEY;
     const url = `https://api.tomorrow.io/v4/weather/realtime?location=${latitude},${longitude}&apikey=${apiKey}`;
-    console.log('Fetching weather from URL:', url);
+    
+    console.log(`[WEATHER] Fetching weather data for coordinates: ${latitude}, ${longitude}`);
     const weatherResponse = await axios.get(url);
-    console.log('Full API Response:', JSON.stringify(weatherResponse.data, null, 2));
+    
     const data = weatherResponse.data;
     if (!data || !data.data || !data.data.values) {
-      console.log('Invalid data structure received:', {
+      console.error('[WEATHER] Invalid weather data received:', {
         hasData: !!data,
         hasDataData: !!(data && data.data),
         hasValues: !!(data && data.data && data.data.values)
@@ -118,9 +118,11 @@ router.get('/:subdistrictId', async (req, res) => {
 
     const current = data.data.values;
     if (!current) {
-      console.log('No weather values found in current interval');
+      console.error('[WEATHER] No weather data available in response');
       throw new Error('No weather data available');
     }
+
+    console.log(`[WEATHER] Successfully fetched weather data for ${latitude}, ${longitude}`);
 
     // Format current weather
     const currentWeather = {
@@ -137,7 +139,7 @@ router.get('/:subdistrictId', async (req, res) => {
       current: currentWeather
     });
   } catch (error) {
-    console.error('Error fetching weather data:', error.response?.data || error.message);
+    console.error('[WEATHER] Error fetching weather data:', error.message);
     res.status(500).json({ 
       error: 'Error fetching weather data',
       details: error.message 
@@ -149,13 +151,15 @@ router.get('/:subdistrictId', async (req, res) => {
 router.get('/alerts/:subdistrictId', async (req, res) => {
   try {
     const { subdistrictId } = req.params;
+    console.log(`[WEATHER] Fetching alerts for subdistrict: ${subdistrictId}`);
     const [alerts] = await pool.query(
       'SELECT * FROM weather_alerts WHERE subdistrict_id = ? ORDER BY start_date DESC',
       [subdistrictId]
     );
+    console.log(`[WEATHER] Found ${alerts.length} alerts for subdistrict: ${subdistrictId}`);
     res.json(alerts);
   } catch (error) {
-    console.error('Error fetching weather alerts:', error);
+    console.error('[WEATHER] Error fetching weather alerts:', error.message);
     res.status(500).json({ error: 'Failed to fetch weather alerts' });
   }
 });
@@ -164,13 +168,15 @@ router.get('/alerts/:subdistrictId', async (req, res) => {
 router.get('/seasonal-guides/:subdistrictId', async (req, res) => {
   try {
     const { subdistrictId } = req.params;
+    console.log(`[WEATHER] Fetching seasonal guides for subdistrict: ${subdistrictId}`);
     const [guides] = await pool.query(
       'SELECT * FROM seasonal_guides WHERE subdistrict_id = ? ORDER BY month ASC',
       [subdistrictId]
     );
+    console.log(`[WEATHER] Found ${guides.length} seasonal guides for subdistrict: ${subdistrictId}`);
     res.json(guides);
   } catch (error) {
-    console.error('Error fetching seasonal guides:', error);
+    console.error('[WEATHER] Error fetching seasonal guides:', error.message);
     res.status(500).json({ error: 'Failed to fetch seasonal guides' });
   }
 });
@@ -179,13 +185,15 @@ router.get('/seasonal-guides/:subdistrictId', async (req, res) => {
 router.get('/statistics/:subdistrictId', async (req, res) => {
   try {
     const { subdistrictId } = req.params;
+    console.log(`[WEATHER] Fetching statistics for subdistrict: ${subdistrictId}`);
     const [stats] = await pool.query(
       'SELECT * FROM weather_statistics WHERE subdistrict_id = ? ORDER BY month ASC',
       [subdistrictId]
     );
+    console.log(`[WEATHER] Found ${stats.length} weather statistics for subdistrict: ${subdistrictId}`);
     res.json(stats);
   } catch (error) {
-    console.error('Error fetching weather statistics:', error);
+    console.error('[WEATHER] Error fetching weather statistics:', error.message);
     res.status(500).json({ error: 'Failed to fetch weather statistics' });
   }
 });
@@ -194,13 +202,15 @@ router.get('/statistics/:subdistrictId', async (req, res) => {
 router.get('/tourist-features/:subdistrictId', async (req, res) => {
   try {
     const { subdistrictId } = req.params;
+    console.log(`[WEATHER] Fetching tourist features for subdistrict: ${subdistrictId}`);
     const [features] = await pool.query(
       'SELECT * FROM tourist_features WHERE subdistrict_id = ?',
       [subdistrictId]
     );
+    console.log(`[WEATHER] Found ${features.length} tourist features for subdistrict: ${subdistrictId}`);
     res.json(features);
   } catch (error) {
-    console.error('Error fetching tourist features:', error);
+    console.error('[WEATHER] Error fetching tourist features:', error.message);
     res.status(500).json({ error: 'Failed to fetch tourist features' });
   }
 });
@@ -215,7 +225,6 @@ router.get('/activities/:subdistrictId', async (req, res) => {
     );
     res.json(activities);
   } catch (error) {
-    console.error('Error fetching weather activities:', error);
     res.status(500).json({ error: 'Failed to fetch weather activities' });
   }
 });
@@ -267,7 +276,6 @@ router.post('/alerts', upload.array('images', 5), handleImageUpload, async (req,
       emergency_contacts: JSON.parse(emergency_contacts)
     });
   } catch (error) {
-    console.error('Error creating weather alert:', error);
     res.status(500).json({ error: 'Failed to create weather alert' });
   }
 });
@@ -363,7 +371,6 @@ router.post('/seasonal-guides', upload.array('images', 10), async (req, res) => 
     }
 
   } catch (error) {
-    console.error('Error creating seasonal guide:', error);
     res.status(500).json({ error: 'Failed to create seasonal guide' });
   }
 });
@@ -420,7 +427,6 @@ router.post('/tourist-features', upload.array('images', 5), handleImageUpload, a
       nearby_attractions
     });
   } catch (error) {
-    console.error('Error creating tourist feature:', error);
     res.status(500).json({ error: 'Failed to create tourist feature' });
   }
 });
@@ -488,7 +494,6 @@ router.post('/activities', upload.array('images', 5), handleImageUpload, async (
       contact_info
     });
   } catch (error) {
-    console.error('Error creating weather activity:', error);
     res.status(500).json({ error: 'Failed to create weather activity' });
   }
 });
@@ -526,13 +531,15 @@ router.post('/upload', upload.array('images', 10), async (req, res) => {
       images: uploadedImages
     });
   } catch (error) {
-    console.error('Error uploading images:', error);
     // If there's an error, try to clean up any uploaded files
     if (req.files) {
       await Promise.all(req.files.map(file => 
-        fs.unlink(file.path).catch(err => console.error('Error deleting file:', err))
+        fs.unlink(file.path).catch(err => {
+          console.error('[WEATHER] Error cleaning up uploaded file:', err.message);
+        })
       ));
     }
+    console.error('[WEATHER] Error uploading images:', error.message);
     res.status(500).json({ error: error.message || 'Failed to upload images' });
   }
 });
@@ -551,7 +558,6 @@ router.delete('/alerts/:id', async (req, res) => {
     await pool.query('DELETE FROM weather_alerts WHERE id = ?', [id]);
     res.status(204).send();
   } catch (error) {
-    console.error('Error deleting weather alert:', error);
     res.status(500).json({ error: 'Failed to delete weather alert' });
   }
 });
@@ -569,7 +575,6 @@ router.delete('/seasonal-guides/:id', async (req, res) => {
     await pool.query('DELETE FROM seasonal_guides WHERE id = ?', [id]);
     res.status(204).send();
   } catch (error) {
-    console.error('Error deleting seasonal guide:', error);
     res.status(500).json({ error: 'Failed to delete seasonal guide' });
   }
 });
@@ -587,7 +592,6 @@ router.delete('/tourist-features/:id', async (req, res) => {
     await pool.query('DELETE FROM tourist_features WHERE id = ?', [id]);
     res.status(204).send();
   } catch (error) {
-    console.error('Error deleting tourist feature:', error);
     res.status(500).json({ error: 'Failed to delete tourist feature' });
   }
 });
@@ -605,7 +609,6 @@ router.delete('/activities/:id', async (req, res) => {
     await pool.query('DELETE FROM weather_activities WHERE id = ?', [id]);
     res.status(204).send();
   } catch (error) {
-    console.error('Error deleting weather activity:', error);
     res.status(500).json({ error: 'Failed to delete weather activity' });
   }
 });

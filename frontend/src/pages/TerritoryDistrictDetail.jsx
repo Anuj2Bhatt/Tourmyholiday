@@ -58,7 +58,6 @@ const TerritoryDistrictDetail = ({ slug: propSlug }) => {
             setDistrictImages(imagesWithFullUrls);
           }
         } catch (err) {
-          console.error('Error fetching district images:', err);
           setError('Failed to load district images');
         } finally {
           setDistrictImagesLoading(false);
@@ -66,7 +65,6 @@ const TerritoryDistrictDetail = ({ slug: propSlug }) => {
         
         setLoading(false);
       } catch (err) {
-        console.error("Error fetching district:", err);
         setError(err.message || "Failed to load district details");
         setLoading(false);
       }
@@ -84,7 +82,6 @@ const TerritoryDistrictDetail = ({ slug: propSlug }) => {
           setStatsLoading(false);
         })
         .catch(err => {
-          console.error('Error fetching district stats:', err);
           setStatsLoading(false);
         });
 
@@ -96,7 +93,6 @@ const TerritoryDistrictDetail = ({ slug: propSlug }) => {
           setWebStoriesLoading(false);
         })
         .catch(err => {
-          console.error('Error fetching web stories:', err);
           setWebStoriesLoading(false);
         });
 
@@ -117,7 +113,6 @@ const TerritoryDistrictDetail = ({ slug: propSlug }) => {
           setSubdistrictsLoading(false);
         })
         .catch(err => {
-          console.error('Error fetching subdistricts:', err);
           setSubdistrictsLoading(false);
         });
 
@@ -132,7 +127,6 @@ const TerritoryDistrictDetail = ({ slug: propSlug }) => {
           setSeasonsLoading(false);
         })
         .catch(err => {
-          console.error('Error fetching seasons:', err);
           setSeasonsLoading(false);
         });
 
@@ -149,7 +143,6 @@ const TerritoryDistrictDetail = ({ slug: propSlug }) => {
         setVideosLoading(false);
       })
       .catch(err => {
-        console.error('Error fetching videos:', err);
         setVideosLoading(false);
       });
     }
@@ -171,7 +164,6 @@ const TerritoryDistrictDetail = ({ slug: propSlug }) => {
           }));
         })
         .catch(err => {
-          console.error('Error fetching season images:', err);
         });
     }
   }, [selectedSeason]);
@@ -194,7 +186,6 @@ const TerritoryDistrictDetail = ({ slug: propSlug }) => {
       const response = await axios.get(`http://localhost:5000/api/web-stories/${story.id}`);
       setSelectedStory(response.data);
     } catch (err) {
-      console.error('Error fetching story details:', err);
     } finally {
       setStoryLoading(false);
     }
@@ -333,7 +324,6 @@ const TerritoryDistrictDetail = ({ slug: propSlug }) => {
                           className="tdd-subdistrict-image"
                           loading="lazy"
                           onError={(e) => {
-                            console.error('Image failed to load:', subdistrict.featured_image);
                             e.target.onerror = null;
                             e.target.src = '/placeholder-image.jpg';
                           }}

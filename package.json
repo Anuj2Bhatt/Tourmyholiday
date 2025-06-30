@@ -2,7 +2,10 @@
   "dependencies": {
     "@ckeditor/ckeditor5-build-classic": "^41.4.2",
     "@ckeditor/ckeditor5-react": "^9.5.0",
-    "@tinymce/tinymce-react": "^6.1.0",
+    "@fortawesome/fontawesome-svg-core": "^6.7.2",
+    "@fortawesome/free-solid-svg-icons": "^6.7.2",
+    "@fortawesome/react-fontawesome": "^0.2.2",
+    "@tinymce/tinymce-react": "^6.2.1",
     "axios": "^1.9.0",
     "dompurify": "^3.2.5",
     "multer": "^1.4.5-lts.2",

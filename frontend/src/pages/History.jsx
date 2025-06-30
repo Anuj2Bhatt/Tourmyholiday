@@ -10,17 +10,14 @@ const History = () => {
 
   useEffect(() => {
     const fetchHistories = async () => {
-      try {
-        console.log('Fetching history data...');
+      try {   
         const response = await axios.get('http://localhost:5000/api/state-history');
-        console.log('History response:', response.data);
         if (!response.data) {
           throw new Error('No data received from server');
         }
         setHistoryCards(response.data);
         setLoading(false);
       } catch (err) {
-        console.error('Error fetching history:', err);
         setError(err.response?.data?.error || 'Error loading history data');
         setLoading(false);
       }
@@ -29,7 +26,7 @@ const History = () => {
     fetchHistories();
   }, []);
 
-  if (loading) return <div className="loading">Loading...</div>;
+    if (loading) return <div className="loading">Loading...</div>;
   if (error) return <div className="error">{error}</div>;
 
   return (

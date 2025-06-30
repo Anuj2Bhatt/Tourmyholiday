@@ -32,9 +32,7 @@ async function up() {
       ADD COLUMN highlights LONGTEXT NULL AFTER best_time_to_visit
     `);
 
-    console.log('Successfully added highlights column to villages and territory_villages tables');
   } catch (error) {
-    console.error('Error adding highlights column:', error);
     throw error;
   } finally {
     await connection.end();
@@ -62,9 +60,7 @@ async function down() {
       DROP COLUMN IF EXISTS highlights
     `);
 
-    console.log('Successfully removed highlights column from villages and territory_villages tables');
   } catch (error) {
-    console.error('Error removing highlights column:', error);
     throw error;
   } finally {
     await connection.end();

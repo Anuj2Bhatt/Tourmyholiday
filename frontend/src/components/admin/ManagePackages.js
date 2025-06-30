@@ -78,7 +78,6 @@ const ManagePackages = () => {
         await fetchPackages();
         await fetchStates();
       } catch (error) {
-        console.error('Error initializing data:', error);
         setError(error.message);
       }
     };
@@ -91,7 +90,7 @@ const ManagePackages = () => {
       setLoading(true);
       setError(null);
       
-      const response = await fetch('http://localhost:5000/api/packages', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/packages`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -104,18 +103,8 @@ const ManagePackages = () => {
       }
       
       const data = await response.json();
-      console.log('Fetched packages data:', data);
-      console.log('First package images:', data[0] ? {
-        featured_image: data[0].featured_image,
-        image1: data[0].image1,
-        image2: data[0].image2,
-        image3: data[0].image3,
-        image4: data[0].image4,
-        image5: data[0].image5
-      } : 'No packages');
       setPackages(data);
     } catch (error) {
-      console.error('Error in fetchPackages:', error);
       setError(error.message || 'Failed to fetch packages');
     } finally {
       setLoading(false);
@@ -124,28 +113,25 @@ const ManagePackages = () => {
 
   const fetchStates = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/states');
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/states`);
       if (!response.ok) {
         throw new Error('Failed to fetch states');
       }
       const data = await response.json();
-      console.log('Fetched states:', data);
       setStates(data);
     } catch (err) {
-      console.error('Error fetching states:', err);
       setError('Failed to fetch states. Please try again.');
     }
   };
 
   const fetchDistricts = async (stateId) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/states/${stateId}/districts`);
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/states/${stateId}/districts`);
       if (!response.ok) throw new Error('Failed to fetch districts');
       const data = await response.json();
       setDistricts(data);
     } catch (err) {
-      console.error('Error fetching districts:', err);
-    }
+      }
   };
 
   const handleStateChange = (e) => {
@@ -171,8 +157,7 @@ const ManagePackages = () => {
     e.stopPropagation();
     if (window.confirm('Are you sure you want to delete this package?')) {
       try {
-        console.log('Deleting package with ID:', id);
-        const response = await fetch(`http://localhost:5000/api/packages/${id}`, {
+        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/packages/${id}`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
@@ -185,10 +170,8 @@ const ManagePackages = () => {
           throw new Error(errorData.message || 'Failed to delete package');
         }
 
-        console.log('Package deleted successfully');
         await fetchPackages();
       } catch (err) {
-        console.error('Error deleting package:', err);
         setError(err.message || 'Failed to delete package');
       }
     }
@@ -204,8 +187,6 @@ const ManagePackages = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    console.log('Field changed:', name, value);
-    
     if (name === 'package_name') {
       setFormData(prev => ({
         ...prev,
@@ -339,11 +320,6 @@ const ManagePackages = () => {
     setError(null);
     
     try {
-      console.log('=== Starting Form Submission ===');
-      console.log('Form Data:', formData);
-      console.log('Itinerary Data:', formData.itinerary);
-      console.log('Itinerary Data Type:', typeof formData.itinerary);
-      
       const formDataToSend = new FormData();
       
       // Add all text fields
@@ -353,8 +329,6 @@ const ManagePackages = () => {
             key !== 'itinerary_pdf') {
           // Handle itinerary data
           if (key === 'itinerary') {
-            console.log('Processing itinerary data:');
-            console.log('- Before processing:', formData[key]);
             // Ensure itinerary is an array and properly formatted
             let itineraryData = formData[key];
             if (!Array.isArray(itineraryData)) {
@@ -366,7 +340,6 @@ const ManagePackages = () => {
                   itineraryData = [];
                 }
               } catch (e) {
-                console.error('Error parsing itinerary:', e);
                 itineraryData = [];
               }
             }
@@ -376,10 +349,8 @@ const ManagePackages = () => {
               title: day.title || '',
               description: day.description || ''
             }));
-            console.log('- After processing:', itineraryData);
             formDataToSend.append(key, JSON.stringify(itineraryData));
-            console.log('- Added to FormData');
-          } else {
+            } else {
             formDataToSend.append(key, formData[key]);
           }
         }
@@ -388,14 +359,12 @@ const ManagePackages = () => {
       // Add images
       imageFiles.forEach((file, index) => {
         if (file) {
-          console.log(`Adding image${index + 1}:`, file);
           formDataToSend.append(`image${index + 1}`, file);
         }
       });
 
       // Add featured image if exists
       if (featuredImageFile) {
-        console.log('Adding featured image:', featuredImageFile);
         formDataToSend.append('featured_image', featuredImageFile);
       }
 
@@ -405,42 +374,22 @@ const ManagePackages = () => {
       }
       
       const url = editingPackage 
-        ? `http://localhost:5000/api/packages/${editingPackage.id}`
-        : 'http://localhost:5000/api/packages';
+          ? `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/packages/${editingPackage.id}`
+        : `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/packages`;
         
       const method = editingPackage ? 'PUT' : 'POST';
-      
-      console.log('Sending request to:', url);
-      console.log('Method:', method);
-      console.log('FormData contents:');
-      for (let pair of formDataToSend.entries()) {
-        console.log(pair[0] + ': ' + (pair[1] instanceof File ? pair[1].name : pair[1]));
-      }
       
       const response = await fetch(url, {
         method: method,
         body: formDataToSend
       });
 
-      console.log('Response status:', response.status);
-      
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('Error response:', errorData);
         throw new Error(errorData.message || `Failed to ${editingPackage ? 'update' : 'create'} package`);
       }
 
       const result = await response.json();
-      console.log(`Package ${editingPackage ? 'updated' : 'created'} successfully:`, result);
-      console.log('Featured image in response:', result.featured_image);
-      console.log('Other images in response:', {
-        image1: result.image1,
-        image2: result.image2,
-        image3: result.image3,
-        image4: result.image4,
-        image5: result.image5
-      });
-
       setFormData(initialForm);
       setImageFiles([null, null, null, null, null]);
       setFeaturedImageFile(null);
@@ -451,7 +400,6 @@ const ManagePackages = () => {
       
       alert(`Package ${editingPackage ? 'updated' : 'created'} successfully!`);
     } catch (err) {
-      console.error(`Error ${editingPackage ? 'updating' : 'creating'} package:`, err);
       setError(err.message);
       alert(`Error: ${err.message}`);
     }

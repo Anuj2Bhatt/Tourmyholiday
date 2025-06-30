@@ -16,7 +16,6 @@ router.get('/', async (req, res) => {
     
     res.json(formattedRows);
   } catch (err) {
-    console.error('Error fetching all history:', err);
     res.status(500).json({ error: 'Database error', details: err.message });
   }
 });
@@ -25,14 +24,10 @@ router.get('/', async (req, res) => {
 router.get('/slug/:slug', async (req, res) => {
   try {
     const { slug } = req.params;
-    console.log('Fetching history for slug:', slug);
-    
     const [historyResult] = await db.query(
       'SELECT * FROM state_history WHERE slug = ?',
       [slug]
     );
-    console.log('Found history entry:', historyResult[0]);
-
     if (historyResult.length === 0) {
       return res.status(404).json({ error: 'History not found' });
     }
@@ -47,7 +42,6 @@ router.get('/slug/:slug', async (req, res) => {
 
     res.json(history);
   } catch (err) {
-    console.error('Error fetching history:', err);
     res.status(500).json({ error: 'Database error', details: err.message });
   }
 });
@@ -72,7 +66,6 @@ router.get('/:id', async (req, res) => {
 
     res.json(history);
   } catch (err) {
-    console.error('Error fetching history:', err);
     res.status(500).json({ error: 'Database error', details: err.message });
   }
 });
@@ -117,7 +110,6 @@ router.post('/', async (req, res) => {
     const [result] = await db.query(sql, values);
     res.json({ success: true, id: result.insertId });
   } catch (err) {
-    console.error('Error inserting history:', err);
     res.status(500).json({ error: 'Database error', details: err.message });
   }
 });
@@ -160,7 +152,6 @@ router.put('/:id', async (req, res) => {
 
     res.json({ success: true });
   } catch (err) {
-    console.error('Error updating history:', err);
     res.status(500).json({ error: 'Database error', details: err.message });
   }
 });
@@ -172,7 +163,6 @@ router.delete('/:id', async (req, res) => {
     const [result] = await db.query('DELETE FROM state_history WHERE id = ?', [id]);
     res.json({ success: true });
   } catch (err) {
-    console.error('Error deleting history:', err);
     res.status(500).json({ error: 'Database error', details: err.message });
   }
 });

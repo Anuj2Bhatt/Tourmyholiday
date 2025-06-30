@@ -39,7 +39,6 @@ router.get('/district/:districtId', async (req, res) => {
         );
         res.json(seasons);
     } catch (error) {
-        console.error('Error fetching territory seasons:', error);
         res.status(500).json({ error: 'Failed to fetch seasons' });
     }
 });
@@ -60,7 +59,6 @@ router.post('/', async (req, res) => {
             season_name
         });
     } catch (error) {
-        console.error('Error creating territory season:', error);
         if (error.code === 'ER_DUP_ENTRY') {
             res.status(400).json({ error: 'This season already exists for this district' });
         } else {
@@ -75,7 +73,6 @@ router.delete('/:id', async (req, res) => {
         await db.query('DELETE FROM territory_seasons WHERE id = ?', [req.params.id]);
         res.json({ message: 'Season deleted successfully' });
     } catch (error) {
-        console.error('Error deleting territory season:', error);
         res.status(500).json({ error: 'Failed to delete season' });
     }
 });

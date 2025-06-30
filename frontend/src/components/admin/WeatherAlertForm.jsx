@@ -51,8 +51,7 @@ const WeatherAlertForm = ({ formData, onSubmit, onCancel }) => {
         alert_images: [...prev.alert_images, ...response.data.imagePaths]
       }));
     } catch (error) {
-      console.error('Error uploading images:', error);
-    }
+      }
   };
 
   const handleSubmit = (e) => {

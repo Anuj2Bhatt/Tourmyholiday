@@ -80,7 +80,6 @@ const TerritoryDetail = () => {
           setDistricts(districtsWithImages);
         }
       } catch (districtsError) {
-        console.error('Error fetching territory districts:', districtsError);
         setDistricts([]);
       }
 
@@ -98,7 +97,6 @@ const TerritoryDetail = () => {
           data.history = historyWithImages;
         }
       } catch (historyError) {
-        console.error('Error fetching territory history:', historyError);
         data.history = [];
       }
 
@@ -115,7 +113,6 @@ const TerritoryDetail = () => {
           data.images = imagesWithFullUrls;
         }
       } catch (imagesError) {
-        console.error('Error fetching territory images:', imagesError);
         data.images = [];
       }
 
@@ -145,7 +142,6 @@ const TerritoryDetail = () => {
           setPlacesToVisit(placesWithImages);
         }
       } catch (placesError) {
-        console.error('Error fetching places:', placesError);
         setPlacesToVisit([]);
       }
 
@@ -161,14 +157,12 @@ const TerritoryDetail = () => {
         setPackagesCount(packagesRes.data.length || 0);
         setHotelsCount(hotelsRes.data.length || 0);
       } catch (countsError) {
-        console.error('Error fetching counts:', countsError);
         setArticlesCount(0);
         setPackagesCount(0);
         setHotelsCount(0);
       }
 
     } catch (err) {
-      console.error('Error fetching territory data:', err);
       setError(err.message || 'Failed to fetch territory data');
     } finally {
       setLoading(false);
@@ -205,7 +199,6 @@ const TerritoryDetail = () => {
         });
         setVideos(response.data);
       } catch (error) {
-        console.error('Error fetching videos:', error);
       } finally {
         setVideosLoading(false);
       }
@@ -311,7 +304,6 @@ const TerritoryDetail = () => {
                   await axios.delete(`http://localhost:5000/api/territories/${territoryData.id}`);
                   navigate('/');
                 } catch (error) {
-                  console.error('Error deleting territory:', error);
                   alert('Failed to delete territory');
                 }
               }

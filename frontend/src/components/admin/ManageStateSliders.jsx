@@ -68,7 +68,6 @@ const ManageStateSliders = () => {
           const imagesResponse = await axios.get(`http://localhost:5000/api/states/images/${state.id}`);
           return { stateId: state.id, images: imagesResponse.data };
         } catch (err) {
-          console.error(`Error fetching images for state ${state.id}:`, err);
           return { stateId: state.id, images: [] };
         }
       });
@@ -81,8 +80,7 @@ const ManageStateSliders = () => {
       setStateImages(imagesMap);
     } catch (err) {
       setError('Failed to fetch states. Please try again.');
-      console.error('Error fetching states:', err);
-    } finally {
+      } finally {
       setLoading(false);
     }
   };
@@ -102,10 +100,8 @@ const ManageStateSliders = () => {
         caption: img.caption || '',
         created_at: img.created_at
       }));
-      console.log('Fetched images:', formattedImages);
       setExistingImages(formattedImages);
     } catch (err) {
-      console.error('Error fetching existing images:', err);
       setError('Failed to fetch images. Please try again.');
     }
   };
@@ -126,7 +122,6 @@ const ManageStateSliders = () => {
 
       return response.data;
     } catch (err) {
-      console.error('Error uploading image:', err);
       throw new Error('Failed to upload image');
     }
   };
@@ -160,8 +155,7 @@ const ManageStateSliders = () => {
       fetchStates();
     } catch (err) {
       setError('Failed to save changes. Please try again.');
-      console.error('Error saving changes:', err);
-    } finally {
+      } finally {
       setUploading(false);
     }
   };
@@ -171,7 +165,6 @@ const ManageStateSliders = () => {
       await axios.delete(`http://localhost:5000/api/states/images/${imageId}`);
       setExistingImages(existingImages.filter(img => img.id !== imageId));
     } catch (err) {
-      console.error('Error deleting image:', err);
       setError('Failed to delete image. Please try again.');
     }
   };
@@ -185,7 +178,6 @@ const ManageStateSliders = () => {
         url: img.url.startsWith('http') ? img.url : `http://localhost:5000${img.url}`
       }));
     } catch (err) {
-      console.error('Error fetching season images:', err);
       return [];
     }
   };
@@ -246,7 +238,6 @@ const ManageStateSliders = () => {
   // Delete a season image
   const handleDeleteSeasonImage = async (imageId) => {
     if (!imageId) {
-      console.error('No image ID provided for deletion');
       return;
     }
 
@@ -258,7 +249,6 @@ const ManageStateSliders = () => {
         [activeSeasonTab]: prev[activeSeasonTab].filter(img => img.id !== imageId)
       }));
       } catch (err) {
-      console.error('Error deleting season image:', err);
       setError('Failed to delete image. Please try again.');
     }
   };
@@ -340,7 +330,6 @@ const ManageStateSliders = () => {
       });
       setShowNewImageForm(false);
     } catch (err) {
-      console.error('Error uploading new season image:', err);
       setError('Failed to upload image. Please try again.');
     } finally {
       setSeasonUploading(false);
@@ -357,7 +346,6 @@ const ManageStateSliders = () => {
               src={img.url} 
               alt={img.alt || `${img.location || 'Season'} image`}
               onError={(e) => {
-                console.error('Image failed to load:', img.url);
                 e.target.onerror = null;
                 e.target.src = '/placeholder-state.jpg';
               }}
@@ -436,7 +424,6 @@ const ManageStateSliders = () => {
                     src={firstImage} 
                     alt={state.name}
                     onError={(e) => {
-                      console.error('Image failed to load:', firstImage);
                       e.target.onerror = null;
                       e.target.src = '/placeholder-state.jpg';
                     }}
@@ -489,7 +476,6 @@ const ManageStateSliders = () => {
                           src={image.url} 
                           alt={image.alt || image.caption || 'State image'} 
                           onError={(e) => {
-                            console.error('Image failed to load:', image.url);
                             e.target.onerror = null;
                             e.target.src = '/placeholder-state.jpg';
                           }}

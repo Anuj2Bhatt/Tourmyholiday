@@ -92,8 +92,8 @@ const validateAccommodation = (req, res, next) => {
     }
 
     next();
-  } catch (error) {
-    console.error('Validation error:', error);
+  } catch (error) { 
+     
     res.status(500).json({ message: 'Error validating accommodation data' });
   }
 };

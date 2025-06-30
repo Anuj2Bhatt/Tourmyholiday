@@ -422,4 +422,125 @@
     flex-direction: column;
     gap: 10px;
   }
+}
+
+.season-images-section {
+  margin: 4rem 0;
+  padding: 2rem 0;
+}
+
+.season-images-section .section-title {
+  font-size: 2rem;
+  color: #333;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.season-images-section .section-description {
+  text-align: center;
+  color: #666;
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+}
+
+.season-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.season-tab {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  background: #f5f5f5;
+  color: #666;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.season-tab:hover {
+  background: #e0e0e0;
+}
+
+.season-tab.active {
+  background: #4CAF50;
+  color: white;
+}
+
+.season-images-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+  padding: 1rem;
+}
+
+.season-image-card {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.season-image-card:hover {
+  transform: translateY(-5px);
+}
+
+.season-image-card img {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+  display: block;
+}
+
+.season-image-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1rem;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+  color: white;
+}
+
+.season-image-info h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.season-image-info p {
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.no-images-message {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3rem;
+  background: #f5f5f5;
+  border-radius: 12px;
+  color: #666;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+  .season-images-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+  }
+
+  .season-tabs {
+    gap: 0.5rem;
+  }
+
+  .season-tab {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
 } 

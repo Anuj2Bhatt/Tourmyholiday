@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../db');
+const pool = require('../../db');
 const slugify = require('slugify');
 
 // Get all villages for a subdistrict
@@ -13,7 +13,6 @@ router.get('/:subdistrictId', async (req, res) => {
     );
     res.json(villages);
   } catch (error) {
-    console.error('Error fetching villages:', error);
     res.status(500).json({ message: 'Error fetching villages' });
   }
 });
@@ -33,7 +32,6 @@ router.get('/village/:slug', async (req, res) => {
 
     res.json(village[0]);
   } catch (error) {
-    console.error('Error fetching village:', error);
     res.status(500).json({ message: 'Error fetching village' });
   }
 });
@@ -63,7 +61,6 @@ router.post('/:subdistrictId', async (req, res) => {
 
     res.status(201).json(newVillage[0]);
   } catch (error) {
-    console.error('Error adding village:', error);
     if (error.code === 'ER_DUP_ENTRY') {
       return res.status(400).json({ message: 'A village with this name already exists' });
     }
@@ -104,7 +101,6 @@ router.put('/:villageId', async (req, res) => {
 
     res.json(updatedVillage[0]);
   } catch (error) {
-    console.error('Error updating village:', error);
     if (error.code === 'ER_DUP_ENTRY') {
       return res.status(400).json({ message: 'A village with this name already exists' });
     }
@@ -128,7 +124,6 @@ router.delete('/:villageId', async (req, res) => {
 
     res.json({ message: 'Village deleted successfully' });
   } catch (error) {
-    console.error('Error deleting village:', error);
     res.status(500).json({ message: 'Error deleting village' });
   }
 });

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../db');
+const pool = require('../../db');
 const multer = require('multer');
 const path = require('path');
 const slugify = require('slugify');
@@ -81,7 +81,6 @@ router.get('/', async (req, res) => {
       data: formattedVillages
     });
   } catch (error) {
-    console.error('Error fetching territory villages:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching territory villages',
@@ -125,7 +124,6 @@ router.get('/slug/:slug', async (req, res) => {
       data: formattedVillage
     });
   } catch (error) {
-    console.error('Error fetching territory village by slug:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching territory village',
@@ -214,7 +212,6 @@ router.post('/', upload.single('featured_image'), validateMetaFields, async (req
       }
     });
   } catch (error) {
-    console.error('Error creating territory village:', error);
     res.status(500).json({
       success: false,
       message: 'Error creating territory village',
@@ -266,8 +263,7 @@ router.put('/:id', upload.single('featured_image'), validateMetaFields, async (r
         try {
           await fs.promises.unlink(oldImagePath);
         } catch (err) {
-          console.error('Error deleting old image:', err);
-        }
+          }
       }
     }
 
@@ -323,7 +319,6 @@ router.put('/:id', upload.single('featured_image'), validateMetaFields, async (r
       }
     });
   } catch (error) {
-    console.error('Error updating territory village:', error);
     res.status(500).json({
       success: false,
       message: 'Error updating territory village',
@@ -348,8 +343,7 @@ router.delete('/:id', async (req, res) => {
       try {
         await fs.promises.unlink(imagePath);
       } catch (err) {
-        console.error('Error deleting image file:', err);
-      }
+        }
     }
 
     const [result] = await pool.query(
@@ -369,7 +363,6 @@ router.delete('/:id', async (req, res) => {
       message: 'Territory village deleted successfully'
     });
   } catch (error) {
-    console.error('Error deleting territory village:', error);
     res.status(500).json({
       success: false,
       message: 'Error deleting territory village',

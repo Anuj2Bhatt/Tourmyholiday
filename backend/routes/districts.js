@@ -31,7 +31,6 @@ const checkStateExists = async (stateName) => {
 // GET all districts
 router.get('/', async (req, res) => {
   try {
-    console.log('Fetching all districts...');
     const [districts] = await pool.query('SELECT * FROM districts ORDER BY name ASC');
     
     // Format image paths
@@ -40,10 +39,8 @@ router.get('/', async (req, res) => {
       featured_image: district.featured_image ? `http://localhost:5000/uploads/${path.basename(district.featured_image)}` : null
     }));
     
-    console.log(`Found ${formattedDistricts.length} districts`);
     res.json(formattedDistricts);
   } catch (error) {
-    console.error('Error fetching districts:', error);
     res.status(500).json({ error: 'Failed to fetch districts', details: error.message });
   }
 });
@@ -62,7 +59,6 @@ router.get('/state/:stateName', async (req, res) => {
     
     res.json(formattedDistricts);
   } catch (error) {
-    console.error('Error fetching districts for state:', error);
     res.status(500).json({ error: 'Failed to fetch districts', details: error.message });
   }
 });
@@ -85,7 +81,6 @@ router.get('/:id', async (req, res) => {
     
     res.json(district);
   } catch (error) {
-    console.error('Error fetching district:', error);
     res.status(500).json({ error: 'Failed to fetch district', details: error.message });
   }
 });
@@ -105,7 +100,6 @@ router.get('/slug/:slug', async (req, res) => {
     }
     res.json(district);
   } catch (error) {
-    console.error('Error fetching district by slug:', error);
     res.status(500).json({ error: 'Failed to fetch district by slug', details: error.message });
   }
 });
@@ -149,7 +143,6 @@ router.post('/', upload.single('featured_image'), async (req, res) => {
 
     res.status(201).json(newDistrict);
   } catch (error) {
-    console.error('Error creating district:', error);
     res.status(500).json({ error: 'Failed to create district', details: error.message });
   }
 });
@@ -202,7 +195,6 @@ router.put('/:id', upload.single('featured_image'), async (req, res) => {
 
     res.json(updatedDistrict);
   } catch (error) {
-    console.error('Error updating district:', error);
     res.status(500).json({ error: 'Failed to update district', details: error.message });
   }
 });
@@ -219,7 +211,6 @@ router.delete('/:id', async (req, res) => {
 
     res.json({ message: 'District deleted successfully' });
   } catch (error) {
-    console.error('Error deleting district:', error);
     res.status(500).json({ error: 'Failed to delete district', details: error.message });
   }
 });
@@ -239,7 +230,6 @@ router.get('/:districtId/images', async (req, res) => {
     }));
     res.json(formatted);
   } catch (error) {
-    console.error('Error fetching district images:', error);
     res.status(500).json({ error: 'Failed to fetch district images', details: error.message });
   }
 });
@@ -265,7 +255,6 @@ router.post('/:districtId/images', upload.single('image'), async (req, res) => {
       alt_text: alt_text || ''
     });
   } catch (error) {
-    console.error('Error uploading district image:', error);
     res.status(500).json({ error: 'Failed to upload district image', details: error.message });
   }
 });
@@ -291,7 +280,6 @@ router.delete('/images/:imageId', async (req, res) => {
     }
     res.json({ message: 'Image deleted successfully' });
   } catch (error) {
-    console.error('Error deleting district image:', error);
     res.status(500).json({ error: 'Failed to delete district image', details: error.message });
   }
 });
@@ -307,7 +295,6 @@ router.put('/images/:imageId', async (req, res) => {
     }
     res.json({ message: 'Caption and alt text updated successfully' });
   } catch (error) {
-    console.error('Error updating image caption/alt text:', error);
     res.status(500).json({ error: 'Failed to update image caption/alt text', details: error.message });
   }
 });
@@ -324,7 +311,6 @@ router.get('/:districtId/stats', async (req, res) => {
     }
     res.json(rows[0]);
   } catch (error) {
-    console.error('Error fetching district stats:', error);
     res.status(500).json({ error: 'Failed to fetch district stats', details: error.message });
   }
 });
@@ -353,7 +339,6 @@ router.post('/:districtId/stats', async (req, res) => {
     const [result] = await pool.query('SELECT * FROM district_stats WHERE district_id = ?', [districtId]);
     res.json(result[0]);
   } catch (error) {
-    console.error('Error saving district stats:', error);
     res.status(500).json({ error: 'Failed to save district stats', details: error.message });
   }
 });

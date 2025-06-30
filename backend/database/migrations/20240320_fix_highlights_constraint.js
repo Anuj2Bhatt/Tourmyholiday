@@ -15,15 +15,13 @@ async function up() {
         tc.CONSTRAINT_NAME,
         tc.CONSTRAINT_TYPE,
         kcu.COLUMN_NAME
-      FROM information_schema.TABLE_CONSTRAINTS tc
+      FROM information_schema.TABLE_CONSTRAINTS tc  
       JOIN information_schema.KEY_COLUMN_USAGE kcu 
         ON tc.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME
       WHERE tc.TABLE_SCHEMA = ? 
         AND tc.TABLE_NAME = 'villages'
         AND kcu.COLUMN_NAME = 'highlights'
     `, [process.env.DB_NAME || 'tourmyholiday']);
-
-    console.log('Found constraints:', constraints);
 
     // Drop all constraints found
     for (const constraint of constraints) {
@@ -119,9 +117,7 @@ async function up() {
       ADD COLUMN highlights LONGTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL
     `);
 
-    console.log('Successfully recreated highlights columns with proper settings');
   } catch (error) {
-    console.error('Error fixing highlights column:', error);
     throw error;
   } finally {
     await connection.end();
@@ -148,9 +144,7 @@ async function down() {
       DROP COLUMN IF EXISTS highlights
     `);
 
-    console.log('Successfully removed highlights columns');
   } catch (error) {
-    console.error('Error reverting highlights column:', error);
     throw error;
   } finally {
     await connection.end();

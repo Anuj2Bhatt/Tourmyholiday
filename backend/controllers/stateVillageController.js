@@ -1,6 +1,50 @@
-const db = require('../config/database');
+const db = require('../db');
 const { validationResult } = require('express-validator');
 
+/**
+ * @swagger
+ * /api/villages:
+ *   get:
+ *     summary: Get all state villages with optional filters
+ *     description: Retrieve a list of villages with optional filtering by state, district, or subdistrict
+ *     tags: [Villages]
+ *     parameters:
+ *       - in: query
+ *         name: state_id
+ *         schema:
+ *           type: integer
+ *         description: Filter villages by state ID
+ *       - in: query
+ *         name: district_id
+ *         schema:
+ *           type: integer
+ *         description: Filter villages by district ID
+ *       - in: query
+ *         name: subdistrict_id
+ *         schema:
+ *           type: integer
+ *         description: Filter villages by subdistrict ID
+ *     responses:
+ *       200:
+ *         description: List of villages retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Village'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             $ref: '#/components/schemas/Error'
+ */
 // Get all state villages with filters
 exports.getStateVillages = async (req, res) => {
   try {
@@ -50,7 +94,6 @@ exports.getStateVillages = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error fetching state villages:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching villages',
@@ -59,6 +102,52 @@ exports.getStateVillages = async (req, res) => {
   }
 };
 
+/**
+ * @swagger
+ * /api/villages/{id}:
+ *   get:
+ *     summary: Get a single village by ID
+ *     description: Retrieve detailed information about a specific village including its images
+ *     tags: [Villages]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Village ID
+ *     responses:
+ *       200:
+ *         description: Village details retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Village'
+ *       404:
+ *         description: Village not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Village not found
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             $ref: '#/components/schemas/Error'
+ */
 // Get single state village with images
 exports.getStateVillage = async (req, res) => {
   try {
@@ -99,7 +188,6 @@ exports.getStateVillage = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error fetching state village:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching village',
@@ -108,6 +196,124 @@ exports.getStateVillage = async (req, res) => {
   }
 };
 
+/**
+ * @swagger
+ * /api/villages:
+ *   post:
+ *     summary: Create a new village
+ *     description: Create a new village with all required information
+ *     tags: [Villages]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - slug
+ *               - state_id
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "Sample Village"
+ *                 description: Name of the village
+ *               slug:
+ *                 type: string
+ *                 example: "sample-village"
+ *                 description: URL-friendly slug
+ *               description:
+ *                 type: string
+ *                 example: "A beautiful village description"
+ *               location:
+ *                 type: string
+ *                 example: "Located in the mountains"
+ *               population:
+ *                 type: integer
+ *                 example: 5000
+ *               main_occupation:
+ *                 type: string
+ *                 example: "Agriculture"
+ *               cultural_significance:
+ *                 type: string
+ *                 example: "Rich cultural heritage"
+ *               attractions:
+ *                 type: string
+ *                 example: "Temple, Lake, Mountains"
+ *               how_to_reach:
+ *                 type: string
+ *                 example: "By road from nearest city"
+ *               best_time_to_visit:
+ *                 type: string
+ *                 example: "March to June"
+ *               featured_image:
+ *                 type: string
+ *                 example: "uploads/village-image.jpg"
+ *               status:
+ *                 type: string
+ *                 enum: [active, inactive]
+ *                 example: "active"
+ *               meta_title:
+ *                 type: string
+ *                 example: "SEO Title"
+ *               meta_description:
+ *                 type: string
+ *                 example: "SEO Description"
+ *               meta_keywords:
+ *                 type: string
+ *                 example: "village, tourism, culture"
+ *               highlights:
+ *                 type: string
+ *                 example: "Cultural heritage, Natural beauty"
+ *               state_id:
+ *                 type: integer
+ *                 example: 1
+ *               district_id:
+ *                 type: integer
+ *                 example: 1
+ *               subdistrict_id:
+ *                 type: integer
+ *                 example: 1
+ *     responses:
+ *       201:
+ *         description: Village created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Village created successfully
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       example: 1
+ *       400:
+ *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 errors:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             $ref: '#/components/schemas/Error'
+ */
 // Create new state village
 exports.createStateVillage = async (req, res) => {
   try {
@@ -141,6 +347,19 @@ exports.createStateVillage = async (req, res) => {
       subdistrict_id
     } = req.body;
 
+    // Stricter sanitization for featured_image
+    let safeFeaturedImage = featured_image;
+    if (
+      !safeFeaturedImage ||
+      safeFeaturedImage === 'undefined' ||
+      safeFeaturedImage.startsWith('undefined/') ||
+      safeFeaturedImage.includes('undefined/')
+    ) {
+      safeFeaturedImage = null;
+    }
+    // Debug log before saving
+
+
     const query = `
       INSERT INTO villages (
         name, slug, description, location, population,
@@ -154,7 +373,7 @@ exports.createStateVillage = async (req, res) => {
     const [result] = await db.query(query, [
       name, slug, description, location, population,
       main_occupation, cultural_significance, attractions,
-      how_to_reach, best_time_to_visit, featured_image,
+      how_to_reach, best_time_to_visit, safeFeaturedImage,
       status, meta_title, meta_description, meta_keywords,
       highlights, state_id, district_id, subdistrict_id
     ]);
@@ -166,7 +385,6 @@ exports.createStateVillage = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error creating state village:', error);
     res.status(500).json({
       success: false,
       message: 'Error creating village',
@@ -175,6 +393,119 @@ exports.createStateVillage = async (req, res) => {
   }
 };
 
+/**
+ * @swagger
+ * /api/villages/{id}:
+ *   put:
+ *     summary: Update a village
+ *     description: Update an existing village's information
+ *     tags: [Villages]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Village ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "Updated Village Name"
+ *               slug:
+ *                 type: string
+ *                 example: "updated-village-slug"
+ *               description:
+ *                 type: string
+ *                 example: "Updated village description"
+ *               location:
+ *                 type: string
+ *                 example: "Updated location"
+ *               population:
+ *                 type: integer
+ *                 example: 6000
+ *               main_occupation:
+ *                 type: string
+ *                 example: "Tourism"
+ *               cultural_significance:
+ *                 type: string
+ *                 example: "Updated cultural significance"
+ *               attractions:
+ *                 type: string
+ *                 example: "Updated attractions list"
+ *               how_to_reach:
+ *                 type: string
+ *                 example: "Updated travel information"
+ *               best_time_to_visit:
+ *                 type: string
+ *                 example: "Year round"
+ *               featured_image:
+ *                 type: string
+ *                 example: "uploads/updated-village-image.jpg"
+ *               status:
+ *                 type: string
+ *                 enum: [active, inactive]
+ *                 example: "active"
+ *               meta_title:
+ *                 type: string
+ *                 example: "Updated SEO Title"
+ *               meta_description:
+ *                 type: string
+ *                 example: "Updated SEO Description"
+ *               meta_keywords:
+ *                 type: string
+ *                 example: "updated, village, tourism"
+ *               highlights:
+ *                 type: string
+ *                 example: "Updated highlights"
+ *               state_id:
+ *                 type: integer
+ *                 example: 1
+ *               district_id:
+ *                 type: integer
+ *                 example: 1
+ *               subdistrict_id:
+ *                 type: integer
+ *                 example: 1
+ *     responses:
+ *       200:
+ *         description: Village updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Village updated successfully
+ *       400:
+ *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 errors:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             $ref: '#/components/schemas/Error'
+ */
 // Update state village
 exports.updateStateVillage = async (req, res) => {
   try {
@@ -209,6 +540,18 @@ exports.updateStateVillage = async (req, res) => {
       subdistrict_id
     } = req.body;
 
+    // Stricter sanitization for featured_image
+    let safeFeaturedImage = featured_image;
+    if (
+      !safeFeaturedImage ||
+      safeFeaturedImage === 'undefined' ||
+      safeFeaturedImage.startsWith('undefined/') ||
+      safeFeaturedImage.includes('undefined/')
+    ) {
+      safeFeaturedImage = null;
+    }
+    // Debug log before saving
+
     const query = `
       UPDATE villages SET
         name = ?, slug = ?, description = ?, location = ?,
@@ -223,7 +566,7 @@ exports.updateStateVillage = async (req, res) => {
     await db.query(query, [
       name, slug, description, location, population,
       main_occupation, cultural_significance, attractions,
-      how_to_reach, best_time_to_visit, featured_image,
+      how_to_reach, best_time_to_visit, safeFeaturedImage,
       status, meta_title, meta_description, meta_keywords,
       highlights, state_id, district_id, subdistrict_id, id
     ]);
@@ -234,7 +577,6 @@ exports.updateStateVillage = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error updating state village:', error);
     res.status(500).json({
       success: false,
       message: 'Error updating village',
@@ -243,6 +585,40 @@ exports.updateStateVillage = async (req, res) => {
   }
 };
 
+/**
+ * @swagger
+ * /api/villages/{id}:
+ *   delete:
+ *     summary: Delete a village
+ *     description: Delete a village and all its associated images
+ *     tags: [Villages]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Village ID
+ *     responses:
+ *       200:
+ *         description: Village and associated images deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Village and associated images deleted successfully
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             $ref: '#/components/schemas/Error'
+ */
 // Delete state village
 exports.deleteStateVillage = async (req, res) => {
   try {
@@ -276,7 +652,6 @@ exports.deleteStateVillage = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error deleting state village:', error);
     res.status(500).json({
       success: false,
       message: 'Error deleting village',

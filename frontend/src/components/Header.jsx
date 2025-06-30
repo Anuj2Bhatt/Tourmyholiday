@@ -51,7 +51,7 @@ const Header = () => {
             <li><Link to="/wildlife" onClick={closeMenu}>Wildlife</Link></li>
             <li><Link to="/tourism" onClick={closeMenu}>Tourism</Link></li>
             <li><Link to="/webstories" onClick={closeMenu}>Web Stories</Link></li>
-            <li><Link to="/culture" onClick={closeMenu}>Culture</Link></li>
+            <li><Link to="/india-culture" onClick={closeMenu}>Culture</Link></li>
             <li><Link to="/contact" onClick={closeMenu}>Contact</Link></li>
           </ul>
         </nav>

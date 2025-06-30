@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import './StateHistoryCard.css';
+import { getImageUrl } from '../utils/imageUtils';
 
 const StateHistoryCard = ({ history }) => {
   // Function to remove HTML tags from content
@@ -15,7 +16,7 @@ const StateHistoryCard = ({ history }) => {
       <div className="history-card-image">
         {history.image ? (
           <img 
-            src={history.image.startsWith('http') ? history.image : `http://localhost:5000${history.image}`}
+            src={getImageUrl(history.image, '/images/placeholder.jpg')}
             alt={history.title}
             onError={(e) => {
               e.target.onerror = null;

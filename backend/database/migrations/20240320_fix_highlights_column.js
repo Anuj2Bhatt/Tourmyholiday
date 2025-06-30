@@ -53,9 +53,7 @@ async function up() {
       MODIFY COLUMN highlights LONGTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL
     `);
 
-    console.log('Successfully modified highlights columns to LONGTEXT with proper character set');
   } catch (error) {
-    console.error('Error modifying highlights column:', error);
     throw error;
   } finally {
     await connection.end();
@@ -82,9 +80,7 @@ async function down() {
       MODIFY COLUMN highlights TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL
     `);
 
-    console.log('Successfully reverted highlights columns back to TEXT');
   } catch (error) {
-    console.error('Error reverting highlights column:', error);
     throw error;
   } finally {
     await connection.end();

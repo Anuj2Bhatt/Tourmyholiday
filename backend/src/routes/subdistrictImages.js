@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../db');
+const pool = require('../../db');  
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -43,7 +43,7 @@ const upload = multer({
 // Helper function to format image URL
 const formatImageUrl = (imagePath) => {
   if (!imagePath) return null;
-  return `http://localhost:5000/uploads/${path.basename(imagePath)}`;
+  return `${process.env.API_BASE_URL || 'http://localhost:5000'}/uploads/${path.basename(imagePath)}`;
 };
 
 // Get all images for a subdistrict
@@ -63,7 +63,6 @@ router.get('/:subdistrictId', async (req, res) => {
 
     res.json(formattedImages);
   } catch (error) {
-    console.error('Error fetching subdistrict images:', error);
     res.status(500).json({ message: 'Error fetching subdistrict images' });
   }
 });
@@ -94,7 +93,6 @@ router.post('/:subdistrictId', upload.single('image'), async (req, res) => {
 
     res.status(201).json(newImage[0]);
   } catch (error) {
-    console.error('Error adding subdistrict image:', error);
     res.status(500).json({ message: 'Error adding subdistrict image' });
   }
 });
@@ -140,7 +138,6 @@ router.put('/:imageId', upload.single('image'), async (req, res) => {
 
     res.json(updatedImage[0]);
   } catch (error) {
-    console.error('Error updating subdistrict image:', error);
     res.status(500).json({ message: 'Error updating subdistrict image' });
   }
 });
@@ -173,7 +170,6 @@ router.delete('/:imageId', async (req, res) => {
 
     res.json({ message: 'Image deleted successfully' });
   } catch (error) {
-    console.error('Error deleting subdistrict image:', error);
     res.status(500).json({ message: 'Error deleting subdistrict image' });
   }
 });

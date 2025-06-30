@@ -304,12 +304,13 @@
 }
 
 .enquiryFormWrapper {
-  max-width: 420px;
-  margin: 32px auto 0 auto;
+  max-width: 330px;
+  margin: 20px auto 0 auto;
   background: #fff;
   border-radius: 14px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.07);
   padding: 24px 20px 18px 20px;
+  overflow:hidden;
 }
 
 .enquiryFormWrapper h2 {
@@ -513,20 +514,19 @@
 }
 
 .itineraryBlock {
-  width: 370px;
-  max-width: 370px;
+  width: 470px;
+  max-width: 470px;
   margin-bottom: 0;
   text-align: left;
-  padding: 0;
-  margin-left: 2vw;
+  padding: 2vw 2vw 0 2vw;
   margin-top: 3vh;
+  background-color: white;
 }
 
 .itineraryTitle {
   font-size: 1.7rem;
-  font-weight: 400;
-  font-family: 'Segoe UI Rounded', 'Segoe UI', 'Roboto', 'Arial', sans-serif;
-  color: #1976d2;
+  font-weight: 600;
+  font-family: Adita Fonts;
   letter-spacing: 0.5px;
   margin-bottom: 14px;
   margin-top: 0;
@@ -535,10 +535,13 @@
   padding-left: 0;
   text-shadow: 0 1px 0 #f4f8fb;
 }
+.itinerary-day{
+  background-color: #125ea7;
+}
 
 .itineraryContent {
-  width: 370px;
-  max-width: 370px;
+  width: 420px;
+  max-width: 420px;
   text-align: left;
   padding-left: 0;
 }
@@ -584,8 +587,8 @@
 
 /* Center column (inclusion, exclusion, faq, note) */
 .centerContent {
-  width: 100%;
-  max-width: 520px;
+  width: 80%;
+  max-width: 400px;
   margin: 0 auto;
   margin-top: 3vh;
 }
@@ -593,7 +596,7 @@
 /* Right column (enquiry form) */
 .rightContent {
   width: 100%;
-  max-width: 420px;
+  max-width: 480px;
   margin: 0 auto;
   margin-top: 3vh;
 }
@@ -603,6 +606,9 @@
     grid-template-columns: 1fr 1fr;
   }
   .rightContent {
+    max-width: 100%;
+  }
+  .centerContent {
     max-width: 100%;
   }
   .itineraryBlock, .itineraryContent, .itineraryBrick, .itineraryActionBtn {
@@ -630,23 +636,12 @@
   overflow-x: auto;
   white-space: nowrap;
   width: 100%;
-  scrollbar-width: thin;
-  scrollbar-color: #1976d2 #f4f8fb;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .tabHeader::-webkit-scrollbar {
-  height: 1px;
-}
-.tabHeader::-webkit-scrollbar-thumb {
-  background: #1976d2;
-  border-radius: 8px;
-}
-.tabHeader::-webkit-scrollbar-thumb:hover {
-  background: #125ea7;
-}
-.tabHeader::-webkit-scrollbar-track {
-  background: #f4f8fb;
-  border-radius: 8px;
+  display: none;
 }
 
 .tabBtn {
@@ -683,11 +678,39 @@
 
 .tabContent {
   background: none;
+  width: 100%;
   padding: 0 0 18px 0;
   min-height: 80px;
   font-size: 1.08rem;
   color: #333;
   margin-bottom: 18px;
+  word-wrap: break-word;
+  white-space: normal;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.tabContent h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 1.2rem;
+  color: #1976d2;
+}
+
+.tabContent p {
+  margin: 0 0 12px 0;
+  line-height: 1.6;
+}
+
+.tabContent ul, 
+.tabContent ol {
+  margin: 0 0 12px 0;
+  padding-left: 20px;
+}
+
+.tabContent li {
+  margin-bottom: 8px;
+  line-height: 1.6;
 }
 
 .rowBelowTitle {
@@ -699,13 +722,27 @@
   margin-bottom: 24px;
   gap: 2vw;
 }
+.itneraryTabsSection{
+  display: flex;
+  gap:6vw;
+}
 
+.costingTitle{
+  float: left;
+}
+.costingSection{
+  padding: 2vw;
+  background-color: white;
+}
 @media (max-width: 1100px) {
   .rowBelowTitle {
     flex-direction: column;
     gap: 2vw;
   }
   .rightContent {
+    max-width: 100%;
+  }
+  .centerContent {
     max-width: 100%;
   }
   .itineraryBlock, .itineraryContent, .itineraryBrick, .itineraryActionBtn {
@@ -790,49 +827,126 @@
   border: 1.5px solid #1976d2;
 }
 
-/* Hotel List Styles */
+/* Updated Hotel List Styles */
 .hotelList {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 10px;
-  margin-top: 15px;
+  margin-top: 12px;
 }
 
 .hotelItem {
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 6px;
   overflow: hidden;
-  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+  text-decoration: none;
+  color: inherit;
+  height: 20vh;
+  min-height: 120px;
+  max-height: 140px;
+  position: relative;
 }
 
 .hotelItem:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
-.hotelLink {
+.hotelImage {
+  position: relative;
   width: 100%;
-  padding: 15px;
-  text-align: left;
-  background: none;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: #333;
-  text-decoration: none;
+  height: 100%;
+  overflow: hidden;
 }
 
-.hotelName {
-  font-weight: 500;
-  font-size: 1.1em;
+.hotelImage img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.2s ease;
+}
+
+.hotelInfo {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 6px;
+  background: linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0.4), transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .hotelStars {
   color: #ffd700;
-  font-size: 1.2em;
-  letter-spacing: 2px;
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.hotelAmenities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: 2px;
+}
+
+.amenityTag {
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 0.65rem;
+  font-weight: 500;
+}
+
+/* Hide other elements */
+.hotelName,
+.hotelLocation,
+.hotelPrice {
+  display: none;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .hotelList {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+  }
+  
+  .hotelItem {
+    min-height: 110px;
+    max-height: 130px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hotelList {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 6px;
+  }
+  
+  .hotelItem {
+    min-height: 100px;
+    max-height: 120px;
+  }
+  
+  .hotelStars {
+    font-size: 0.7rem;
+  }
+  
+  .amenityTag {
+    font-size: 0.6rem;
+    padding: 1px 3px;
+  }
 }
 
 /* Hotel Modal Styles */
@@ -915,36 +1029,6 @@
   color: #333;
 }
 
-/* Remove the recently added itinerary styles */
-.itinerary-day,
-.itinerary-day:hover,
-.itinerary-day-header,
-.day-number,
-.day-title,
-.itinerary-day-description,
-.itinerary-day-description::before {
-  /* Remove these styles */
-}
-
-/* Remove the responsive styles for itinerary */
-@media (max-width: 768px) {
-  .itinerary-day,
-  .itinerary-day-header,
-  .day-number,
-  .day-title,
-  .itinerary-day-description {
-    /* Remove these styles */
-  }
-}
-
-.itinerary-day {
-  background: #fff;
-  border-radius: 8px;
-  margin-bottom: 8px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.07);
-  overflow: hidden;
-}
-
 .itinerary-day-header {
   display: flex;
   align-items: center;
@@ -981,7 +1065,7 @@
   margin: 0;
   font-size: 15px;
   font-weight: 500;
-  color: #333;
+  color: #ffffff;
 }
 
 .toggle-icon {
@@ -1049,4 +1133,387 @@
   max-width: 100%;
   box-sizing: border-box;
   padding-bottom: 4px;
+}
+
+/* Blog Section Styles */
+.blogsSection {
+  width: 100%;
+  /* max-width: 1200px; */ /* Removed to allow 100% width minus padding/margin */
+  margin: 40px 20px 40px 2vw; /* Top 40px, Right 20px (inherited from padding), Bottom 40px, Left 2vw */
+  padding: 0 20px;
+}
+
+.blogsTitle {
+  font-size: 2rem;
+  color: #333;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.blogsContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.blogsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.blogCard {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.blogCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.blogImage {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+}
+
+.blogImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.blogCard:hover .blogImage img {
+  transform: scale(1.05);
+}
+
+.blogContent {
+  padding: 20px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.blogContent h3 {
+  font-size: 1.25rem;
+  color: #333;
+  margin: 0 0 12px;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.blogContent p {
+  color: #666;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0 0 20px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex-grow: 1;
+}
+
+.readMoreBtn {
+  display: inline-block;
+  padding: 10px 20px;
+  background: #1976d2;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: background 0.2s;
+  text-align: center;
+  margin-top: auto;
+}
+
+.readMoreBtn:hover {
+  background: #1565c0;
+}
+
+.blogNavBtn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: white;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  font-size: 1.5rem;
+  color: #333;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  z-index: 2;
+}
+
+.blogNavBtn:hover {
+  background: #f5f5f5;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.prevBtn {
+  left: -20px;
+}
+
+.nextBtn {
+  right: -20px;
+}
+
+@media (max-width: 1024px) {
+  .blogsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .blogsSection {
+    padding: 0 15px;
+  }
+
+  .blogsGrid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .blogNavBtn {
+    width: 36px;
+    height: 36px;
+    font-size: 1.25rem;
+  }
+
+  .prevBtn {
+    left: -10px;
+  }
+
+  .nextBtn {
+    right: -10px;
+  }
+}
+
+/* Seasons Section Styles */
+.seasonsSection {
+  width: 100%;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+.seasonsTitle {
+  font-size: 2rem;
+  color: #333;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.seasonTabs {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 30px;
+  overflow-x: auto;
+  padding-bottom: 10px; /* Space for scrollbar */
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: #1976d2 #e0e0e0; /* Firefox */
+}
+
+.seasonTabs::-webkit-scrollbar {
+  height: 8px;
+}
+
+.seasonTabs::-webkit-scrollbar-track {
+  background: #e0e0e0;
+  border-radius: 10px;
+}
+
+.seasonTabs::-webkit-scrollbar-thumb {
+  background-color: #1976d2;
+  border-radius: 10px;
+  border: 2px solid #e0e0e0;
+}
+
+.seasonTabButton {
+  background: #f0f0f0;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.3s ease, color 0.3s ease;
+  flex-shrink: 0;
+}
+
+.seasonTabButton:hover {
+  background: #e0e0e0;
+}
+
+.activeSeasonTab {
+  background: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* Season Images Grid and Card Styles */
+.seasonImagesContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 20px; /* Gap between buttons and slider */
+  width: 100%;
+  overflow: hidden; /* Ensure nothing spills out of the container */
+  /* padding: 0 20px; /* Add some padding to keep content off edges if needed */
+}
+
+.seasonImagesGridSlider {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* Show 4 images per row */
+  gap: 15px; /* Adjust gap as needed */
+  /* Remove overflow-x here, handled by the container */
+  width: 100%; /* Make grid take full width of container */
+  /* Add smooth scrolling behavior */
+  scroll-behavior: smooth;
+  /* Adjust min-width to ensure items don't shrink too much */
+  grid-auto-columns: 1fr; /* Ensure columns are equal width */
+  grid-auto-flow: column; /* Arrange items in columns */
+}
+
+.seasonImageCard {
+  border-radius: 8px; /* Slightly smaller border-radius for images */
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background-color: #f0f0f0; /* Placeholder background */
+  width: 100%;
+  height: 40vh;
+  object-fit: cover;
+}
+
+.seasonImageCard:hover {
+  transform: scale(1.03); /* Slightly enlarge on hover */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Enhance shadow on hover */
+}
+
+.seasonGridImage {
+  width: 100%;
+  height: 100%; /* Fixed height for image cards */
+  object-fit: cover; /* Cover the area without distorting aspect ratio */
+  display: block; /* Remove extra space below the image */
+}
+
+@media (max-width: 768px) {
+  .seasonImagesGridSlider {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Adjust for smaller screens */
+    gap: 10px;
+  }
+  .seasonGridImage {
+    height: 120px; /* Adjust height for smaller screens */
+  }
+}
+
+/* Season Image Navigation Buttons */
+.seasonImageNavBtn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: white;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  font-size: 1.5rem;
+  color: #333;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  z-index: 2;
+}
+
+.seasonImageNavBtn:hover {
+  background: #f5f5f5;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.seasonPrevBtn {
+  left: 0px; /* Position left button closer to the edge */
+}
+
+.seasonNextBtn {
+  right: 0px; /* Position right button closer to the edge */
+}
+
+@media (max-width: 1024px) {
+  .seasonImagesGridSlider {
+    grid-template-columns: repeat(3, 1fr); /* Show 3 images on medium screens */
+  }
+}
+
+@media (max-width: 768px) {
+  .seasonImagesContainer {
+    padding: 0 10px; /* Adjust padding for smaller screens */
+    gap: 10px;
+  }
+  .seasonImagesGridSlider {
+    grid-template-columns: repeat(2, 1fr); /* Show 2 images on tablets */
+    gap: 10px;
+  }
+  .seasonImageNavBtn {
+    width: 30px;
+    height: 30px;
+    font-size: 1.25rem;
+  }
+  .seasonPrevBtn {
+    left: 0px;
+  }
+  .seasonNextBtn {
+    right: 0px;
+  }
+}
+.seasonImagesGrid{
+  display:flex;
+  gap: 1.3vw;
+  width: 100%;
+  margin-bottom: 3vh;
+}
+
+@media (max-width: 480px) {
+  .seasonImagesGridSlider {
+    grid-template-columns: 1fr; /* Show 1 image on mobile */
+    gap: 8px;
+  }
+  .seasonImageNavBtn {
+    width: 24px;
+    height: 24px;
+    font-size: 0.8rem;
+  }
+  .seasonPrevBtn {
+    left: 0;
+  }
+  .seasonNextBtn {
+    right: 0;
+  }
 } 

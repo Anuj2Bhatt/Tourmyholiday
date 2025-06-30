@@ -26,7 +26,6 @@ export const AuthProvider = ({ children }) => {
           }
         }
       } catch (error) {
-        console.error('Auth check failed:', error);
         localStorage.removeItem('adminToken');
         setUser(null);
       } finally {

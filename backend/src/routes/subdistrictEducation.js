@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../db');
+const pool = require('../../db');
 const slugify = require('slugify');
 
 // Get education info for a subdistrict
@@ -24,7 +24,6 @@ router.get('/:subdistrictId', async (req, res) => {
 
     res.json(education[0]);
   } catch (error) {
-    console.error('Error fetching education info:', error);
     res.status(500).json({ message: 'Error fetching education info' });
   }
 });
@@ -50,7 +49,6 @@ router.get('/by-slug/:slug', async (req, res) => {
 
     res.json(education[0]);
   } catch (error) {
-    console.error('Error fetching education info:', error);
     res.status(500).json({ message: 'Error fetching education info' });
   }
 });
@@ -112,7 +110,6 @@ router.post('/:subdistrictId', async (req, res) => {
 
     res.status(201).json(newEducation[0]);
   } catch (error) {
-    console.error('Error adding education info:', error);
     if (error.code === 'ER_DUP_ENTRY') {
       return res.status(400).json({ message: 'Education info already exists for this subdistrict' });
     }
@@ -189,7 +186,6 @@ router.put('/:educationId', async (req, res) => {
 
     res.json(updatedEducation[0]);
   } catch (error) {
-    console.error('Error updating education info:', error);
     if (error.code === 'ER_DUP_ENTRY') {
       return res.status(400).json({ message: 'An education info with this meta title already exists' });
     }
@@ -213,7 +209,6 @@ router.delete('/:educationId', async (req, res) => {
 
     res.json({ message: 'Education info deleted successfully' });
   } catch (error) {
-    console.error('Error deleting education info:', error);
     res.status(500).json({ message: 'Error deleting education info' });
   }
 });

@@ -55,22 +55,40 @@ const DistrictDetail = () => {
         })
         .catch(() => setStatsLoading(false));
 
-      // Fetch web stories - Only state stories
+      // Fetch web stories - Only for this specific district
       setWebStoriesLoading(true);
-      axios.get(`http://localhost:5000/api/web-stories?district_id=${district.id}&district_type=state`)
-        .then(res => {
-          if (res.data && Array.isArray(res.data)) {
-            setWebStories(res.data);
-          } else {
-            setWebStories([]);
-          }
-          setWebStoriesLoading(false);
-        })
-        .catch(err => {
-          console.error('Error fetching web stories:', err);
-          setWebStoriesLoading(false);
+      
+      // Get stories for this district
+      axios.get(`http://localhost:5000/api/web-stories`, {
+        params: {
+          district_id: district.id  // Just use district_id to get stories
+        }
+      })
+      .then(res => {
+        
+        if (res.data && Array.isArray(res.data)) {
+          // Filter stories to match this specific district
+          const districtStories = res.data.filter(story => {
+            // Only check district_id since that's what we have
+            return story.district_id === district.id;
+          });
+          
+          
+          // Sort stories by created_at date, newest first
+          const sortedStories = districtStories.sort((a, b) => 
+            new Date(b.created_at) - new Date(a.created_at)
+          );
+          
+          setWebStories(sortedStories);
+        } else {
           setWebStories([]);
-        });
+        }
+        setWebStoriesLoading(false);
+      })
+      .catch(err => {
+        setWebStoriesLoading(false);
+        setWebStories([]);
+      });
 
       // Fetch subdistricts
       setSubdistrictsLoading(true);
@@ -80,7 +98,6 @@ const DistrictDetail = () => {
           setSubdistrictsLoading(false);
         })
         .catch(err => {
-          console.error('Error fetching subdistricts:', err);
           setSubdistrictsLoading(false);
         });
 
@@ -95,7 +112,6 @@ const DistrictDetail = () => {
           setSeasonsLoading(false);
         })
         .catch(err => {
-          console.error('Error fetching seasons:', err);
           setSeasonsLoading(false);
         });
 
@@ -112,7 +128,6 @@ const DistrictDetail = () => {
         setVideosLoading(false);
       })
       .catch(err => {
-        console.error('Error fetching videos:', err);
         setVideosLoading(false);
       });
     }
@@ -128,7 +143,6 @@ const DistrictDetail = () => {
           }));
         })
         .catch(err => {
-          console.error('Error fetching season images:', err);
         });
     }
   }, [selectedSeason]);
@@ -150,8 +164,7 @@ const DistrictDetail = () => {
     try {
       const response = await axios.get(`http://localhost:5000/api/web-stories/${story.id}`);
       setSelectedStory(response.data);
-    } catch (err) {
-      console.error('Error fetching story details:', err);
+    } catch (err) { 
     } finally {
       setStoryLoading(false);
     }
@@ -226,7 +239,7 @@ const DistrictDetail = () => {
               <div className="web-stories-heading">Web Stories</div>
               {webStoriesLoading ? (
                 <div className="loading">Loading stories...</div>
-              ) : webStories.length > 0 ? (
+              ) : webStories && webStories.length > 0 ? (
                 <>
                   <div className="web-stories-grid">
                     {webStories.slice(0, visibleStories).map(story => (
@@ -234,8 +247,14 @@ const DistrictDetail = () => {
                         <div className="web-story-image">
                           {story.featured_image ? (
                             <img 
-                              src={story.featured_image.startsWith('http') ? story.featured_image : `http://localhost:5000/${story.featured_image}`} 
+                              src={story.featured_image.startsWith('http') ? 
+                                story.featured_image : 
+                                `http://localhost:5000/${story.featured_image}`} 
                               alt={story.title}
+                              onError={(e) => {
+                                
+                                e.target.src = '/images/default-story.jpg';
+                              }}
                             />
                           ) : (
                             <div className="no-image">No Image</div>
@@ -244,7 +263,7 @@ const DistrictDetail = () => {
                         <div className="web-story-content">
                           <h3>{story.title}</h3>
                           <p className="story-description">
-                            {story.meta_description.length > 120 
+                            {story.meta_description && story.meta_description.length > 120 
                               ? `${story.meta_description.substring(0, 120)}...` 
                               : story.meta_description}
                           </p>
@@ -270,7 +289,11 @@ const DistrictDetail = () => {
                   )}
                 </>
               ) : (
-                <div className="no-stories">No web stories available for this district.</div>
+                <div className="no-stories">
+                  {webStoriesLoading ? 'Loading stories...' : 
+                   webStories === null ? 'Error loading stories' :
+                   'No web stories available for this district.'}
+                </div>
               )}
             </div>
           </div>

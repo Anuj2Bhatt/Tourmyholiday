@@ -9,9 +9,7 @@ const db = require('../db');
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const uploadDir = path.join(__dirname, '..', 'uploads');
-    console.log('Gallery upload directory:', uploadDir);
     if (!fs.existsSync(uploadDir)) {
-      console.log('Creating gallery upload directory:', uploadDir);
       fs.mkdirSync(uploadDir, { recursive: true });
     }
     cb(null, uploadDir);
@@ -19,7 +17,6 @@ const storage = multer.diskStorage({
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     const filename = uniqueSuffix + '-' + file.originalname.replace(/\s/g, '-');
-    console.log('Generated gallery filename:', filename);
     cb(null, filename);
   }
 });
@@ -71,7 +68,6 @@ router.get('/', async (req, res) => {
       files_in_uploads: fs.readdirSync(path.join(__dirname, '..', 'uploads'))
     });
   } catch (error) {
-    console.error('Error fetching gallery images:', error);
     res.status(500).json({ error: 'Failed to fetch gallery images' });
   }
 });
@@ -96,7 +92,6 @@ router.get('/:id', async (req, res) => {
     
     res.json(image);
   } catch (error) {
-    console.error('Error fetching gallery image:', error);
     res.status(500).json({ error: 'Failed to fetch gallery image' });
   }
 });
@@ -107,19 +102,10 @@ router.post('/', upload.single('image'), async (req, res) => {
     const { title, description, altText } = req.body;
     
     if (!req.file) {
-      console.log('No file uploaded in request');
       return res.status(400).json({ error: 'No image file uploaded' });
     }
     
-    console.log('File uploaded:', {
-      filename: req.file.filename,
-      path: req.file.path,
-      size: req.file.size
-    });
-    
     const imagePath = `/uploads/${req.file.filename}`;
-    console.log('Image path to be stored:', imagePath);
-    
     const [result] = await db.query(
       'INSERT INTO gallery_images (title, description, alt_text, image_path) VALUES (?, ?, ?, ?)',
       [title, description, altText, imagePath]
@@ -134,10 +120,8 @@ router.post('/', upload.single('image'), async (req, res) => {
       image_path: imagePath
     };
     
-    console.log('New image created:', newImage);
     res.status(201).json(newImage);
   } catch (error) {
-    console.error('Error adding image:', error);
     res.status(500).json({ error: 'Failed to add image' });
   }
 });
@@ -186,7 +170,6 @@ router.put('/:id', upload.single('image'), async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error updating image:', error);
     res.status(500).json({ error: 'Failed to update image' });
   }
 });
@@ -216,7 +199,6 @@ router.delete('/:id', async (req, res) => {
     
     res.json({ message: 'Image deleted successfully' });
   } catch (error) {
-    console.error('Error deleting image:', error);
     res.status(500).json({ error: 'Failed to delete image' });
   }
 });
@@ -245,7 +227,6 @@ router.get('/debug/image/:filename', async (req, res) => {
       current_dir: __dirname
     });
   } catch (error) {
-    console.error('Error in debug route:', error);
     res.status(500).json({ error: 'Debug route error', details: error.message });
   }
 });
@@ -272,7 +253,6 @@ router.get('/debug/list', async (req, res) => {
       files_in_uploads: fs.readdirSync(path.join(__dirname, '..', 'uploads'))
     });
   } catch (error) {
-    console.error('Error in debug route:', error);
     res.status(500).json({ error: 'Debug route error', details: error.message });
   }
 });
@@ -306,7 +286,6 @@ router.get('/debug/check/:filename', async (req, res) => {
       all_files_count: allFiles.length
     });
   } catch (error) {
-    console.error('Error in debug route:', error);
     res.status(500).json({ error: 'Debug route error', details: error.message });
   }
 });
@@ -334,7 +313,6 @@ router.get('/debug/alaska', async (req, res) => {
       images: images
     });
   } catch (error) {
-    console.error('Error in debug route:', error);
     res.status(500).json({ error: 'Debug route error', details: error.message });
   }
 });

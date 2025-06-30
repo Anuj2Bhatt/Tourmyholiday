@@ -5,11 +5,12 @@ const path = require('path');
 const TerritoryHistory = require('../models/TerritoryHistory');
 const { validateTerritoryHistory } = require('../middleware/validationMiddleware');
 const fs = require('fs');
+const pool = require('../../db');
 
 // Configure multer for image uploads
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        const uploadDir = path.join(__dirname, '../../../uploads');
+        const uploadDir = path.join(__dirname, '../../../uploads/territory-history');
         if (!fs.existsSync(uploadDir)) {
             fs.mkdirSync(uploadDir, { recursive: true });
         }
@@ -46,7 +47,7 @@ router.post('/upload-image', upload.single('image'), async (req, res) => {
         }
 
         // Create the full URL for the uploaded image
-        const imageUrl = `/uploads/${req.file.filename}`;
+        const imageUrl = `/uploads/territory-history/${req.file.filename}`;
 
         res.json({
             success: true,
@@ -54,7 +55,6 @@ router.post('/upload-image', upload.single('image'), async (req, res) => {
             message: 'Image uploaded successfully'
         });
     } catch (error) {
-        console.error('Error uploading territory history image:', error);
         res.status(500).json({
             success: false,
             error: 'Failed to upload image'
@@ -71,7 +71,6 @@ router.get('/', async (req, res) => {
             data: history
         });
     } catch (error) {
-        console.error('Error fetching territory history:', error);
         res.status(500).json({
             success: false,
             error: 'Failed to fetch territory history'
@@ -94,7 +93,6 @@ router.get('/:id', async (req, res) => {
             data: history
         });
     } catch (error) {
-        console.error('Error fetching territory history:', error);
         res.status(500).json({
             success: false,
             error: 'Failed to fetch territory history'
@@ -105,22 +103,90 @@ router.get('/:id', async (req, res) => {
 // Get territory history by slug
 router.get('/slug/:slug', async (req, res) => {
     try {
-        const history = await TerritoryHistory.getBySlug(req.params.slug);
-        if (!history) {
-            return res.status(404).json({
-                success: false,
-                error: 'Territory history not found'
+        const { slug } = req.params;
+
+        // First try to get from territory_history
+        const [territoryHistory] = await pool.query(`
+            SELECT 
+                th.id,
+                th.territory_id,
+                th.title,
+                th.content,
+                th.image,
+                th.slug,
+                th.status,
+                th.meta_title,
+                th.meta_description,
+                th.meta_keywords,
+                th.created_at,
+                th.updated_at
+            FROM territory_history th
+            WHERE th.slug = ? AND th.status = 'Public'
+        `, [slug]);
+
+        // If not found in territory_history, try state_history
+        if (territoryHistory.length === 0) {
+            const [stateHistory] = await pool.query(`
+                SELECT 
+                    sh.id,
+                    sh.state_id,
+                    sh.title,
+                    sh.content,
+                    sh.image,
+                    sh.slug,
+                    sh.status,
+                    sh.meta_title,
+                    sh.meta_description,
+                    sh.meta_keywords
+                FROM state_history sh
+                WHERE sh.slug = ? AND sh.status = 'Public'
+            `, [slug]);
+
+            if (stateHistory.length === 0) {
+                return res.status(404).json({
+                    success: false,
+                    error: 'History not found'
+                });
+            }
+
+            // Format image URL for state history
+            let historyItem = stateHistory[0];
+            if (historyItem.image) {
+                let imageUrl = historyItem.image;
+                // Remove any leading slashes or 'uploads/' prefix
+                imageUrl = imageUrl.replace(/^uploads[\\/]/, '').replace(/^\//, '');
+                if (!imageUrl.startsWith('http')) {
+                    imageUrl = `${process.env.API_BASE_URL || 'http://localhost:5000'}/uploads/${imageUrl}`;
+                }
+                historyItem.image = imageUrl;
+            }
+
+            return res.json({
+                success: true,
+                data: historyItem
             });
         }
+
+        // Format image URL for territory history
+        let historyItem = territoryHistory[0];
+        if (historyItem.image) {
+            let imageUrl = historyItem.image;
+            // Remove any leading slashes or 'uploads/' prefix
+            imageUrl = imageUrl.replace(/^uploads[\\/]/, '').replace(/^\//, '');
+            if (!imageUrl.startsWith('http')) {
+                imageUrl = `${process.env.API_BASE_URL || 'http://localhost:5000'}/uploads/${imageUrl}`;
+            }
+            historyItem.image = imageUrl;
+        }
+
         res.json({
             success: true,
-            data: history
+            data: historyItem
         });
     } catch (error) {
-        console.error('Error fetching territory history:', error);
         res.status(500).json({
             success: false,
-            error: 'Failed to fetch territory history'
+            error: 'Failed to fetch history'
         });
     }
 });
@@ -143,7 +209,6 @@ router.post('/', validateTerritoryHistory, async (req, res) => {
             data: history
         });
     } catch (error) {
-        console.error('Error creating territory history:', error);
         res.status(500).json({
             success: false,
             error: 'Failed to create territory history'
@@ -169,7 +234,6 @@ router.put('/:id', validateTerritoryHistory, async (req, res) => {
             data: history
         });
     } catch (error) {
-        console.error('Error updating territory history:', error);
         if (error.message === 'Territory history not found') {
             return res.status(404).json({
                 success: false,
@@ -192,7 +256,6 @@ router.delete('/:id', async (req, res) => {
             message: 'Territory history deleted successfully'
         });
     } catch (error) {
-        console.error('Error deleting territory history:', error);
         if (error.message === 'Territory history not found') {
             return res.status(404).json({
                 success: false,

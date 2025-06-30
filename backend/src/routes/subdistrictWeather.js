@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../db');
+const pool = require('../../db');
 const slugify = require('slugify');
 
 // Get weather info for a subdistrict
@@ -18,7 +18,6 @@ router.get('/:subdistrictId', async (req, res) => {
 
     res.json(weather[0]);
   } catch (error) {
-    console.error('Error fetching weather info:', error);
     res.status(500).json({ message: 'Error fetching weather info' });
   }
 });
@@ -61,7 +60,6 @@ router.post('/:subdistrictId', async (req, res) => {
 
     res.status(201).json(newWeather[0]);
   } catch (error) {
-    console.error('Error adding weather info:', error);
     res.status(500).json({ message: 'Error adding weather info' });
   }
 });
@@ -114,7 +112,6 @@ router.put('/:weatherId', async (req, res) => {
 
     res.json(updatedWeather[0]);
   } catch (error) {
-    console.error('Error updating weather info:', error);
     res.status(500).json({ message: 'Error updating weather info' });
   }
 });
@@ -135,7 +132,6 @@ router.delete('/:weatherId', async (req, res) => {
 
     res.json({ message: 'Weather info deleted successfully' });
   } catch (error) {
-    console.error('Error deleting weather info:', error);
     res.status(500).json({ message: 'Error deleting weather info' });
   }
 });

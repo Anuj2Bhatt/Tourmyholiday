@@ -69,6 +69,7 @@ const generateUniqueSlug = async (baseSlug) => {
 router.get('/', async (req, res) => {
   try {
     const { type } = req.query;
+    
     let query = `
       SELECT h.*, s.name as state_name 
       FROM hotels h
@@ -92,7 +93,6 @@ router.get('/', async (req, res) => {
 
     res.json(accommodationsWithFullUrls);
   } catch (error) {
-    console.error('Error fetching accommodations:', error);
     res.status(500).json({ message: 'Error fetching accommodations' });
   }
 });
@@ -151,7 +151,6 @@ router.get('/:id', async (req, res) => {
 
     res.json(hotel);
   } catch (error) {
-    console.error('Error fetching hotel:', error);
     res.status(500).json({ message: 'Error fetching hotel', error: error.message });
   }
 });
@@ -162,9 +161,6 @@ router.post('/', upload.fields([
   { name: 'images', maxCount: 10 }
 ]), validateAccommodation, async (req, res) => {
   try {
-    console.log('Request body:', req.body);
-    console.log('Request files:', req.files);
-
     const {
       name,
       slug,
@@ -195,10 +191,6 @@ router.post('/', upload.fields([
       hostel_features,
       guesthouse_features
     } = req.body;
-
-    // Add this before the available_rooms/total_rooms validation in POST and PUT routes:
-    console.log('total_rooms:', req.body.total_rooms, 'available_rooms:', req.body.available_rooms);
-    console.log('Parsed:', Number(req.body.total_rooms), Number(req.body.available_rooms));
 
     // Handle image uploads
     const featuredImage = req.files.featured_image ? cleanImagePath(req.files.featured_image[0]) : null;
@@ -296,7 +288,6 @@ router.post('/', upload.fields([
           req.body[`alt_text_${index}`] || '',
           req.body[`description_${index}`] || ''
         ]);
-        console.log('Image values for insert:', imageValues);
         if (imageValues.length > 0) {
           await connection.query(
             'INSERT INTO hotel_images (hotel_id, url, alt_text, description) VALUES ?',
@@ -317,7 +308,6 @@ router.post('/', upload.fields([
       connection.release();
     }
   } catch (error) {
-    console.error('Error creating accommodation:', error);
     res.status(500).json({ message: 'Error creating accommodation: ' + error.message });
   }
 });
@@ -325,15 +315,6 @@ router.post('/', upload.fields([
 // Update accommodation
 router.put('/:id', upload.array('images', 10), validateAccommodation, async (req, res) => {
   try {
-    console.log('PUT request received for hotel:', req.params.id);
-    console.log('Request body:', req.body);
-    console.log('Request files:', req.files ? req.files.map(f => ({
-      filename: f.filename,
-      originalname: f.originalname,
-      mimetype: f.mimetype,
-      size: f.size
-    })) : []);
-
     const {
       name,
       slug,
@@ -366,10 +347,6 @@ router.put('/:id', upload.array('images', 10), validateAccommodation, async (req
       remove_images // Get remove_images from request body
     } = req.body;
 
-    // Add this before the available_rooms/total_rooms validation in POST and PUT routes:
-    console.log('total_rooms:', req.body.total_rooms, 'available_rooms:', req.body.available_rooms);
-    console.log('Parsed:', Number(req.body.total_rooms), Number(req.body.available_rooms));
-
     // Add this validation logic:
     const totalRooms = Number(req.body.total_rooms);
     const availableRooms = Number(req.body.available_rooms);
@@ -386,8 +363,6 @@ router.put('/:id', upload.array('images', 10), validateAccommodation, async (req
       if (remove_images) {
         try {
           const imageIds = JSON.parse(remove_images);
-          console.log('Removing images with IDs:', imageIds);
-          
           if (Array.isArray(imageIds) && imageIds.length > 0) {
             // First get the image URLs to delete the files
             const [imagesToDelete] = await connection.query(
@@ -401,10 +376,8 @@ router.put('/:id', upload.array('images', 10), validateAccommodation, async (req
               try {
                 if (fs.existsSync(filePath)) {
                   fs.unlinkSync(filePath);
-                  console.log('Deleted file:', filePath);
                 }
               } catch (err) {
-                console.error('Error deleting file:', filePath, err);
               }
             }
 
@@ -413,28 +386,19 @@ router.put('/:id', upload.array('images', 10), validateAccommodation, async (req
               'DELETE FROM hotel_images WHERE id IN (?)',
               [imageIds]
             );
-            console.log('Deleted images from database:', deleteResult.affectedRows);
           }
         } catch (error) {
-          console.error('Error processing image removal:', error);
           throw new Error('Failed to remove images: ' + error.message);
         }
       }
 
       // Handle new image uploads with proper alt text and description
       if (req.files && req.files.length > 0) {
-        console.log('Processing new image uploads...');
         const imageValues = req.files.map((file, index) => {
           // Get alt text and description from request body
           const altText = req.body[`alt_text_${index}`] || '';
           const imageDescription = req.body[`description_${index}`] || '';
           
-          console.log(`Processing image ${index}:`, {
-            filename: file.filename,
-            altText,
-            imageDescription
-          });
-
           return [
             req.params.id,
             cleanImagePath(file),
@@ -443,17 +407,12 @@ router.put('/:id', upload.array('images', 10), validateAccommodation, async (req
           ];
         });
 
-        console.log('Final image values for insert:', imageValues);
-
         if (imageValues.length > 0) {
           await connection.query(
             'INSERT INTO hotel_images (hotel_id, url, alt_text, description) VALUES ?',
             [imageValues]
           );
-          console.log('Successfully inserted images into database');
         }
-      } else {
-        console.log('No new images to upload');
       }
 
       // Update hotel details with state_id
@@ -484,8 +443,6 @@ router.put('/:id', upload.array('images', 10), validateAccommodation, async (req
 
       // Commit transaction
       await connection.commit();
-      console.log('Transaction committed successfully');
-
       // Get updated hotel with images
       const [updatedHotel] = await db.query('SELECT * FROM hotels WHERE id = ?', [req.params.id]);
       const [images] = await db.query('SELECT * FROM hotel_images WHERE hotel_id = ?', [req.params.id]);
@@ -498,17 +455,14 @@ router.put('/:id', upload.array('images', 10), validateAccommodation, async (req
         }))
       };
 
-      console.log('Sending response with updated hotel data');
       res.json(response);
     } catch (error) {
       await connection.rollback();
-      console.error('Error in transaction:', error);
       throw error;
     } finally {
       connection.release();
     }
   } catch (error) {
-    console.error('Error updating accommodation:', error);
     res.status(500).json({ message: 'Error updating accommodation: ' + error.message });
   }
 });
@@ -522,7 +476,6 @@ router.get('/amenities/:type', async (req, res) => {
     );
     res.json(amenities);
   } catch (error) {
-    console.error('Error fetching amenities:', error);
     res.status(500).json({ message: 'Error fetching amenities' });
   }
 });
@@ -598,14 +551,10 @@ router.get('/', async (req, res) => {
     query += ' LIMIT ? OFFSET ?';
     params.push(parseInt(limit), offset);
 
-    console.log('Executing query:', query);
-    console.log('With params:', params);
-
     const [hotels] = await db.query(query, params);
     
     // Parse the images JSON string to array and format featured_image path
     const parsedHotels = hotels.map(hotel => {
-      console.log('Hotel:', hotel.id, 'State ID:', hotel.state_id, 'State Name:', hotel.state_name);
       return {
         ...hotel,
         featured_image: hotel.featured_image ? `http://localhost:5000/uploads/${hotel.featured_image}` : null,
@@ -615,11 +564,8 @@ router.get('/', async (req, res) => {
       };
     });
 
-    console.log('First hotel in response:', parsedHotels[0]);
-
     res.json(parsedHotels);
   } catch (error) {
-    console.error('Error fetching hotels:', error);
     res.status(500).json({ message: 'Error fetching hotels: ' + error.message });
   }
 });
@@ -654,10 +600,6 @@ router.post('/', upload.array('images'), async (req, res) => {
     const images = req.files.map(file => `uploads/hotels/${file.filename}`);
     const thumbnail_image = images[0] || null;
 
-    // Add this before the available_rooms/total_rooms validation in POST and PUT routes:
-    console.log('total_rooms:', req.body.total_rooms, 'available_rooms:', req.body.available_rooms);
-    console.log('Parsed:', Number(req.body.total_rooms), Number(req.body.available_rooms));
-
     // Add this validation logic:
     const totalRooms = Number(req.body.total_rooms);
     const availableRooms = Number(req.body.available_rooms);
@@ -687,7 +629,6 @@ router.post('/', upload.array('images'), async (req, res) => {
       message: 'Hotel created successfully' 
     });
   } catch (error) {
-    console.error('Error creating hotel:', error);
     res.status(500).json({ message: 'Error creating hotel' });
   }
 });
@@ -726,9 +667,6 @@ router.put('/:id', upload.array('images'), async (req, res) => {
       remove_images // Array of image IDs to remove
     } = req.body;
 
-    // Add this before the available_rooms/total_rooms validation in POST and PUT routes:
-    console.log('total_rooms:', req.body.total_rooms, 'available_rooms:', req.body.available_rooms);
-    console.log('Parsed:', Number(req.body.total_rooms), Number(req.body.available_rooms));
 
     // Add this validation logic:
     const totalRooms = Number(req.body.total_rooms);
@@ -757,7 +695,6 @@ router.put('/:id', upload.array('images'), async (req, res) => {
         req.body[`alt_text_${index}`] || '',
         req.body[`description_${index}`] || ''
       ]);
-      console.log('Image values for insert (PUT):', imageValues);
       if (imageValues.length > 0) {
         await db.query(
           'INSERT INTO hotel_images (hotel_id, url, alt_text, description) VALUES ?',
@@ -812,7 +749,6 @@ router.put('/:id', upload.array('images'), async (req, res) => {
       throw error;
     }
   } catch (error) {
-    console.error('Error updating hotel:', error);
     res.status(500).json({ message: 'Error updating hotel', error: error.message });
   }
 });
@@ -832,7 +768,6 @@ router.delete('/:id', async (req, res) => {
 
     res.json({ message: 'Hotel deleted successfully' });
   } catch (error) {
-    console.error('Error deleting hotel:', error);
     res.status(500).json({ message: 'Error deleting hotel' });
   }
 });
@@ -845,7 +780,6 @@ router.get('/:hotelId/rooms', async (req, res) => {
     const [rooms] = await db.query('SELECT * FROM hotel_rooms WHERE hotel_id = ?', [req.params.hotelId]);
     res.json(rooms);
   } catch (error) {
-    console.error('Error fetching rooms:', error);
     res.status(500).json({ message: 'Error fetching rooms' });
   }
 });
@@ -863,7 +797,6 @@ router.post('/:hotelId/rooms', async (req, res) => {
 
     res.status(201).json({ id: result.insertId, message: 'Room added successfully' });
   } catch (error) {
-    console.error('Error adding room:', error);
     res.status(500).json({ message: 'Error adding room' });
   }
 });
@@ -881,7 +814,6 @@ router.put('/:hotelId/rooms/:roomId', async (req, res) => {
 
     res.json({ message: 'Room updated successfully' });
   } catch (error) {
-    console.error('Error updating room:', error);
     res.status(500).json({ message: 'Error updating room' });
   }
 });
@@ -893,7 +825,6 @@ router.delete('/:hotelId/rooms/:roomId', async (req, res) => {
     await db.query('DELETE FROM hotel_rooms WHERE id = ? AND hotel_id = ?', [roomId, hotelId]);
     res.json({ message: 'Room deleted successfully' });
   } catch (error) {
-    console.error('Error deleting room:', error);
     res.status(500).json({ message: 'Error deleting room' });
   }
 });
@@ -926,7 +857,6 @@ router.patch('/:id/accommodation-type', async (req, res) => {
       accommodation_type 
     });
   } catch (error) {
-    console.error('Error updating accommodation type:', error);
     res.status(500).json({ message: 'Error updating accommodation type' });
   }
 });
@@ -953,15 +883,12 @@ router.get('/amenity/:amenityName', async (req, res) => {
 
     res.json(hotelsWithFullUrls);
   } catch (error) {
-    console.error('Error fetching hotels by amenity:', error);
     res.status(500).json({ message: 'Error fetching hotels by amenity' });
   }
 });
 
 // Add error handling middleware
 const errorHandler = (err, req, res, next) => {
-  console.error('Error:', err);
-
   if (err.code === 'ER_DUP_ENTRY') {
     return res.status(400).json({ message: 'This accommodation already exists' });
   }

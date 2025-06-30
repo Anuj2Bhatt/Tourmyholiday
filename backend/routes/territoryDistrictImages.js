@@ -43,7 +43,6 @@ router.get('/district/:districtId/images', async (req, res) => {
         const images = await TerritoryDistrictImage.getImagesByDistrictId(req.params.districtId);
         res.json(images);
     } catch (error) {
-        console.error('Error fetching images:', error);
         res.status(500).json({ error: 'Failed to fetch images' });
     }
 });
@@ -67,12 +66,10 @@ router.post('/district/:districtId/images', upload.single('image'), async (req, 
         
         res.status(201).json(newImage);
     } catch (error) {
-        console.error('Error uploading image:', error);
         // Delete uploaded file if database operation fails
         if (req.file) {
             fs.unlink(req.file.path, (err) => {
-                if (err) console.error('Error deleting file:', err);
-            });
+                if (err) });
         }
         res.status(500).json({ error: 'Failed to upload image' });
     }
@@ -91,15 +88,13 @@ router.delete('/images/:imageId', async (req, res) => {
             // Delete the actual file
             const filePath = path.join(__dirname, '..', image.image_url);
             fs.unlink(filePath, (err) => {
-                if (err) console.error('Error deleting file:', err);
-            });
+                if (err) });
             
             res.json({ message: 'Image deleted successfully' });
         } else {
             res.status(404).json({ error: 'Image not found' });
         }
     } catch (error) {
-        console.error('Error deleting image:', error);
         res.status(500).json({ error: 'Failed to delete image' });
     }
 });

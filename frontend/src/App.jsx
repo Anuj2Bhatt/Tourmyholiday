@@ -8,7 +8,6 @@ import Packages from './pages/Packages';
 import Articles from './pages/Articles';
 import ArticleDetail from './pages/ArticleDetail';
 import Webstories from './pages/Webstories';
-import Wildlife from './pages/Wildlife';
 import Contact from './pages/Contact';
 import DistrictDetail from './pages/DistrictDetail';
 import ManageStates from './components/admin/ManageStates';
@@ -35,6 +34,16 @@ import SubdistrictDetail from './pages/SubdistrictDetail';
 import AdminLogin from './pages/AdminLogin';
 import VillageDashboard from './pages/VillageDashboard';
 import VillageView from './pages/VillageView';
+import SearchResults from './pages/SearchResults';
+import ManageItinerary from './components/admin/ManageItinerary';
+import Tourism from './pages/Tourism';
+import ViewPlacePage from './components/ViewPlacePage';
+import AttractionView from './pages/AttractionView';
+import TravelInfoView from './pages/TravelInfoView';
+import CultureDetail from './pages/CultureDetail';
+import WildlifeSanctuaries from './components/WildlifeSanctuaries';
+import WildlifeSanctuaryDetail from './components/WildlifeSanctuaryDetail';
+import Culture from './pages/Culture';
 
 function App() {
   const isAdminRoute = window.location.pathname.includes('/admin');
@@ -119,6 +128,11 @@ function App() {
                   </ProtectedRoute>
                 } 
               />
+              <Route path="/admin/manage-itinerary" element={
+                <ProtectedRoute>
+                  <ManageItinerary />
+                </ProtectedRoute>
+              } />
               <Route path="/union-territories" element={<UnionTeritory />} />
               <Route path="/territory/:slug" element={<TerritoryDetail />} />
               <Route path="/history/:slug" element={<HistoryDetail />} />
@@ -128,16 +142,24 @@ function App() {
               <Route path="/articles" element={<Articles />} />
               <Route path="/articles/:slug" element={<ArticleDetail />} />
               <Route path="/webstories" element={<Webstories />} />
-              <Route path="/wildlife" element={<Wildlife />} />
+              <Route path="/wildlife" element={<WildlifeSanctuaries />} />
+              <Route path="/wildlife/:slug" element={<WildlifeSanctuaryDetail />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/district/:slug" element={<DistrictDetail />} />
               <Route path="/hotels" element={<HotelsView />} />
+              <Route path="/search-results" element={<SearchResults />} />
               <Route path="/:stateName" element={<StatePage />} />
               <Route path="/territory-district/:slug" element={<TerritoryDistrictDetail />} />
               <Route path="/subdistrict-detail/:slug" element={<SubdistrictDetail />} />
               <Route path="/village" element={<VillageDashboard />} />
               <Route path="territory-history/:slug" element={<TerritoryHistoryDetail />} />
               <Route path="/village/:id" element={<VillageView />} />
+              <Route path="/tourism" element={<Tourism />} />
+              <Route path="/places/:slug" element={<ViewPlacePage />} />
+              <Route path="/attraction/:slug" element={<AttractionView />} />
+              <Route path="/travel-info/:slug" element={<TravelInfoView />} />
+              <Route path="/culture/:slug" element={<CultureDetail />} />
+              <Route path="/india-culture" element={<Culture />} />
             </Routes>
           </main>
         </div>

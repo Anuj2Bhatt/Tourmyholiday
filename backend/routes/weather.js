@@ -87,7 +87,6 @@ router.post('/upload', upload.array('images', 10), async (req, res) => {
       images: uploadedImages
     });
   } catch (error) {
-    console.error('Error uploading images:', error);
     res.status(500).json({ error: 'Failed to upload images' });
   }
 });
@@ -101,7 +100,6 @@ router.get('/images/:guideId', async (req, res) => {
     );
     res.json(images);
   } catch (error) {
-    console.error('Error fetching images:', error);
     res.status(500).json({ error: 'Failed to fetch images' });
   }
 });
@@ -133,7 +131,6 @@ router.delete('/images/:imageId', async (req, res) => {
 
     res.json({ message: 'Image deleted successfully' });
   } catch (error) {
-    console.error('Error deleting image:', error);
     res.status(500).json({ error: 'Failed to delete image' });
   }
 });

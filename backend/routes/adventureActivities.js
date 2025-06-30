@@ -55,7 +55,6 @@ router.get('/state/:subdistrictId', async (req, res) => {
     );
     res.json(activities.map(formatActivityData));
   } catch (err) {
-    console.error('Error fetching state adventure activities:', err);
     res.status(500).json({ error: 'Failed to fetch adventure activities' });
   }
 });
@@ -69,7 +68,6 @@ router.get('/state/:subdistrictId/category/:category', async (req, res) => {
     );
     res.json(activities.map(formatActivityData));
   } catch (err) {
-    console.error('Error fetching state adventure activities by category:', err);
     res.status(500).json({ error: 'Failed to fetch adventure activities' });
   }
 });
@@ -86,7 +84,6 @@ router.get('/state/:id', async (req, res) => {
     }
     res.json(formatActivityData(activities[0]));
   } catch (err) {
-    console.error('Error fetching state adventure activity:', err);
     res.status(500).json({ error: 'Failed to fetch adventure activity' });
   }
 });
@@ -137,7 +134,6 @@ router.post('/state', upload.single('featured_image'), async (req, res) => {
 
     res.status(201).json(formatActivityData(newActivity[0]));
   } catch (err) {
-    console.error('Error creating state adventure activity:', err);
     res.status(500).json({ error: 'Failed to create adventure activity' });
   }
 });
@@ -176,7 +172,9 @@ router.put('/state/:id', upload.single('featured_image'), async (req, res) => {
     if (req.file && currentActivity[0].featured_image) {
       const oldImagePath = path.join(__dirname, '../../uploads', currentActivity[0].featured_image);
       fs.unlink(oldImagePath, (err) => {
-        if (err) console.error('Error deleting old image:', err);
+        if (err) {
+          console.error('Error deleting old image:', err);
+        }
       });
     }
 
@@ -203,7 +201,6 @@ router.put('/state/:id', upload.single('featured_image'), async (req, res) => {
 
     res.json(formatActivityData(updatedActivity[0]));
   } catch (err) {
-    console.error('Error updating state adventure activity:', err);
     res.status(500).json({ error: 'Failed to update adventure activity' });
   }
 });
@@ -228,13 +225,13 @@ router.delete('/state/:id', async (req, res) => {
     if (activity[0].featured_image) {
       const imagePath = path.join(__dirname, '../../uploads', activity[0].featured_image);
       fs.unlink(imagePath, (err) => {
-        if (err) console.error('Error deleting image:', err);
+        if (err) {
+        }
       });
     }
 
     res.json({ message: 'Activity deleted successfully' });
   } catch (err) {
-    console.error('Error deleting state adventure activity:', err);
     res.status(500).json({ error: 'Failed to delete adventure activity' });
   }
 });
@@ -250,7 +247,6 @@ router.get('/territory/:subdistrictId', async (req, res) => {
     );
     res.json(activities.map(formatActivityData));
   } catch (err) {
-    console.error('Error fetching territory adventure activities:', err);
     res.status(500).json({ error: 'Failed to fetch adventure activities' });
   }
 });
@@ -264,7 +260,6 @@ router.get('/territory/:subdistrictId/category/:category', async (req, res) => {
     );
     res.json(activities.map(formatActivityData));
   } catch (err) {
-    console.error('Error fetching territory adventure activities by category:', err);
     res.status(500).json({ error: 'Failed to fetch adventure activities' });
   }
 });
@@ -281,7 +276,6 @@ router.get('/territory/:id', async (req, res) => {
     }
     res.json(formatActivityData(activities[0]));
   } catch (err) {
-    console.error('Error fetching territory adventure activity:', err);
     res.status(500).json({ error: 'Failed to fetch adventure activity' });
   }
 });
@@ -332,7 +326,6 @@ router.post('/territory', upload.single('featured_image'), async (req, res) => {
 
     res.status(201).json(formatActivityData(newActivity[0]));
   } catch (err) {
-    console.error('Error creating territory adventure activity:', err);
     res.status(500).json({ error: 'Failed to create adventure activity' });
   }
 });
@@ -371,7 +364,9 @@ router.put('/territory/:id', upload.single('featured_image'), async (req, res) =
     if (req.file && currentActivity[0].featured_image) {
       const oldImagePath = path.join(__dirname, '../../uploads', currentActivity[0].featured_image);
       fs.unlink(oldImagePath, (err) => {
-        if (err) console.error('Error deleting old image:', err);
+        if (err) {
+          
+        }
       });
     }
 
@@ -398,7 +393,6 @@ router.put('/territory/:id', upload.single('featured_image'), async (req, res) =
 
     res.json(formatActivityData(updatedActivity[0]));
   } catch (err) {
-    console.error('Error updating territory adventure activity:', err);
     res.status(500).json({ error: 'Failed to update adventure activity' });
   }
 });
@@ -423,13 +417,14 @@ router.delete('/territory/:id', async (req, res) => {
     if (activity[0].featured_image) {
       const imagePath = path.join(__dirname, '../../uploads', activity[0].featured_image);
       fs.unlink(imagePath, (err) => {
-        if (err) console.error('Error deleting image:', err);
+        if (err) {
+          console.error('Error deleting image:', err);
+        }
       });
     }
 
     res.json({ message: 'Activity deleted successfully' });
   } catch (err) {
-    console.error('Error deleting territory adventure activity:', err);
     res.status(500).json({ error: 'Failed to delete adventure activity' });
   }
 });

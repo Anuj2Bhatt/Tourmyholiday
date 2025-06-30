@@ -75,8 +75,7 @@ const TerritoryImageForm = ({ isOpen, onClose, onSubmit }) => {
       setPreview(null);
       setErrors({});
     } catch (error) {
-      console.error('Error submitting form:', error);
-    } finally {
+      } finally {
       setLoading(false);
     }
   };

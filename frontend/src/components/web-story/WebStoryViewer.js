@@ -29,7 +29,6 @@ const WebStoryViewer = () => {
             fetchComments();
             setLoading(false);
         } catch (error) {
-            console.error('Error fetching story:', error);
             setError('Failed to fetch web story');
             setLoading(false);
         }
@@ -40,8 +39,7 @@ const WebStoryViewer = () => {
             const response = await axios.get(`/api/web-stories/${slug}/comments`);
             setComments(response.data);
         } catch (error) {
-            console.error('Error fetching comments:', error);
-        }
+            }
     };
 
     const handleLike = async () => {
@@ -50,8 +48,7 @@ const WebStoryViewer = () => {
             setLiked(!liked);
             setLikes(prev => liked ? prev - 1 : prev + 1);
         } catch (error) {
-            console.error('Error liking story:', error);
-        }
+            }
     };
 
     const handleComment = async (e) => {
@@ -65,8 +62,7 @@ const WebStoryViewer = () => {
             setNewComment('');
             fetchComments();
         } catch (error) {
-            console.error('Error posting comment:', error);
-        }
+            }
     };
 
     const handleShare = async () => {
@@ -77,8 +73,7 @@ const WebStoryViewer = () => {
                 url: window.location.href
             });
         } catch (error) {
-            console.error('Error sharing:', error);
-        }
+            }
     };
 
     const handleNext = () => {

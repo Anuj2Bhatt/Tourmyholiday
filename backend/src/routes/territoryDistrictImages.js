@@ -33,7 +33,6 @@ router.get('/district/:districtId/images', async (req, res) => {
         const images = await TerritoryDistrictImage.getImagesByDistrictId(req.params.districtId);
         res.json(images);
     } catch (error) {
-        console.error('Error fetching district images:', error);
         res.status(500).json({ message: 'Error fetching images' });
     }
 });
@@ -56,7 +55,6 @@ router.post('/district/:districtId/images', upload.single('image'), async (req, 
         const image = await TerritoryDistrictImage.getImageById(imageId);
         res.status(201).json(image);
     } catch (error) {
-        console.error('Error uploading image:', error);
         res.status(500).json({ message: 'Error uploading image' });
     }
 });
@@ -78,7 +76,6 @@ router.delete('/images/:imageId', async (req, res) => {
         await TerritoryDistrictImage.deleteImage(req.params.imageId);
         res.json({ message: 'Image deleted successfully' });
     } catch (error) {
-        console.error('Error deleting image:', error);
         res.status(500).json({ message: 'Error deleting image' });
     }
 });

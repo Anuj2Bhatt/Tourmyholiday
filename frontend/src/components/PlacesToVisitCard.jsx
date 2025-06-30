@@ -16,8 +16,8 @@ const PlacesToVisitCard = ({ place }) => {
   };
 
   return (
-    <div className="place-card">
-      <div className="place-image">
+    <div className="places-to-visit-card">
+      <div className="places-to-visit-image">
         <img 
           src={getImageUrl(place.featured_image_url)} 
           alt={place.title}
@@ -27,31 +27,18 @@ const PlacesToVisitCard = ({ place }) => {
           }}
         />
         {place.featured && (
-          <div className="featured-badge">
+          <div className="places-to-visit-featured-badge">
             Featured
           </div>
         )}
       </div>
-      <div className="place-content">
-        <h3>{place.title}</h3>
-        <p className="place-location">📍 {place.location}</p>
-        <p className="place-description">{place.description}</p>
-        <div className="place-meta">
-          {place.best_time_to_visit && (
-            <span className="meta-item">
-              <span className="meta-icon">🗓️</span>
-              Best Time: {place.best_time_to_visit}
-            </span>
-          )}
-          {place.entry_fee && (
-            <span className="meta-item">
-              <span className="meta-icon">💰</span>
-              Entry: {place.entry_fee}
-            </span>
-          )}
-        </div>
-        <div className="card-footer">
-          <button className="read-more-btn" onClick={handleClick}>
+      <div className="places-to-visit-content">
+        <h3 className="places-to-visit-title">{place.title}</h3>
+        <p className="places-to-visit-description">
+          {place.description}
+        </p>
+        <div className="places-to-visit-footer">
+          <button className="places-to-visit-read-more" onClick={handleClick}>
             Read More
           </button>
         </div>

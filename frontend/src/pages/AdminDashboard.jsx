@@ -15,6 +15,11 @@ import ManageSubdistricts from '../components/admin/ManageSubdistricts';
 import ManageVideos from '../components/admin/ManageVideos';
 import ManageHotelsEvents from '../components/admin/ManageHotelsEvents';
 import ManageVillages from '../components/admin/ManageVillages.jsx';
+import ManageItinerary from '../components/admin/ManageItinerary';
+import ManageTourism from '../components/admin/ManageTourism';
+import VillageFormTable from '../components/admin/ManageVillageData.jsx';
+import ManageWildlife from '../components/admin/ManageWildlife';
+import IndiaCultureManager from '../components/admin/IndiaCultureManager';
 
 
 const AdminDashboard = () => {
@@ -28,7 +33,7 @@ const AdminDashboard = () => {
     localStorage.removeItem('adminToken');
     localStorage.removeItem('user');
     
-    // Force a page reload to clear any in-memory state
+    // Force a page reload to clear any in-memory state 
     window.location.href = '/admin-login';
   };
 
@@ -63,6 +68,16 @@ const AdminDashboard = () => {
         return <ManageHotelsEvents />;
       case 'manageVillages':
         return <ManageVillages />;
+      case 'manageItinerary':
+        return <ManageItinerary />;
+      case 'manageTourism':
+        return <ManageTourism />;
+      case 'VillageFormTable':
+        return <VillageFormTable/>;
+      case 'wildlife':
+        return <ManageWildlife />;
+      case 'culture':
+        return <IndiaCultureManager />;
       default:
         return (
           <div className="placeholder-content">
@@ -178,6 +193,42 @@ const AdminDashboard = () => {
             <span className="nav-icon">🏘️</span>
             Manage Villages
           </button>
+          <button
+            className={`nav-item ${activeTab === 'manageItinerary' ? 'active' : ''}`}
+            onClick={() => setActiveTab('manageItinerary')}
+          >
+            <span className="nav-icon">📅</span>
+            Manage Itinerary
+          </button>
+          <button
+            className={`nav-item ${activeTab === 'manageTourism' ? 'active' : ''}`}
+            onClick={() => setActiveTab('manageTourism')}
+          >
+            <span className="nav-icon">🏖️</span>
+            Manage Tourism
+          </button>
+          
+          <button
+            className={`nav-item ${activeTab === 'VillageFormTable' ? 'active' : ''}`}
+            onClick={() => setActiveTab('VillageFormTable')}
+          >
+            <span className="nav-icon">🏖️</span>
+            Manage Village Data
+          </button>
+          <button
+            className={`nav-item ${activeTab === 'wildlife' ? 'active' : ''}`}
+            onClick={() => setActiveTab('wildlife')}
+          >
+            <span className="nav-icon">🐾</span>
+            Manage Wildlife
+          </button>
+          <button
+            className={`nav-item ${activeTab === 'culture' ? 'active' : ''}`}
+            onClick={() => setActiveTab('culture')}
+          >
+            <span className="nav-icon">🏛️</span>
+            India Culture
+          </button>
         </div>
         <div className="sidebar-footer">
           <button className="logout-btn" onClick={handleLogout}>
@@ -199,7 +250,12 @@ const AdminDashboard = () => {
                         activeTab === 'stateHistory' ? 'Manage State History' :
                           activeTab === 'placesToVisit' ? 'Manage Places to Visit' :
                             activeTab === 'manageVillages' ? 'Manage Villages' :
-                              'Dashboard'}</h1>
+                              activeTab === 'manageItinerary' ? 'Manage Itinerary' :
+                                activeTab === 'manageTourism' ? 'Manage Tourism' :
+                                activeTab === 'VillageFormTable' ? 'Village Form Data' :
+                                activeTab === 'wildlife' ? 'Manage Wildlife' :
+                                activeTab === 'culture' ? 'India Culture' :
+                                'Dashboard'}</h1>
           <div className="admin-info">
             <span className="admin-name">Admin User</span>
             <div className="admin-avatar">A</div>

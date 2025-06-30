@@ -11,7 +11,7 @@ const VillageView = () => {
     const [galleryStart, setGalleryStart] = useState(0);
     const imagesPerRow = 4;
 
-    // Dummy data for a village
+    // Dummy data for a village 
     const dummyVillageData = {
         id: 1,
         name: "Majuli Island Village",

@@ -2,12 +2,8 @@ const db = require('../db');
 
 async function updateHotelAmenities() {
   try {
-    console.log('Starting update of hotel amenities...');
-    
     // Get all hotels with their amenities
     const [hotels] = await db.query('SELECT id, amenities FROM hotels WHERE amenities IS NOT NULL');
-    console.log(`Found ${hotels.length} hotels with amenities`);
-
     // Start transaction
     const connection = await db.getConnection();
     await connection.beginTransaction();
@@ -40,8 +36,7 @@ async function updateHotelAmenities() {
                   [amenityName]
                 );
                 amenityId = result.insertId;
-                console.log(`Created new amenity: ${amenityName}`);
-              } else {
+                } else {
                 amenityId = amenityRows[0].id;
               }
 
@@ -51,19 +46,14 @@ async function updateHotelAmenities() {
                 [hotel.id, amenityId]
               );
             }
-            console.log(`Updated ${amenities.length} amenities for hotel ${hotel.id}`);
-          }
+            }
         } catch (err) {
-          console.error(`Error processing hotel ${hotel.id}:`, err);
-          console.error('Amenities data:', hotel.amenities);
-        }
+          }
       }
 
       // Commit transaction
       await connection.commit();
-      console.log('Successfully updated all hotel amenities!');
-
-    } catch (error) {
+      } catch (error) {
       await connection.rollback();
       throw error;
     } finally {
@@ -71,7 +61,6 @@ async function updateHotelAmenities() {
     }
 
   } catch (error) {
-    console.error('Update failed:', error);
     process.exit(1);
   }
 }
@@ -79,10 +68,8 @@ async function updateHotelAmenities() {
 // Run update
 updateHotelAmenities()
   .then(() => {
-    console.log('Update completed successfully');
     process.exit(0);
   })
   .catch(error => {
-    console.error('Update failed:', error);
     process.exit(1);
   }); 

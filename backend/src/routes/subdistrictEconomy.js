@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../db');
+const pool = require('../../db');
 const slugify = require('slugify');
 
 // Get economy info for a subdistrict
@@ -24,7 +24,6 @@ router.get('/:subdistrictId', async (req, res) => {
 
     res.json(economy[0]);
   } catch (error) {
-    console.error('Error fetching economy info:', error);
     res.status(500).json({ message: 'Error fetching economy info' });
   }
 });
@@ -50,7 +49,6 @@ router.get('/by-slug/:slug', async (req, res) => {
 
     res.json(economy[0]);
   } catch (error) {
-    console.error('Error fetching economy info:', error);
     res.status(500).json({ message: 'Error fetching economy info' });
   }
 });
@@ -111,7 +109,6 @@ router.post('/:subdistrictId', async (req, res) => {
 
     res.status(201).json(newEconomy[0]);
   } catch (error) {
-    console.error('Error adding economy info:', error);
     if (error.code === 'ER_DUP_ENTRY') {
       return res.status(400).json({ message: 'Economy info already exists for this subdistrict' });
     }
@@ -187,7 +184,6 @@ router.put('/:economyId', async (req, res) => {
 
     res.json(updatedEconomy[0]);
   } catch (error) {
-    console.error('Error updating economy info:', error);
     if (error.code === 'ER_DUP_ENTRY') {
       return res.status(400).json({ message: 'An economy info with this meta title already exists' });
     }
@@ -211,7 +207,6 @@ router.delete('/:economyId', async (req, res) => {
 
     res.json({ message: 'Economy info deleted successfully' });
   } catch (error) {
-    console.error('Error deleting economy info:', error);
     res.status(500).json({ message: 'Error deleting economy info' });
   }
 });

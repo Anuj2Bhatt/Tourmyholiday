@@ -36,10 +36,8 @@ const Packages = () => {
         throw new Error('Failed to fetch packages');
       }
       const data = await response.json();
-      console.log('Fetched packages data:', data);
       setPackages(data);
     } catch (err) {
-      console.error('Error fetching packages:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -49,8 +47,6 @@ const Packages = () => {
   const filteredPackages = activeCategory === 'All' 
     ? packages 
     : packages.filter(pkg => pkg.category === activeCategory);
-
-  console.log('Filtered packages:', filteredPackages);
 
   const handleCardClick = (slug) => {
     navigate(`/packages/${slug}`);
@@ -94,8 +90,7 @@ const Packages = () => {
                 }
                 alt={pkg.package_name}
                 onError={(e) => {
-                  console.error('Image failed to load:', pkg.featured_image || pkg.image1);
-                  e.target.src = '/placeholder-image.jpg';
+                    e.target.src = '/placeholder-image.jpg';
                 }}
               />
               <div className="category-tag">{pkg.category}</div>

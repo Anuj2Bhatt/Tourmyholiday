@@ -29,7 +29,6 @@ const HomePageGalleryManager = () => {
       }));
       setImages(formattedImages);
     } catch (error) {
-      console.error('Error fetching images:', error);
       setError('Failed to fetch images');
     }
   };
@@ -97,7 +96,6 @@ const HomePageGalleryManager = () => {
       setPreviewUrl(null);
       await fetchImages();
     } catch (error) {
-      console.error('Error saving image:', error);
       setError('Failed to save image. Please try again.');
     } finally {
       setIsLoading(false);
@@ -123,7 +121,6 @@ const HomePageGalleryManager = () => {
         await axios.delete(`http://localhost:5000/api/gallery/${id}`);
         await fetchImages();
       } catch (error) {
-        console.error('Error deleting image:', error);
         setError('Failed to delete image');
       }
     }

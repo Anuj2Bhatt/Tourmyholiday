@@ -49,7 +49,6 @@ exports.getAllTerritories = async (req, res) => {
             data: territoriesWithPaths
         });
     } catch (error) {
-        console.error('Error fetching territories:', error);
         res.status(500).json({
             success: false,
             message: 'Error fetching territories',
@@ -80,7 +79,6 @@ exports.getTerritory = async (req, res) => {
             data: territory
         });
     } catch (error) {
-        console.error('Error fetching territory:', error);
         res.status(500).json({
             success: false,
             message: 'Error fetching territory',
@@ -126,7 +124,6 @@ exports.createTerritory = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Error creating territory:', error);
         res.status(500).json({
             success: false,
             error: error.message
@@ -167,8 +164,7 @@ exports.updateTerritory = async (req, res) => {
                 try {
                     await fs.unlink(oldImagePath);
                 } catch (err) {
-                    console.error('Error deleting old image:', err);
-                }
+                    }
             }
             // Set new image path
             preview_image = getImagePath(req.files.preview_image[0].filename);
@@ -198,7 +194,6 @@ exports.updateTerritory = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Error updating territory:', error);
         res.status(500).json({
             success: false,
             error: error.message
@@ -216,7 +211,7 @@ exports.deleteTerritory = async (req, res) => {
 
         // Check if territory exists and get image paths
         const [territory] = await connection.query(
-            'SELECT id, preview_image, featured_image FROM territories WHERE id = ?', 
+            'SELECT id, preview_image FROM territories WHERE id = ?', 
             [territoryId]
         );
         
@@ -230,8 +225,7 @@ exports.deleteTerritory = async (req, res) => {
 
         // Delete image files if they exist
         const imagePaths = [
-            territory[0].preview_image,
-            territory[0].featured_image
+            territory[0].preview_image
         ].filter(path => path && path !== 'NULL');
 
         for (const imagePath of imagePaths) {
@@ -241,8 +235,7 @@ exports.deleteTerritory = async (req, res) => {
                     await fs.unlink(fullPath);
                 }
             } catch (err) {
-                console.error(`Error deleting image file ${imagePath}:`, err);
-            }
+                }
         }
 
         // First get all district IDs for this territory
@@ -278,8 +271,7 @@ exports.deleteTerritory = async (req, res) => {
                                 await fs.unlink(fullPath);
                             }
                         } catch (err) {
-                            console.error(`Error deleting subdistrict image file ${image.image_url}:`, err);
-                        }
+                            }
                     }
                 }
 
@@ -317,8 +309,7 @@ exports.deleteTerritory = async (req, res) => {
                             await fs.unlink(fullPath);
                         }
                     } catch (err) {
-                        console.error(`Error deleting district image file ${district.featured_image}:`, err);
-                    }
+                        }
                 }
             }
 
@@ -337,8 +328,7 @@ exports.deleteTerritory = async (req, res) => {
                             await fs.unlink(fullPath);
                         }
                     } catch (err) {
-                        console.error(`Error deleting district image file ${image.image_url}:`, err);
-                    }
+                        }
                 }
             }
 
@@ -367,8 +357,7 @@ exports.deleteTerritory = async (req, res) => {
                         await fs.unlink(fullPath);
                     }
                 } catch (err) {
-                    console.error(`Error deleting territory image file ${image.image_url}:`, err);
-                }
+                    }
             }
         }
 
@@ -389,7 +378,6 @@ exports.deleteTerritory = async (req, res) => {
         });
     } catch (error) {
         await connection.rollback();
-        console.error('Error deleting territory:', error);
         res.status(500).json({
             success: false,
             message: 'Error deleting territory',
@@ -418,7 +406,6 @@ exports.getTerritoryBySlug = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Error fetching territory by slug:', error);
         res.status(500).json({
             success: false,
             message: 'Error fetching territory',

@@ -55,7 +55,6 @@ router.get('/', async (req, res) => {
         // Always return an array
         res.json(Array.isArray(categories) ? categories : []);
     } catch (error) {
-        console.error('Error fetching hotel categories:', error);
         res.status(500).json({ message: 'Error fetching hotel categories' });
     }
 });
@@ -74,15 +73,12 @@ router.get('/:id', async (req, res) => {
         };
         res.json(mappedCategory);
     } catch (error) {
-        console.error('Error fetching hotel category:', error);
         res.status(500).json({ message: 'Error fetching hotel category' });
     }
 });
 
 // Create new hotel category
 router.post('/', async (req, res) => {
-    console.log('POST /api/hotel-categories req.headers:', req.headers);
-    console.log('POST /api/hotel-categories req.body:', req.body);
     const { name, is_active = true, image, type } = req.body;
     if (!image) {
         return res.status(400).json({ message: 'Image is required' });
@@ -105,7 +101,6 @@ router.post('/', async (req, res) => {
             updated_at: new Date()
         });
     } catch (error) {
-        console.error('Error creating hotel category:', error);
         if (error.code === 'ER_DUP_ENTRY') {
             return res.status(400).json({ message: 'Category name already exists' });
         }
@@ -115,8 +110,6 @@ router.post('/', async (req, res) => {
 
 // Update hotel category
 router.put('/:id', async (req, res) => {
-    console.log('PUT /api/hotel-categories req.headers:', req.headers);
-    console.log('PUT /api/hotel-categories req.body:', req.body);
     const { name, is_active, image, type } = req.body;
     if (!type) {
         return res.status(400).json({ message: 'Type is required' });
@@ -139,7 +132,6 @@ router.put('/:id', async (req, res) => {
             image: image ? (image.startsWith('http') ? image : `http://localhost:5000/${image}`) : null
         });
     } catch (error) {
-        console.error('Error updating hotel category:', error);
         if (error.code === 'ER_DUP_ENTRY') {
             return res.status(400).json({ message: 'Category name already exists' });
         }
@@ -159,7 +151,6 @@ router.delete('/:id', async (req, res) => {
         }
         res.json({ message: 'Category deleted successfully' });
     } catch (error) {
-        console.error('Error deleting hotel category:', error);
         res.status(500).json({ message: 'Error deleting hotel category' });
     }
 });

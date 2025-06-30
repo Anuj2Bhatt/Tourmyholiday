@@ -35,7 +35,6 @@ const HotelSelector = ({ selectedHotels = [], onHotelsChange }) => {
       setHotels(response.data);
       setError(null);
     } catch (err) {
-      console.error('Error fetching hotels:', err);
       setError('Failed to fetch hotels. Please try again.');
     } finally {
       setLoading(false);
@@ -47,8 +46,7 @@ const HotelSelector = ({ selectedHotels = [], onHotelsChange }) => {
       const response = await axios.get('http://localhost:5000/api/states');
       setStates(response.data);
     } catch (err) {
-      console.error('Error fetching states:', err);
-    }
+      }
   };
 
   const filteredHotels = hotels.filter(hotel => {

@@ -93,7 +93,6 @@ router.get('/', async (req, res) => {
 
     res.json(result);
   } catch (error) {
-    console.error('Error fetching all institutions:', error);
     res.status(500).json({ message: 'Error fetching institutions' });
   }
 });
@@ -132,7 +131,6 @@ router.get('/subdistrict/:subdistrictId', async (req, res) => {
 
     res.json(result);
   } catch (error) {
-    console.error('Error fetching institutions:', error);
     res.status(500).json({ message: 'Error fetching institutions' });
   }
 });
@@ -141,9 +139,6 @@ router.get('/subdistrict/:subdistrictId', async (req, res) => {
 router.post('/', upload, async (req, res) => {
   try {
     // Debug: Log request body and files
-    console.log('Request body:', req.body);
-    console.log('Request files:', req.files);
-
     const {
       subdistrict_id,
       territory_subdistrict_id,
@@ -328,7 +323,6 @@ router.post('/', upload, async (req, res) => {
     if (req.files?.featured_image?.[0]) {
       fs.unlinkSync(path.join(__dirname, '..', 'uploads', req.files.featured_image[0].filename));
     }
-    console.error('Error creating institution:', error);
     res.status(500).json({ 
       message: 'Error creating institution', 
       error: error.message,
@@ -510,9 +504,6 @@ router.put('/:id', upload, async (req, res) => {
     // Add the id to the values array for the WHERE clause
     values.push(id);
 
-    console.log('Update query:', updateQuery);
-    console.log('Values:', values);
-
     await pool.query(updateQuery, values);
 
     res.json({ 
@@ -528,7 +519,6 @@ router.put('/:id', upload, async (req, res) => {
     if (req.files?.featured_image?.[0]) {
       fs.unlinkSync(path.join(__dirname, '..', 'uploads', req.files.featured_image[0].filename));
     }
-    console.error('Error updating institution:', error);
     res.status(500).json({ 
       message: 'Error updating institution', 
       error: error.message,
@@ -573,7 +563,6 @@ router.delete('/:id', async (req, res) => {
     await pool.query(`DELETE FROM ${table} WHERE id = ?`, [id]);
     res.json({ message: 'Institution deleted successfully' });
   } catch (error) {
-    console.error('Error deleting institution:', error);
     res.status(500).json({ message: 'Error deleting institution' });
   }
 });

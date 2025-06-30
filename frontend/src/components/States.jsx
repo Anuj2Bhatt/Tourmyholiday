@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { getImageUrl } from '../utils/imageUtils';
 import './States.css';
 
 const States = () => {
@@ -22,11 +23,17 @@ const States = () => {
   const fetchStates = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/states');
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/states`);
       if (!response.ok) {
         throw new Error('Failed to fetch states');
       }
       let data = await response.json();
+      
+      // Debug logging
+      console.log('🔍 Backend Response:', data);
+      console.log('🔍 First state image path:', data[0]?.image);
+      console.log('🔍 First state image URL:', getImageUrl(data[0]?.image));
+      
       data = data
         .map(state => ({
           ...state,
@@ -37,7 +44,6 @@ const States = () => {
         .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
       setStates(data);
     } catch (err) {
-      console.error('Error fetching states:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -82,16 +88,24 @@ const States = () => {
       </div>
       
       <div className="states-grid">
-        {states.map((state) => (
+        {states.map((state) => {
+          const imageUrl = getImageUrl(state.image, '/images/placeholder.jpg');
+          console.log(`🔍 State: ${state.name}, Image URL: ${imageUrl}`);
+          
+          return (
           <div key={state.id} className="states-page-card">
             <div className="states-page-image">
               <img 
-                src={state.image?.startsWith('http') ? state.image : `http://localhost:5000${state.image}`}
+                  src={imageUrl}
                 alt={state.name}
                 onError={(e) => {
+                    console.log('❌ Image failed to load:', e.target.src);
                   e.target.onerror = null;
                   e.target.src = '/images/placeholder.jpg';
                 }}
+                  onLoad={() => {
+                    console.log('✅ Image loaded successfully:', imageUrl);
+                  }}
               />
               <button 
                 className={`states-page-like-button ${likedStates[state.id] ? 'liked' : ''}`}
@@ -131,7 +145,8 @@ const States = () => {
               </Link>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

@@ -14,7 +14,6 @@ router.get('/hotel/:hotelId', async (req, res) => {
         `, [req.params.hotelId]);
         res.json(rooms);
     } catch (error) {
-        console.error('Error fetching hotel rooms:', error);
         res.status(500).json({ message: 'Error fetching hotel rooms' });
     }
 });
@@ -46,7 +45,6 @@ router.get('/:id', async (req, res) => {
             amenities
         });
     } catch (error) {
-        console.error('Error fetching room:', error);
         res.status(500).json({ message: 'Error fetching room' });
     }
 });
@@ -105,7 +103,6 @@ router.post('/', async (req, res) => {
         });
     } catch (error) {
         await db.rollback();
-        console.error('Error creating room:', error);
         res.status(500).json({ message: 'Error creating room' });
     }
 });
@@ -168,7 +165,6 @@ router.put('/:id', async (req, res) => {
         });
     } catch (error) {
         await db.rollback();
-        console.error('Error updating room:', error);
         res.status(500).json({ message: 'Error updating room' });
     }
 });
@@ -188,7 +184,6 @@ router.delete('/:id', async (req, res) => {
         res.json({ message: 'Room deleted successfully' });
     } catch (error) {
         await db.rollback();
-        console.error('Error deleting room:', error);
         res.status(500).json({ message: 'Error deleting room' });
     }
 });
@@ -212,7 +207,6 @@ router.get('/:id/availability', async (req, res) => {
         const isAvailable = bookings.length === 0;
         res.json({ isAvailable, bookings });
     } catch (error) {
-        console.error('Error checking room availability:', error);
         res.status(500).json({ message: 'Error checking room availability' });
     }
 });

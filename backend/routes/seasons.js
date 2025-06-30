@@ -7,7 +7,6 @@ const fs = require('fs');
 
 // Simple test route
 router.get('/ping', (req, res) => {
-  console.log('Ping received!');
   res.json({ message: 'pong' });
 });
 
@@ -46,10 +45,8 @@ const upload = multer({
 router.get('/test', async (req, res) => {
   try {
     const [result] = await pool.query('SELECT 1 as test');
-    console.log('Database connection test result:', result);
     res.json({ message: 'Database connection successful', result });
   } catch (error) {
-    console.error('Database connection test failed:', error);
     res.status(500).json({ 
       error: 'Database connection failed', 
       details: error.message 
@@ -61,14 +58,9 @@ router.get('/test', async (req, res) => {
 router.get('/district/:districtId', async (req, res) => {
   try {
     const { districtId } = req.params;
-    console.log('Fetching seasons for district:', districtId);
-    
     // First check if the district exists
     const [district] = await pool.query('SELECT id, name FROM districts WHERE id = ?', [districtId]);
-    console.log('District query result:', district);
-    
     if (district.length === 0) {
-      console.log('District not found:', districtId);
       return res.status(404).json({ error: 'District not found' });
     }
     
@@ -77,10 +69,8 @@ router.get('/district/:districtId', async (req, res) => {
       [districtId]
     );
     
-    console.log('Found seasons:', seasons);
     res.json(seasons);
   } catch (error) {
-    console.error('Error fetching seasons:', error);
     res.status(500).json({ 
       error: 'Failed to fetch seasons', 
       details: error.message,
@@ -93,12 +83,9 @@ router.get('/district/:districtId', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { district_id, season_name } = req.body;
-    console.log('Creating season:', { district_id, season_name });
-    
     // Check if district exists
     const [district] = await pool.query('SELECT id FROM districts WHERE id = ?', [district_id]);
     if (district.length === 0) {
-      console.log('District not found:', district_id);
       return res.status(404).json({ error: 'District not found' });
     }
     
@@ -109,7 +96,6 @@ router.post('/', async (req, res) => {
     );
     
     if (existing.length > 0) {
-      console.log('Season already exists');
       return res.status(400).json({ error: 'This season already exists for this district' });
     }
     
@@ -118,7 +104,6 @@ router.post('/', async (req, res) => {
       [district_id, season_name]
     );
     
-    console.log('Created season:', result.insertId);
     res.status(201).json({ 
       id: result.insertId, 
       district_id, 
@@ -127,7 +112,6 @@ router.post('/', async (req, res) => {
       updated_at: new Date()
     });
   } catch (error) {
-    console.error('Error creating season:', error);
     res.status(500).json({ 
       error: 'Failed to create season', 
       details: error.message,
@@ -149,7 +133,6 @@ router.put('/:id', async (req, res) => {
     
     res.json({ id, season_name });
   } catch (error) {
-    console.error('Error updating season:', error);
     res.status(500).json({ error: 'Failed to update season' });
   }
 });
@@ -167,7 +150,6 @@ router.delete('/:id', async (req, res) => {
     
     res.json({ message: 'Season deleted successfully' });
   } catch (error) {
-    console.error('Error deleting season:', error);
     res.status(500).json({ error: 'Failed to delete season' });
   }
 });

@@ -5,12 +5,13 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// Database connection pool (reuse your config)
+// Database connection pool using environment variables
 const pool = mysql.createPool({
-  host: 'localhost',
-  user: 'root',
-  password: '',
-  database: 'tourmyholiday'
+  host: process.env.DB_HOST || 'localhost',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || '',
+  database: process.env.DB_NAME || 'tourmyholiday',
+  port: process.env.DB_PORT || 3306
 });
 
 // Multer setup for image upload
@@ -45,7 +46,6 @@ router.get('/:stateId', async (req, res) => {
     }));
     res.json(images);
   } catch (error) {
-    console.error('Error fetching state images:', error);
     res.status(500).json({ error: 'Failed to fetch state images' });
   }
 });
@@ -71,7 +71,6 @@ router.post('/', upload.single('image'), async (req, res) => {
       alt 
     });
   } catch (error) {
-    console.error('Error uploading state image:', error);
     res.status(500).json({ error: 'Failed to upload state image' });
   }
 });
@@ -85,7 +84,6 @@ router.delete('/:id', async (req, res) => {
     connection.release();
     res.json({ message: 'Image deleted successfully' });
   } catch (error) {
-    console.error('Error deleting state image:', error);
     res.status(500).json({ error: 'Failed to delete state image' });
   }
 });

@@ -1,38 +1,29 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../db');
+const pool = require('../../db');
 const slugify = require('slugify');
 
 // Get education institutions for a subdistrict
 router.get('/subdistrict/:subdistrictId', async (req, res) => {
   try {
     const { subdistrictId } = req.params;
-    console.log('\n=== Starting Education Institutions Fetch ===');
-    console.log('Requested subdistrict ID:', subdistrictId, 'Type:', typeof subdistrictId);
-
     // First check if the subdistrict exists
-    console.log('\n1. Checking if subdistrict exists...');
     const [subdistrict] = await pool.query(
       'SELECT id, name, slug FROM subdistricts WHERE id = ?',
       [subdistrictId]
     );
-    console.log('Subdistrict query result:', JSON.stringify(subdistrict, null, 2));
 
     if (subdistrict.length === 0) {
-      console.log('Subdistrict not found in database');
       return res.json({ education: [], healthcare: [] });
     }
 
     // Direct check for the specific entry we know exists
-    console.log('\n2. Direct check for entry with ID 10...');
     const [specificEntry] = await pool.query(`
       SELECT * FROM state_education_institutions 
       WHERE id = 10 AND subdistrict_id = ?
     `, [subdistrictId]);
-    console.log('Specific entry check:', JSON.stringify(specificEntry, null, 2));
 
     // Check all possible variations of the subdistrict_id
-    console.log('\n3. Checking for institutions with different subdistrict_id formats...');
     const [institutionsCheck] = await pool.query(`
       SELECT id, subdistrict_id, name, type, status, 
              CAST(subdistrict_id AS CHAR) as subdistrict_id_str,
@@ -43,42 +34,29 @@ router.get('/subdistrict/:subdistrictId', async (req, res) => {
          OR subdistrict_id = CAST(? AS SIGNED)
          OR id = 10
     `, [subdistrictId, subdistrictId, subdistrictId]);
-    console.log('Institutions check results:', JSON.stringify(institutionsCheck, null, 2));
 
     // Get education institutions with detailed logging
-    console.log('\n4. Executing main query for institutions...');
     const query = `
       SELECT * FROM state_education_institutions 
       WHERE (subdistrict_id = ? OR id = 10)
       AND (status = 'active' OR status IS NULL)
       ORDER BY name ASC
     `;
-    console.log('Query:', query);
-    console.log('Query parameters:', [subdistrictId]);
-    
     const [institutions] = await pool.query(query, [subdistrictId]);
-    console.log('Main query results:', JSON.stringify(institutions, null, 2));
-    console.log('Number of institutions found:', institutions.length);
-
+    
     if (institutions.length === 0) {
-      console.log('\n5. No institutions found in main query, checking database state...');
-      
       // Check total count of institutions
       const [countResult] = await pool.query('SELECT COUNT(*) as total FROM state_education_institutions');
-      console.log('Total institutions in database:', countResult[0].total);
-      
       // Check the specific entry we know exists
       const [entryCheck] = await pool.query(`
         SELECT * FROM state_education_institutions 
         WHERE id = 10
       `);
-      console.log('Entry with ID 10:', JSON.stringify(entryCheck, null, 2));
       
       // Check table structure
       const [tableInfo] = await pool.query(`
         DESCRIBE state_education_institutions
       `);
-      console.log('Table structure:', JSON.stringify(tableInfo, null, 2));
 
       // Check for any data type issues
       const [typeCheck] = await pool.query(`
@@ -92,7 +70,6 @@ router.get('/subdistrict/:subdistrictId', async (req, res) => {
         FROM state_education_institutions 
         WHERE id = 10
       `);
-      console.log('Type check for entry:', JSON.stringify(typeCheck, null, 2));
     }
 
     // Format the response to match what the frontend expects
@@ -127,14 +104,8 @@ router.get('/subdistrict/:subdistrictId', async (req, res) => {
       healthcare: []
     };
 
-    console.log('\n6. Sending formatted response:', JSON.stringify(formattedResponse, null, 2));
-    console.log('=== End of Education Institutions Fetch ===\n');
     res.json(formattedResponse);
   } catch (error) {
-    console.error('\n=== Error in Education Institutions Fetch ===');
-    console.error('Error message:', error.message);
-    console.error('Error stack:', error.stack);
-    console.error('=== End of Error Log ===\n');
     res.status(500).json({ message: 'Error fetching education institutions' });
   }
 });
@@ -204,7 +175,6 @@ router.post('/', async (req, res) => {
 
     res.status(201).json(newInstitution[0]);
   } catch (error) {
-    console.error('Error adding state education institution:', error);
     res.status(500).json({ message: 'Error adding state education institution' });
   }
 });
@@ -296,7 +266,6 @@ router.put('/:id', async (req, res) => {
 
     res.json(updatedInstitution[0]);
   } catch (error) {
-    console.error('Error updating state education institution:', error);
     res.status(500).json({ message: 'Error updating state education institution' });
   }
 });
@@ -317,7 +286,6 @@ router.delete('/:id', async (req, res) => {
 
     res.json({ message: 'Education institution deleted successfully' });
   } catch (error) {
-    console.error('Error deleting state education institution:', error);
     res.status(500).json({ message: 'Error deleting state education institution' });
   }
 });

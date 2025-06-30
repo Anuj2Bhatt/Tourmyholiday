@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './StateImages.css';
+import { API_BASE_URL } from '../config';
 
 const StateImages = ({ stateId }) => {
   const [images, setImages] = useState([]);
@@ -10,21 +11,23 @@ const StateImages = ({ stateId }) => {
   useEffect(() => {
     const fetchImages = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/states/images/${stateId}`);
+        setLoading(true);
+        const response = await fetch(`${API_BASE_URL}/states/images/${stateId}`);
         if (!response.ok) {
           throw new Error('Failed to fetch images');
         }
         const data = await response.json();
-        setImages(data || []);
-        setLoading(false);
+        setImages(data);
       } catch (err) {
-        console.error('Error fetching images:', err);
-        setImages([]); // Set empty array on error
+        setError(err.message);
+      } finally {
         setLoading(false);
       }
     };
 
-    fetchImages();
+    if (stateId) {
+      fetchImages();
+    }
   }, [stateId]);
 
   const nextSlide = () => {
