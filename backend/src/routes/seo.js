@@ -4,7 +4,7 @@ const axios = require('axios');
 
 // Environment variables
 const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY;
-const HUGGINGFACE_API_KEY = process.env.HUGGINGFACE_API_KEY;
+// const HUGGINGFACE_API_KEY = process.env.HUGGINGFACE_API_KEY; // Disabled for security
 
 // Helper functions
 const calculateReadabilityScore = (text) => {
@@ -235,24 +235,24 @@ router.post('/analyze', async (req, res) => {
       });
     }
 
-    // Get content analysis from Hugging Face
-    const response = await axios.post(
-      'https://api-inference.huggingface.co/models/facebook/bart-large-cnn',
-      {
-        inputs: `Analyze this content for SEO: ${content.substring(0, 500)}... Keywords: ${keywords.join(', ')}`,
-      },
-      {
-        headers: {
-          'Authorization': `Bearer ${HUGGINGFACE_API_KEY}`,
-        },
-      }
-    );
+    // Get content analysis from Hugging Face - Disabled for security
+    // const response = await axios.post(
+    //   'https://api-inference.huggingface.co/models/facebook/bart-large-cnn',
+    //   {
+    //     inputs: `Analyze this content for SEO: ${content.substring(0, 500)}... Keywords: ${keywords.join(', ')}`,
+    //   },
+    //   {
+    //     headers: {
+    //       'Authorization': `Bearer ${HUGGINGFACE_API_KEY}`,
+    //   },
+    //   }
+    // );
 
     // Basic SEO analysis
     const analysis = {
       readability: calculateReadabilityScore(content),
       keywordDensity: calculateKeywordDensity(content, keywords),
-      suggestions: response.data[0].summary_text,
+      suggestions: 'Consider adding more relevant keywords and improving content structure.',
       score: calculateContentScore(content, keywords)
     };
 

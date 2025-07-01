@@ -178,40 +178,40 @@ const generateBasicMetaDescription = (content, title) => {
   }));
 };
 
-// Hugging Face API कॉल्स के लिए नया फंक्शन
-const callHuggingFaceAPI = async (prompt, model = 'gpt2') => {
-  try {
-    if (!HUGGINGFACE_API_KEY) {
-      throw new Error('HUGGINGFACE_API_KEY is not set');
-    }
+// Hugging Face API कॉल्स के लिए नया फंक्शन - Disabled for security
+// const callHuggingFaceAPI = async (prompt, model = 'gpt2') => {
+//   try {
+//     if (!HUGGINGFACE_API_KEY) {
+//       throw new Error('HUGGINGFACE_API_KEY is not set');
+//     }
 
-    const response = await axios.post(
-      `https://api-inference.huggingface.co/models/${model}`,
-      {
-        inputs: prompt,
-        parameters: {
-          max_length: 150,
-          temperature: 0.7,
-          return_full_text: false
-        }
-      },
-      {
-        headers: {
-          'Authorization': `Bearer ${HUGGINGFACE_API_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
+//     const response = await axios.post(
+//       `https://api-inference.huggingface.co/models/${model}`,
+//       {
+//         inputs: prompt,
+//         parameters: {
+//           max_length: 150,
+//           temperature: 0.7,
+//           return_full_text: false
+//         }
+//       },
+//       {
+//         headers: {
+//           'Authorization': `Bearer ${HUGGINGFACE_API_KEY}`,
+//           'Content-Type': 'application/json'
+//         }
+//       }
+//     );
 
-    if (!response.data || !response.data[0]) {
-      throw new Error('Invalid response from Hugging Face API');
-    }
+//     if (!response.data || !response.data[0]) {
+//       throw new Error('Invalid response from Hugging Face API');
+//     }
 
-    return response.data[0].generated_text || response.data[0].summary_text;
-  } catch (error) {
-    throw error;
-  }
-};
+//     return response.data[0].generated_text || response.data[0].summary_text;
+//   } catch (error) {
+//     throw error;
+//   }
+// };
 
 // कीवर्ड सजेशन्स फंक्शन अपडेट करें
 export const getKeywordSuggestions = async (title) => {
@@ -305,33 +305,13 @@ export const getKeywordSuggestions = async (title) => {
 export const analyzeContent = async (content, keywords) => {
   try {
     // अगर API keys नहीं हैं तो बेसिक एनालिसिस दें
-    if (!HUGGINGFACE_API_KEY) {
-      return {
-        readability: calculateReadabilityScore(content),
-        keywordDensity: calculateKeywordDensity(content, keywords),
-        suggestions: 'Consider adding more relevant keywords and improving content structure.',
-        score: calculateContentScore(content, keywords)
-      };
-    }
-
-    const prompt = `Analyze this travel content for SEO: ${content.substring(0, 200)}... Keywords: ${keywords.join(', ')}`;
-    
-    try {
-      const analysis = await callHuggingFaceAPI(prompt, 'facebook/bart-large-cnn');
-      return {
-        readability: calculateReadabilityScore(content),
-        keywordDensity: calculateKeywordDensity(content, keywords),
-        suggestions: analysis,
-        score: calculateContentScore(content, keywords)
-      };
-    } catch (huggingFaceError) {
-      return {
-        readability: calculateReadabilityScore(content),
-        keywordDensity: calculateKeywordDensity(content, keywords),
-        suggestions: 'Consider adding more relevant keywords and improving content structure.',
-        score: calculateContentScore(content, keywords)
-      };
-    }
+    // Hugging Face API disabled for security
+    return {
+      readability: calculateReadabilityScore(content),
+      keywordDensity: calculateKeywordDensity(content, keywords),
+      suggestions: 'Consider adding more relevant keywords and improving content structure.',
+      score: calculateContentScore(content, keywords)
+    };
   } catch (error) {
     return {
       readability: calculateReadabilityScore(content),
