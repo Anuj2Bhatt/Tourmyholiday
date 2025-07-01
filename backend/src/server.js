@@ -290,6 +290,15 @@ app.get('/test', (req, res) => {
   res.json({ message: 'Server is running' });
 });
 
+// Health check endpoint for Railway
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'OK', 
+    message: 'TourMyHoliday API is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   res.status(500).json({

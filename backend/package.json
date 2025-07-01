@@ -6,7 +6,18 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "migrate:villages": "node src/database/migrate.js"
+    "migrate:villages": "node src/database/migrate.js",
+    "migrate": "node migrate.js",
+    "migrate:all": "node migrate.js",
+    "migrate:list": "node migrate.js --list",
+    "migrate:specific": "node migrate.js --specific",
+    "migrate:hotels": "node migrations/migrate-hotel-amenities.js && node migrations/update-hotel-amenities.js",
+    "migrate:culture": "node migrations/create-india-culture-info-table.js",
+    "migrate:bonfire": "node migrations/add-default-bonfire.js",
+    "migrate:fix": "node migrations/fix-amenities.js",
+    "migrate:database": "node database/migrations/20240320_add_highlights_to_villages.js && node database/migrations/20240320_fix_highlights_column.js && node database/migrations/20240320_fix_highlights_constraint.js && node database/migrations/20240320_update_villages_images.js && node database/migrations/20240321_update_state_foreign_keys.js",
+    "migrate:reset": "npm run migrate:all && npm run migrate:database",
+    "db:setup": "npm run migrate:reset"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
