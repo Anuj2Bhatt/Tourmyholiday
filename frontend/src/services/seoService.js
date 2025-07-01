@@ -2,7 +2,7 @@ import axios from 'axios';
 import { GoogleTrends } from 'google-trends-api';
 
 const RAPIDAPI_KEY = process.env.REACT_APP_RAPIDAPI_KEY;
-const HUGGINGFACE_API_KEY = process.env.REACT_APP_HUGGINGFACE_API_KEY;
+// const HUGGINGFACE_API_KEY = process.env.REACT_APP_HUGGINGFACE_API_KEY; // Disabled for security
 const GOOGLE_TRENDS_API_KEY = process.env.REACT_APP_GOOGLE_TRENDS_API_KEY;
 
   
@@ -81,27 +81,28 @@ export const testApiKeys = async () => {
     results.rapidApi.error = 'RAPIDAPI_KEY is not set';
   }
 
-  // Hugging Face टेस्ट
-  if (HUGGINGFACE_API_KEY) {
-    try {
-      const response = await axios.post(
-        'https://api-inference.huggingface.co/models/facebook/bart-large-cnn',
-        {
-          inputs: 'Test input for API validation'
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${HUGGINGFACE_API_KEY}`
-          }
-        }
-      );
-      results.huggingFace.valid = response.status === 200;
-    } catch (error) {
-      results.huggingFace.error = error.response?.data?.error || error.message;
-    }
-  } else {
-    results.huggingFace.error = 'HUGGINGFACE_API_KEY is not set';
-  }
+  // Hugging Face टेस्ट - Disabled for security
+  // if (HUGGINGFACE_API_KEY) {
+  //   try {
+  //     const response = await axios.post(
+  //       'https://api-inference.huggingface.co/models/facebook/bart-large-cnn',
+  //       {
+  //         inputs: 'Test input for API validation'
+  //       },
+  //       {
+  //         headers: {
+  //           'Authorization': `Bearer ${HUGGINGFACE_API_KEY}`
+  //         }
+  //       }
+  //     );
+  //     results.huggingFace.valid = response.status === 200;
+  //   } catch (error) {
+  //     results.huggingFace.error = error.response?.data?.error || error.message;
+  //   }
+  // } else {
+  //   results.huggingFace.error = 'HUGGINGFACE_API_KEY is not set';
+  // }
+  results.huggingFace.error = 'Hugging Face API disabled for security';
 
   // Google Trends टेस्ट
   if (GOOGLE_TRENDS_API_KEY) {

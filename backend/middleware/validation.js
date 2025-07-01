@@ -1,3 +1,5 @@
+const { body, validationResult } = require('express-validator');
+
 const validateAccommodation = (req, res, next) => {
   try {
     const {
@@ -98,6 +100,90 @@ const validateAccommodation = (req, res, next) => {
   }
 };
 
+// Sanitize and validate input
+const sanitizeInput = (req, res, next) => {
+  // Remove any script tags or dangerous content
+  if (req.body) {
+    Object.keys(req.body).forEach(key => {
+      if (typeof req.body[key] === 'string') {
+        req.body[key] = req.body[key]
+          .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+          .replace(/javascript:/gi, '')
+          .replace(/on\w+\s*=/gi, '');
+      }
+    });
+  }
+  next();
+};
+
+// Validate file upload
+const validateFileUpload = (req, res, next) => {
+  if (!req.file && !req.files) {
+    return next();
+  }
+  
+  const files = req.files || [req.file];
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+  const maxSize = 5 * 1024 * 1024; // 5MB
+  
+  for (const file of files) {
+    if (!allowedTypes.includes(file.mimetype)) {
+      return res.status(400).json({ 
+        error: 'Invalid file type. Only images are allowed.' 
+      });
+    }
+    
+    if (file.size > maxSize) {
+      return res.status(400).json({ 
+        error: 'File too large. Maximum size is 5MB.' 
+      });
+    }
+  }
+  
+  next();
+};
+
+// Validate ID parameter
+const validateId = (req, res, next) => {
+  const id = req.params.id || req.params.territoryId || req.params.stateId || req.params.districtId;
+  
+  if (id && !/^\d+$/.test(id)) {
+    return res.status(400).json({ error: 'Invalid ID format' });
+  }
+  
+  next();
+};
+
+// Validate slug
+const validateSlug = (req, res, next) => {
+  const slug = req.body.slug || req.params.slug;
+  
+  if (slug && !/^[a-z0-9-]+$/.test(slug)) {
+    return res.status(400).json({ 
+      error: 'Invalid slug format. Use only lowercase letters, numbers, and hyphens.' 
+    });
+  }
+  
+  next();
+};
+
+// Check validation results
+const checkValidationResult = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ 
+      error: 'Validation failed', 
+      details: errors.array() 
+    });
+  }
+  next();
+};
+
 module.exports = {
-  validateAccommodation
+  validateAccommodation,
+  sanitizeInput,
+  validateFileUpload,
+  validateId,
+  validateSlug,
+  checkValidationResult
 }; 

@@ -45,15 +45,17 @@ const upload = multer({
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:3001', 'http://localhost:3000', 'http://127.0.0.1:3000'],
+  origin: process.env.NODE_ENV === 'production' 
+    ? [process.env.FRONTEND_URL, process.env.ADMIN_URL] 
+    : ['http://localhost:3001', 'http://localhost:3000', 'http://127.0.0.1:3000'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Security middleware with image serving exceptions
+// Enhanced Security middleware
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
   contentSecurityPolicy: {
@@ -62,8 +64,20 @@ app.use(helmet({
       imgSrc: ["'self'", "data:", "blob:", "http:", "https:"],
       styleSrc: ["'self'", "'unsafe-inline'"],
       scriptSrc: ["'self'"],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
     },
   },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true
+  },
+  noSniff: true,
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' }
 }));
 
 // Rate limiting
@@ -111,15 +125,23 @@ app.use('/uploads', express.static(path.join(__dirname, '../../../uploads'), {
   }
 }));
 
-// Add debug logging for routes
-app.use((req, res, next) => {
-  if (req.url.startsWith('/uploads/')) {
-    const requestedFile = req.url.replace('/uploads/', '');
-    const filePath = path.join(uploadsDir, requestedFile);
-    // Debug logging removed for production
-  }
-  next();
-});
+// Add security headers and input validation
+const { sanitizeInput, validateFileUpload, validateId } = require('../middleware/validation');
+
+// Apply input sanitization to all routes
+app.use(sanitizeInput);
+
+// Add debug logging for routes (only in development)
+if (process.env.NODE_ENV === 'development') {
+  app.use((req, res, next) => {
+    if (req.url.startsWith('/uploads/')) {
+      const requestedFile = req.url.replace('/uploads/', '');
+      const filePath = path.join(uploadsDir, requestedFile);
+      console.log('File requested:', requestedFile);
+    }
+    next();
+  });
+}
 
 // Swagger documentation setup
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
@@ -1776,4 +1798,4 @@ app.post('/api/tourism', upload.array('images', 5), async (req, res) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, async () => {
   await runMigrations(); // Run migrations when server starts
-}); 
+});
